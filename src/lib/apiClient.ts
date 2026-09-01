@@ -2,6 +2,7 @@ import { env } from "./env";
 import { getSelectedProjectId } from "./project";
 import { performAutoLogout, isPublicRoute } from "./logout";
 import { setAuthSessionExpired } from "./authSession";
+import { notifyProjectAccessRestricted } from "./projectAccessRestriction";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -134,6 +135,20 @@ export class ApiClient {
           data,
         });
 
+        const errorCode = typeof data?.code === "string" ? data.code : undefined;
+        const pathname = typeof window !== "undefined" ? window.location.pathname || "/" : "/";
+
+        if (
+          res.status === 403 &&
+          errorCode === "IP_NOT_ALLOWED" &&
+          pathname !== "/projects"
+        ) {
+          const selectedProjectId = getSelectedProjectId();
+          if (selectedProjectId) {
+            notifyProjectAccessRestricted(selectedProjectId);
+          }
+        }
+
         // 401 에러 처리: 프록시에서 refresh를 시도했지만 실패한 경우
         if (res.status === 401) {
           // 프록시가 refresh를 시도했는지 확인
@@ -160,7 +175,6 @@ export class ApiClient {
           // 2. suppressAutoLogout이 false
           // 3. 공개 경로가 아님 (로그인/회원가입 등 — 미들웨어가 인증 처리)
           // 4. 프록시가 refresh 시도 후 실패했거나, refresh를 시도하지 못한 경우
-          const pathname = typeof window !== "undefined" ? window.location.pathname || "/" : "/";
           const onPublicRoute = isPublicRoute(pathname);
           const shouldLogout = !isMemberSenderNumberRegistration && 
             !isIdentityVerificationError &&

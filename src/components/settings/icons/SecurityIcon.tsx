@@ -1,0 +1,26 @@
+interface SecurityIconProps {
+  isActive: boolean;
+}
+
+export default function SecurityIcon({ isActive }: SecurityIconProps) {
+  const stroke = isActive ? "#00B55B" : "#B0B0B0";
+
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden="true"
+    >
+      <rect x="3.5" y="8.5" width="13" height="9" rx="2" stroke={stroke} strokeWidth="1.5" />
+      <path
+        d="M6.5 8.5V6.5C6.5 4.567 8.067 3 10 3C11.933 3 13.5 4.567 13.5 6.5V8.5"
+        stroke={stroke}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path d="M10 12V14" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}

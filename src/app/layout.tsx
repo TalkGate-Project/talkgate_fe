@@ -10,6 +10,7 @@ import AuthSessionWatcher from "../components/common/AuthSessionWatcher";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import ErrorFeedbackModalProvider from "@/providers/ErrorFeedbackModalProvider";
 import ConfirmModalProvider from "@/providers/ConfirmModalProvider";
+import ProjectAccessRestrictionGuard from "@/components/common/ProjectAccessRestrictionGuard";
 import PersistentModalProvider from "@/providers/PersistentModalProvider";
 import ToastNotificationProvider from "@/providers/ToastNotificationProvider";
 import NotificationProvider from "@/providers/NotificationProvider";
@@ -103,6 +104,7 @@ export default async function RootLayout({
             <PersistentModalProvider>
               <ToastNotificationProvider>
                 <ReactQueryProvider>
+                  <ProjectAccessRestrictionGuard />
                   <DemoModeProvider>
                     <CustomerModalProvider>
                       <NotificationProvider>

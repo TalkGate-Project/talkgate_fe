@@ -3,6 +3,7 @@ import type { MemberRole } from "@/types/members";
 
 export type SettingsTab =
   | "general"
+  | "security"
   | "profile"
   | "consultation-channel"
   | "sender-numbers"
@@ -42,6 +43,7 @@ import SenderNumberIcon from "./icons/SenderNumberIcon";
 import SmsHistoryIcon from "./icons/SmsHistoryIcon";
 import SmsIcon from "./icons/SmsIcon";
 import PartnerRegistrationIcon from "./icons/PartnerRegistrationIcon";
+import SecurityIcon from "./icons/SecurityIcon";
 
 export const SETTINGS_ITEMS: SettingsSidebarItem[] = [
   {
@@ -49,6 +51,15 @@ export const SETTINGS_ITEMS: SettingsSidebarItem[] = [
     label: "일반",
     icon: GeneralIcon,
     // 일반 탭은 어드민/서브어드민 접근 가능
+    canAccess: ({ role, isLoading }) => {
+      if (isLoading) return false;
+      return hasAdminAccess(role);
+    },
+  },
+  {
+    key: "security",
+    label: "보안",
+    icon: SecurityIcon,
     canAccess: ({ role, isLoading }) => {
       if (isLoading) return false;
       return hasAdminAccess(role);
