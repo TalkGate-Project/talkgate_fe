@@ -57,7 +57,7 @@ async function verifyProjectAccessDirect(projectId: number): Promise<void> {
         "x-project-id": String(projectId),
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
-      credentials: "include",
+      credentials: "omit",
       cache: "no-store",
     });
   };
