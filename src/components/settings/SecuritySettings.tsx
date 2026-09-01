@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
@@ -60,7 +60,7 @@ function splitIpv4(value: string): string[] {
 function updateIpv4Octet(value: string, index: number, nextValue: string): string {
   const octets = splitIpv4(value);
   const digits = nextValue.replace(/\D/g, "").slice(0, 3);
-  octets[index] = digits === "" ? "" : String(Math.min(Number(digits), 255));
+  octets[index] = digits;
   return octets.join(".");
 }
 
@@ -81,16 +81,58 @@ interface Ipv4InputProps {
 
 function Ipv4Input({ ariaLabel, value, onChange }: Ipv4InputProps) {
   const octets = splitIpv4(value);
+  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
+
+  const focusOctet = (index: number) => {
+    inputRefs.current[index]?.focus();
+    inputRefs.current[index]?.select();
+  };
+
+  const handleOctetChange = (index: number, nextValue: string) => {
+    const digits = nextValue.replace(/\D/g, "").slice(0, 3);
+    onChange(updateIpv4Octet(value, index, digits));
+
+    if (digits.length === 3 && index < 3) {
+      focusOctet(index + 1);
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (event.key === "." && index < 3) {
+      event.preventDefault();
+      focusOctet(index + 1);
+      return;
+    }
+
+    if (event.key === "Backspace" && octets[index] === "" && index > 0) {
+      event.preventDefault();
+      focusOctet(index - 1);
+    }
+  };
+
+  const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedValue = event.clipboardData.getData("text").trim();
+    if (!isValidIpv4(pastedValue)) return;
+
+    event.preventDefault();
+    onChange(pastedValue);
+  };
+
   return (
     <div role="group" aria-label={ariaLabel} className="flex h-[34px] w-[136px] flex-shrink-0 items-center rounded-[5px] border border-neutral-30 bg-card px-2 focus-within:border-primary-60">
       {octets.map((octet, index) => (
         <div key={index} className="flex min-w-0 flex-1 items-center">
           <input
+            ref={(element) => {
+              inputRefs.current[index] = element;
+            }}
             type="text"
             inputMode="numeric"
             maxLength={3}
             value={octet}
-            onChange={(event) => onChange(updateIpv4Octet(value, index, event.target.value))}
+            onChange={(event) => handleOctetChange(index, event.target.value)}
+            onKeyDown={(event) => handleKeyDown(event, index)}
+            onPaste={handlePaste}
             aria-label={`${ariaLabel} ${index + 1}번째 자리`}
             className="min-w-0 flex-1 bg-transparent text-center text-[14px] font-medium text-foreground outline-none"
           />
