@@ -248,7 +248,7 @@ export default function MobilePdfDownloadModal({
           type="button"
           onClick={handleShare}
           disabled={!file || !canShareFile || sharing}
-          className="h-12 w-full cursor-pointer rounded-[10px] bg-primary-50 text-[15px] font-semibold text-white hover:bg-primary-60 disabled:cursor-not-allowed disabled:bg-neutral-30 disabled:text-neutral-60 disabled:hover:bg-neutral-30"
+          className="h-12 w-full cursor-pointer rounded-[10px] bg-primary-50 text-[15px] font-semibold text-white hover:bg-primary-60 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-neutral-30 disabled:text-neutral-60"
         >
           {sharing ? "공유 중..." : "공유하기"}
         </button>
@@ -256,7 +256,7 @@ export default function MobilePdfDownloadModal({
           type="button"
           onClick={handleSave}
           disabled={!file}
-          className="h-12 w-full cursor-pointer rounded-[10px] border border-border bg-card text-[15px] font-semibold text-foreground hover:bg-neutral-10 disabled:cursor-not-allowed disabled:border-transparent disabled:bg-neutral-10 disabled:text-neutral-60 disabled:hover:bg-neutral-10"
+          className="h-12 w-full cursor-pointer rounded-[10px] border border-border bg-card text-[15px] font-semibold text-foreground hover:bg-neutral-10 disabled:pointer-events-none disabled:cursor-not-allowed disabled:border-transparent disabled:bg-neutral-10 disabled:text-neutral-60"
         >
           저장하기
         </button>
