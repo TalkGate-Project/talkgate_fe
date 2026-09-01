@@ -139,11 +139,7 @@ export default function MobilePdfDownloadModal({
     setShareFailed(false);
 
     try {
-      await window.navigator.share({
-        files: [file],
-        title: `${detail.customerName} 고객 채무조정 진단 결과`,
-        text: "톡게이트 채무조정 진단 결과 PDF입니다.",
-      });
+      await window.navigator.share({ files: [file] });
       window.setTimeout(onClose, AUTO_CLOSE_DELAY_MS);
     } catch (error) {
       const errorName =
