@@ -27,6 +27,13 @@ const BASELINE_TEXT = "0123456789 /.,()%-·’‘“”";
 // AnalysisPdfDocument가 만든 React 엘리먼트 트리를 순회해 실제 렌더링될 문자만 모은다.
 // 정적 서브셋 대신 이 방식을 쓰는 이유: 고객명·메모·채팅 등은 자유 텍스트라 미리 정해둔
 // 글자 집합만으로는 실제 문서에 나오는 희귀 글자를 놓쳐 PDF에 빈 글자(tofu)가 뜰 수 있다.
+//
+// react-pdf의 내장 컴포넌트(View/Text/Page 등)는 type이 'VIEW'/'TEXT' 같은 문자열이라
+// props.children만 보면 되지만, PdfSection·InfoRows·RichRows·DataTable처럼 이 파일이 정의한
+// 커스텀 컴포넌트는 실제 텍스트가 children이 아니라 title/rows/lines/notes 같은 다른 prop
+// 안에 들어 있고, React가 렌더링하기 전까진 그 prop이 텍스트로 펼쳐지지 않는다. 그래서 type이
+// 함수면 한 번 직접 호출해 실제 렌더 결과까지 파고든다(2026-09-01: 이걸 안 해서 InfoRows 등
+// 표 안의 일부 글자가 서브셋에서 빠져 PDF에 깨진 글자로 나온 사고 있었음).
 function collectText(node: unknown, out: string[]): void {
   if (node == null || typeof node === "boolean") return;
   if (typeof node === "string" || typeof node === "number") {
@@ -37,8 +44,14 @@ function collectText(node: unknown, out: string[]): void {
     for (const child of node) collectText(child, out);
     return;
   }
-  if (typeof node === "object" && "props" in (node as Record<string, unknown>)) {
-    collectText((node as { props?: { children?: unknown } }).props?.children, out);
+  if (typeof node === "object" && "type" in (node as Record<string, unknown>)) {
+    const element = node as { type: unknown; props?: Record<string, unknown> };
+    if (typeof element.type === "function") {
+      const rendered = (element.type as (props: unknown) => unknown)(element.props);
+      collectText(rendered, out);
+      return;
+    }
+    collectText(element.props?.children, out);
   }
 }
 

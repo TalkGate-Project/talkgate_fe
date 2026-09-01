@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import subsetFont from "subset-font";
+import * as fontkit from "fontkit";
 
 /**
  * 모바일 진단서 PDF(analysisPdfWorker)가 실제로 그 문서에 쓰인 글자만 담은 프리텐다르
@@ -39,6 +40,22 @@ function loadMasterFonts(): Promise<Record<FontKey, Buffer>> {
   return masterFontsPromise;
 }
 
+// 요청한 글자가 실제로 서브셋 결과물에 다 들어갔는지 확인한다. 문서에 실제 쓰이는 텍스트를
+// 모으는 쪽(analysisPdfWorker의 collectText)이 컴포넌트 구조가 바뀌면서 일부를 놓치는 사고가
+// 실제로 있었다(2026-09-01, props.children만 보고 title/rows 등은 못 읽던 버그) — 그 사고가
+// 재발해도 깨진 글자가 PDF에 그대로 나가는 대신 여기서 걸러지도록 한 번 더 검증한다.
+function hasFullGlyphCoverage(buffer: Buffer, text: string): boolean {
+  const font = fontkit.create(buffer);
+  // subsetFont(..., { targetFormat: "sfnt" })는 항상 단일 폰트를 만든다 — TTC 컬렉션이 아니다.
+  if (!("glyphForCodePoint" in font)) return false;
+  for (const char of new Set(text)) {
+    if (/\s/.test(char)) continue;
+    const glyph = font.glyphForCodePoint(char.codePointAt(0) ?? 0);
+    if (!glyph || glyph.id === 0) return false;
+  }
+  return true;
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   const text = typeof body?.text === "string" ? body.text : "";
@@ -52,6 +69,11 @@ export async function POST(request: NextRequest) {
     subsetFont(masters.regular, text, { targetFormat: "sfnt" }),
     subsetFont(masters.semibold, text, { targetFormat: "sfnt" }),
   ]);
+
+  if (!hasFullGlyphCoverage(regular, text) || !hasFullGlyphCoverage(semibold, text)) {
+    console.error("PDF font subset is missing glyphs for the requested text; refusing subset.");
+    return NextResponse.json({ error: "incomplete glyph coverage" }, { status: 422 });
+  }
 
   return NextResponse.json({
     regular: regular.toString("base64"),

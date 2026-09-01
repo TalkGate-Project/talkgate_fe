@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import type { DiagnosisDetail, RecommendedProcedure } from "@/types/debtRelief";
 import type { DebtReliefChatUiMessage } from "./useDebtReliefAiChat";
@@ -13,6 +13,9 @@ type Props = {
   chatMessages: DebtReliefChatUiMessage[];
 };
 
+// 생성 완료 후 자동으로 모달을 닫기 전, 사용자가 "저장됐다"는 걸 눈으로 확인할 시간.
+const AUTO_CLOSE_DELAY_MS = 1200;
+
 function isIosDevice(): boolean {
   const userAgent = window.navigator.userAgent || "";
   return (
@@ -22,21 +25,26 @@ function isIosDevice(): boolean {
   );
 }
 
-function saveFile(file: File) {
+// iOS Safari는 <a download>를 신뢰할 수 없어 새 탭에 열어 자체 PDF 뷰어(공유·저장 버튼 포함)를
+// 쓰게 한다. window.open은 진짜 사용자 클릭 없이 호출되면(예: 비동기 생성 완료 뒤 자동 호출)
+// 팝업 차단으로 막힐 수 있어, 반환값으로 성공 여부를 판단해 실패 시 수동 버튼으로 폴백한다.
+// (noopener를 안 쓰는 이유: noopener를 쓰면 성공해도 항상 null이 반환돼 차단 여부를 구분 못 한다.
+// 여는 대상이 우리가 방금 만든 blob이라 noopener가 막으려는 reverse-tabnabbing 위험이 없다.)
+function trySaveFile(file: File): boolean {
   const url = URL.createObjectURL(file);
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 
   if (isIosDevice()) {
-    window.open(url, "_blank", "noopener,noreferrer");
-  } else {
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = file.name;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
+    return !!window.open(url, "_blank");
   }
 
-  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = file.name;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  return true;
 }
 
 function LoadingIndicator() {
@@ -48,6 +56,8 @@ function LoadingIndicator() {
   );
 }
 
+type AutoSaveState = "idle" | "done" | "blocked";
+
 export default function MobilePdfDownloadModal({
   open,
   onClose,
@@ -58,21 +68,9 @@ export default function MobilePdfDownloadModal({
   const [file, setFile] = useState<File | null>(null);
   const [generating, setGenerating] = useState(false);
   const [generationFailed, setGenerationFailed] = useState(false);
-  const [shareFailed, setShareFailed] = useState(false);
   const [generationAttempt, setGenerationAttempt] = useState(0);
+  const [autoSaveState, setAutoSaveState] = useState<AutoSaveState>("idle");
   const generationPromiseRef = useRef<Promise<File> | null>(null);
-
-  const canShareFile = useMemo(() => {
-    if (!file || typeof window === "undefined") return false;
-    if (typeof window.navigator.share !== "function") return false;
-    if (typeof window.navigator.canShare !== "function") return false;
-
-    try {
-      return window.navigator.canShare({ files: [file] });
-    } catch {
-      return false;
-    }
-  }, [file]);
 
   useEffect(() => {
     if (open) return;
@@ -80,7 +78,7 @@ export default function MobilePdfDownloadModal({
     setFile(null);
     setGenerating(false);
     setGenerationFailed(false);
-    setShareFailed(false);
+    setAutoSaveState("idle");
   }, [open]);
 
   useEffect(() => {
@@ -89,7 +87,6 @@ export default function MobilePdfDownloadModal({
     let cancelled = false;
     setGenerating(true);
     setGenerationFailed(false);
-    setShareFailed(false);
 
     const promise = import("./createAnalysisPdfFile").then(({ createAnalysisPdfFile }) =>
       createAnalysisPdfFile({ detail, selectedProcedure, chatMessages })
@@ -116,6 +113,18 @@ export default function MobilePdfDownloadModal({
     };
   }, [open, detail, selectedProcedure, chatMessages, generationAttempt]);
 
+  // 파일이 준비되면 사용자가 더 누를 것 없이 곧바로 저장(또는 iOS는 뷰어 열기)을 시도한다.
+  useEffect(() => {
+    if (!file) return;
+    setAutoSaveState(trySaveFile(file) ? "done" : "blocked");
+  }, [file]);
+
+  useEffect(() => {
+    if (autoSaveState !== "done") return;
+    const timer = window.setTimeout(onClose, AUTO_CLOSE_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [autoSaveState, onClose]);
+
   if (!open) return null;
 
   const retryGeneration = () => {
@@ -125,26 +134,9 @@ export default function MobilePdfDownloadModal({
     setGenerationAttempt((previous) => previous + 1);
   };
 
-  const handleShare = async () => {
-    if (!file || !canShareFile) return;
-    setShareFailed(false);
-
-    try {
-      await window.navigator.share({
-        files: [file],
-        title: `${detail.customerName} 고객 채무조정 진단 결과`,
-        text: "톡게이트 채무조정 진단 결과 PDF입니다.",
-      });
-    } catch (error) {
-      const errorName =
-        error && typeof error === "object" && "name" in error
-          ? String((error as { name?: unknown }).name)
-          : "";
-      if (errorName === "AbortError") return;
-
-      console.error("Failed to share debt relief PDF:", error);
-      setShareFailed(true);
-    }
+  const retrySave = () => {
+    if (!file) return;
+    setAutoSaveState(trySaveFile(file) ? "done" : "blocked");
   };
 
   return (
@@ -163,7 +155,7 @@ export default function MobilePdfDownloadModal({
             진단서 PDF
           </h2>
           <p className="mt-1 text-[14px] leading-[20px] text-muted-foreground">
-            PDF 파일을 공유하거나 기기에 저장할 수 있어요.
+            생성이 끝나면 자동으로 기기에 저장돼요.
           </p>
         </div>
         <button
@@ -205,43 +197,36 @@ export default function MobilePdfDownloadModal({
                 <path d="M12.5 2.75v4.5H17M8.5 12h5M8.5 15h5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
               </svg>
             </span>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate text-[14px] font-semibold text-foreground">{file.name}</p>
               <p className="mt-0.5 text-[12px] text-muted-foreground">
                 {(file.size / 1024 / 1024).toFixed(1)} MB · PDF
               </p>
             </div>
+            {autoSaveState === "done" ? (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden className="shrink-0 text-primary-50">
+                <path d="M4 10.5 8 14.5 16 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ) : null}
           </div>
         ) : null}
       </div>
 
-      {shareFailed ? (
-        <p className="mt-3 text-center text-[13px] text-danger-50">
-          공유하지 못했습니다. 잠시 후 다시 시도하거나 기기에 저장해주세요.
+      {autoSaveState === "done" ? (
+        <p className="mt-3 text-center text-[13px] text-muted-foreground">
+          {isIosDevice() ? "PDF를 열었어요." : "기기에 저장했어요."}
         </p>
-      ) : null}
-
-      {file ? (
+      ) : autoSaveState === "blocked" ? (
         <div className="mt-5 flex flex-col gap-2">
-          {canShareFile ? (
-            <button
-              type="button"
-              onClick={handleShare}
-              className="h-12 w-full cursor-pointer rounded-[10px] bg-primary-50 text-[15px] font-semibold text-white hover:bg-primary-60"
-            >
-              공유하기
-            </button>
-          ) : null}
+          <p className="text-center text-[13px] text-muted-foreground">
+            자동으로 열리지 않았어요. 아래 버튼을 눌러주세요.
+          </p>
           <button
             type="button"
-            onClick={() => saveFile(file)}
-            className={`h-12 w-full cursor-pointer rounded-[10px] text-[15px] font-semibold ${
-              canShareFile
-                ? "border border-border bg-card text-foreground hover:bg-neutral-10"
-                : "bg-primary-50 text-white hover:bg-primary-60"
-            }`}
+            onClick={retrySave}
+            className="h-12 w-full cursor-pointer rounded-[10px] bg-primary-50 text-[15px] font-semibold text-white hover:bg-primary-60"
           >
-            {isIosDevice() ? "PDF 열기 및 저장" : "기기에 저장"}
+            PDF 열기
           </button>
         </div>
       ) : null}
