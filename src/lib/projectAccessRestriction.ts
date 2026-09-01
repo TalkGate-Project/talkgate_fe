@@ -20,3 +20,7 @@ export function subscribeProjectAccessRestricted(
 export function resetProjectAccessRestriction(): void {
   restrictedProjectId = null;
 }
+
+export function isProjectAccessRestrictionActive(): boolean {
+  return restrictedProjectId !== null;
+}
