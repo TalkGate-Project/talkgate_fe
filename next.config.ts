@@ -12,6 +12,11 @@ console.log("=".repeat(60));
 // ================================================
 
 const nextConfig: NextConfig = {
+  // subset-font(harfbuzzjs)는 hb-subset.wasm을 require.resolve()로 디스크에서 직접 찾아
+  // 읽는다. 번들러가 이 패키지를 서버 번들 안으로 끌어들이면 그 경로 해석이 깨져
+  // /api/pdf-font-subset가 500을 낸다(2026-09-01 확인) — 번들링하지 않고 node_modules에서
+  // 그대로 require하도록 제외한다.
+  serverExternalPackages: ["subset-font", "harfbuzzjs", "fontverter"],
   images: {
     remotePatterns: [
       {

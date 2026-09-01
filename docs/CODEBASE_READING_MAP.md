@@ -36,7 +36,7 @@
 
 - [v] `src/app/layout.tsx` — 루트 레이아웃, Provider 순서
 - [v] `src/middleware.ts` — 경로별 접근 정책 (CLAUDE.md 표와 대조)
-- [ ] `src/components/common/ConditionalHeader.tsx` — 공통 셸
+- [v] `src/components/common/ConditionalHeader.tsx` — 공통 셸
 
 질문:
 - 이 경로는 인증만 필요한가, 프로젝트도 필요한가?

@@ -19,7 +19,6 @@ import CustomerCreateMatchModal from "./CustomerCreateMatchModal";
 import DiagnosisCustomerInfoModal from "./DiagnosisCustomerInfoModal";
 import FeePaymentInfoModal from "./FeePaymentInfoModal";
 import LinkIcon from "@/components/icons/LinkIcon";
-import { isMobileDeviceNavigator } from "@/lib/device";
 import { belowBreakpointQuery } from "@/utils/breakpoints";
 import FloatingCustomerDetailModal from "@/components/customers/FloatingCustomerDetailModal";
 
@@ -288,6 +287,7 @@ type Props = {
   detail: DiagnosisDetail;
   projectId: string | null;
   onCustomerMatchChange: () => void;
+  onDownload: () => void;
   // 모바일·태블릿(lg 미만) "전달사항" 토글 아이콘. AI 분석 추천을 보여줄 수 있는
   // 화면(전달사항이 그 영역을 덮는 팝업으로 뜨는 화면)에서만 부모가 넘겨준다.
   showMessagesToggle?: boolean;
@@ -481,6 +481,7 @@ export default function ResultHeader({
   detail,
   projectId,
   onCustomerMatchChange,
+  onDownload,
   showMessagesToggle = false,
   messagesOpen = false,
   onToggleMessages,
@@ -551,18 +552,9 @@ export default function ResultHeader({
     setPaymentInfoOpen(true);
   };
 
-  const handleDownload = async () => {
+  const handleDownload = () => {
     setActionsMenuOpen(false);
-
-    if (!isMobileDeviceNavigator(window.navigator)) {
-      window.print();
-      return;
-    }
-
-    // 임시: 모바일 다운로드 방식이 기획에서 확정될 때까지 데스크톱과 동일하게 인쇄로 되돌린다.
-    // 네이티브 공유(navigator.share로 현재 URL 전달)는 링크를 받은 사람이 로그인·권한 없이는
-    // 열 수 없어 보류. 곧 재작업할 자리라 기기 분기 자체는 남겨둔다 — 이전 구현은 7915359 참고.
-    window.print();
+    onDownload();
   };
 
   const handleDismissPaymentNudge = () => {
