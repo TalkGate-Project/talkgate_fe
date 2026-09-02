@@ -9,9 +9,9 @@ function SidebarSkeleton() {
   return (
     <>
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-3 px-8 py-3">
-          <div className="w-5 h-5 bg-neutral-20 rounded animate-pulse" />
-          <div className="h-4 w-20 bg-neutral-20 rounded animate-pulse" />
+        <div key={i} className="flex h-[52px] items-center justify-center lg:justify-start lg:gap-3 lg:px-8">
+          <div className="h-6 w-6 animate-pulse rounded bg-neutral-20 lg:h-5 lg:w-5" />
+          <div className="hidden h-4 w-20 animate-pulse rounded bg-neutral-20 lg:block" />
         </div>
       ))}
     </>
@@ -115,8 +115,12 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
     const hasChildren = item.children && item.children.length > 0;
 
     return (
-      <div key={item.label}>
+      <div key={item.label} className="group/settings-item relative">
         <button
+          type="button"
+          aria-label={item.label}
+          aria-expanded={hasChildren ? isExpanded : undefined}
+          title={item.label}
           onClick={() => {
             if (item.isParent) {
               toggleParent(item.label);
@@ -125,23 +129,25 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
             }
           }}
           style={item.offsetLeft != null ? { transform: `translateX(${item.offsetLeft}px)` } : undefined}
-          className={`cursor-pointer w-full h-[52px] flex items-center gap-3 pr-8 text-left transition-colors ${
-            level > 0 ? "pl-[60px]" : "pl-[30px]"
+          className={`flex h-[52px] w-full cursor-pointer items-center justify-center rounded-[12px] text-left transition-colors lg:justify-start lg:gap-3 lg:rounded-none lg:pr-8 ${
+            level > 0 ? "lg:pl-[60px]" : "lg:pl-[30px]"
           } ${
             isActive
               ? "bg-primary-10/30 text-primary-80"
               : "text-neutral-70 hover:bg-neutral-10"
           }`}
         >
-          <IconComponent isActive={isActive} />
-          <span className="text-[16px] font-medium flex-1">{item.label}</span>
+          <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center [&>svg]:h-6 [&>svg]:w-6 lg:h-5 lg:w-5 lg:[&>svg]:h-5 lg:[&>svg]:w-5">
+            <IconComponent isActive={isActive} />
+          </span>
+          <span className="hidden flex-1 text-[16px] font-medium lg:block">{item.label}</span>
           {hasChildren && (
             <svg
               width="16"
               height="16"
               viewBox="0 0 16 16"
               fill="none"
-              className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}
+              className={`hidden transition-transform lg:block ${isExpanded ? "rotate-180" : ""}`}
             >
               <path
                 d="M4 6L8 10L12 6"
@@ -153,43 +159,71 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
             </svg>
           )}
         </button>
-        {hasChildren && isExpanded && (
-          <div>
-            {item.children!.map((child) => renderItem(child, level + 1))}
-          </div>
+        {hasChildren && (
+          <>
+            <div className="absolute left-full top-0 z-30 ml-2 hidden w-[180px] rounded-[10px] border border-neutral-30 bg-card p-1 shadow-lg group-hover/settings-item:block group-focus-within/settings-item:block lg:hidden">
+              {item.children!.map((child) => {
+                const ChildIcon = child.icon;
+                const isChildActive = child.key === activeTab;
+
+                return (
+                  <button
+                    key={child.label}
+                    type="button"
+                    onClick={() => child.key && onTabChange(child.key)}
+                    className={`flex h-11 w-full cursor-pointer items-center gap-3 rounded-[7px] px-3 text-left transition-colors ${
+                      isChildActive
+                        ? "bg-primary-10/30 text-primary-80"
+                        : "text-neutral-70 hover:bg-neutral-10"
+                    }`}
+                  >
+                    <span className="flex h-5 w-5 items-center justify-center [&>svg]:h-5 [&>svg]:w-5">
+                      <ChildIcon isActive={isChildActive} />
+                    </span>
+                    <span className="text-[14px] font-medium">{child.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {isExpanded && (
+              <div className="hidden lg:block">
+                {item.children!.map((child) => renderItem(child, level + 1))}
+              </div>
+            )}
+          </>
         )}
       </div>
     );
   };
   return (
-    <div className="w-[280px] bg-card rounded-[14px] pt-7 pb-5 flex flex-col self-start">
+    <aside className="flex min-h-[552px] w-20 flex-col self-start rounded-[14px] bg-card px-3 pb-4 lg:min-h-0 lg:w-[280px] lg:px-0 lg:pb-5 lg:pt-7">
       {/* 헤더 */}
-      <div className="px-7 pb-7 mb-1 border-b border-neutral-30/40 dark:!border-[#44444455]">
-        <h2 className="text-[18px] font-bold text-foreground mb-2 leading-[1]">프로젝트 설정</h2>
-        <div className="flex items-center gap-3">
+      <div className="mb-2 flex h-[76px] flex-shrink-0 items-center justify-center border-b border-neutral-30/40 dark:!border-[#44444455] lg:mb-1 lg:block lg:h-auto lg:px-7 lg:pb-7">
+        <h2 className="mb-2 hidden text-[18px] font-bold leading-none text-foreground lg:block">프로젝트 설정</h2>
+        <div className="flex items-center justify-center gap-3 lg:justify-start">
           {projectLogoUrl ? (
             <img
               src={projectLogoUrl}
               alt={`${projectName} 로고`}
               width={28}
               height={28}
-              className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+              className="h-7 w-7 flex-shrink-0 rounded-full object-cover"
             />
           ) : (
             <div className="w-7 h-7 rounded-full bg-neutral-20 dark:bg-neutral-20 flex-shrink-0" />
           )}
-          <p className="text-[14px] text-neutral-60">{projectName}</p>
+          <p className="hidden text-[14px] text-neutral-60 lg:block">{projectName}</p>
         </div>
       </div>
 
       {/* 탭 목록 */}
-      <nav className="space-y-1">
+      <nav aria-label="프로젝트 설정" className="space-y-1">
         {!mounted || loading ? (
           <SidebarSkeleton />
         ) : (
           visibleItems.map((item) => renderItem(item))
         )}
       </nav>
-    </div>
+    </aside>
   );
 }
