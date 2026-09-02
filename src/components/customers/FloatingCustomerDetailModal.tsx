@@ -147,7 +147,9 @@ export default function FloatingCustomerDetailModal({
       hideLinkedAnalysis
       floatingPresentation={{
         positionerClassName: isMobileViewport ? "absolute inset-0" : "absolute",
-        positionerStyle: isMobileViewport ? undefined : { left: bounds.left, top: bounds.top },
+        positionerStyle: isMobileViewport
+          ? undefined
+          : { left: bounds.left, top: Math.max(0, bounds.top) },
         containerClassName: isMobileViewport
           ? "pointer-events-auto h-full w-full overflow-hidden bg-card dark:bg-neutral-10"
           : "pointer-events-auto overflow-hidden rounded-[16px] bg-card shadow-[0_18px_40px_rgba(9,30,66,0.18)] dark:bg-neutral-10",
