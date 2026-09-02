@@ -9,6 +9,7 @@ import {
   type StaffChatWindowSize,
   type StaffChatWindowBounds,
 } from "@/lib/staffChatWindowPosition";
+import { getBodyZoom } from "@/utils/zoom";
 
 type TeamChatWindowContextValue = {
   isOpen: boolean;
@@ -54,7 +55,8 @@ function getViewport() {
   if (typeof window === "undefined") {
     return null;
   }
-  return { width: window.innerWidth, height: window.innerHeight };
+  const zoom = getBodyZoom();
+  return { width: window.innerWidth / zoom, height: window.innerHeight / zoom };
 }
 
 function clampBoundsWithViewport(bounds: StaffChatWindowBounds): StaffChatWindowBounds {

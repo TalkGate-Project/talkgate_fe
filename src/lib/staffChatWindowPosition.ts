@@ -70,7 +70,8 @@ export function clampStaffChatWindowPosition(
 ): StaffChatWindowPosition {
   const minLeft = -size.width + STAFF_CHAT_MIN_VISIBLE_X;
   const maxLeft = viewportWidth - STAFF_CHAT_MIN_VISIBLE_X;
-  const minTop = -size.height + STAFF_CHAT_MIN_VISIBLE_Y;
+  // 헤더가 화면 위로 넘어가면 다시 드래그하기 어려우므로 상단 이탈은 허용하지 않는다.
+  const minTop = 0;
   const maxTop = viewportHeight - STAFF_CHAT_MIN_VISIBLE_Y;
 
   return {
