@@ -9,9 +9,11 @@ function SidebarSkeleton() {
   return (
     <>
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="flex h-[52px] items-center justify-center lg:justify-start lg:gap-3 lg:px-8">
-          <div className="h-6 w-6 animate-pulse rounded bg-neutral-20 lg:h-5 lg:w-5" />
-          <div className="hidden h-4 w-20 animate-pulse rounded bg-neutral-20 lg:block" />
+        <div key={i} className="flex h-[52px] items-center justify-center">
+          <div className="flex flex-col items-center lg:w-full lg:flex-row lg:gap-3 lg:px-8">
+            <div className="h-6 w-6 animate-pulse rounded bg-neutral-20 lg:h-5 lg:w-5" />
+            <div className="mt-1 h-2.5 w-9 animate-pulse rounded bg-neutral-20 lg:mt-0 lg:h-4 lg:w-20" />
+          </div>
         </div>
       ))}
     </>
@@ -129,7 +131,7 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
             }
           }}
           style={item.offsetLeft != null ? { transform: `translateX(${item.offsetLeft}px)` } : undefined}
-          className={`flex h-[52px] w-full cursor-pointer items-center justify-center rounded-[12px] text-left transition-colors lg:justify-start lg:gap-3 lg:rounded-none lg:pr-8 ${
+          className={`flex h-[52px] w-full cursor-pointer flex-col items-center justify-center rounded-[12px] text-left transition-colors lg:flex-row lg:justify-start lg:gap-3 lg:rounded-none lg:pr-8 ${
             level > 0 ? "lg:pl-[60px]" : "lg:pl-[30px]"
           } ${
             isActive
@@ -140,7 +142,13 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
           <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center [&>svg]:h-6 [&>svg]:w-6 lg:h-5 lg:w-5 lg:[&>svg]:h-5 lg:[&>svg]:w-5">
             <IconComponent isActive={isActive} />
           </span>
-          <span className="hidden flex-1 text-[16px] font-medium lg:block">{item.label}</span>
+          <span
+            className={`w-14 text-center text-[10px] leading-3 tracking-[-0.02em] lg:flex-1 lg:text-left lg:text-[16px] lg:font-medium lg:leading-normal ${
+              isActive ? "font-bold" : "font-medium"
+            }`}
+          >
+            {item.label}
+          </span>
           {hasChildren && (
             <svg
               width="16"
@@ -196,9 +204,9 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
     );
   };
   return (
-    <aside className="flex min-h-[552px] w-20 flex-col self-start rounded-[14px] bg-card px-3 pb-4 lg:min-h-0 lg:w-[280px] lg:px-0 lg:pb-5 lg:pt-7">
+    <aside className="flex min-h-[552px] w-20 flex-col self-start rounded-[14px] bg-card px-1.5 pb-4 lg:min-h-0 lg:w-[280px] lg:px-0 lg:pb-5 lg:pt-7">
       {/* 헤더 */}
-      <div className="mb-2 flex h-[76px] flex-shrink-0 items-center justify-center border-b border-neutral-30/40 dark:!border-[#44444455] lg:mb-1 lg:block lg:h-auto lg:px-7 lg:pb-7">
+      <div className="mx-1.5 mb-2 flex h-[76px] flex-shrink-0 items-center justify-center border-b border-neutral-30/40 dark:!border-[#44444455] lg:mx-0 lg:mb-1 lg:block lg:h-auto lg:px-7 lg:pb-7">
         <h2 className="mb-2 hidden text-[18px] font-bold leading-none text-foreground lg:block">프로젝트 설정</h2>
         <div className="flex items-center justify-center gap-3 lg:justify-start">
           {projectLogoUrl ? (
