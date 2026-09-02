@@ -14,6 +14,7 @@ import { AssetsService } from "@/services/assets";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import { clampStaffChatWindowBounds, clampStaffChatWindowPosition } from "@/lib/staffChatWindowPosition";
 import { isImeComposing } from "@/lib/ime";
+import { getBodyZoom } from "@/utils/zoom";
 
 type Props = {
   isOpen: boolean;
@@ -591,49 +592,68 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
   }, []);
 
   const clampModalPositionToViewport = useCallback(
-    (position: { left: number; top: number }) =>
-      clampStaffChatWindowPosition(position, windowSize, window.innerWidth, window.innerHeight),
+    (position: { left: number; top: number }) => {
+      const zoom = getBodyZoom();
+      return clampStaffChatWindowPosition(
+        position,
+        windowSize,
+        window.innerWidth / zoom,
+        window.innerHeight / zoom
+      );
+    },
     [windowSize]
   );
   const clampModalBoundsToViewport = useCallback(
-    (bounds: typeof windowBounds) =>
-      clampStaffChatWindowBounds(bounds, window.innerWidth, window.innerHeight),
+    (bounds: typeof windowBounds) => {
+      const zoom = getBodyZoom();
+      return clampStaffChatWindowBounds(
+        bounds,
+        window.innerWidth / zoom,
+        window.innerHeight / zoom
+      );
+    },
     []
   );
   const { handlePointerDown: handleHeaderPointerDown } = useDraggableFloatingWindow({
     position: windowPosition,
     onChangePosition: setWindowPosition,
     clampPosition: clampModalPositionToViewport,
+    getPointerScale: getBodyZoom,
   });
   const { handlePointerDown: handleRightResizePointerDown } = useResizableFloatingWindow({
     mode: "right",
     bounds: windowBounds,
     onChangeBounds: setWindowBounds,
     clampBounds: clampModalBoundsToViewport,
+    getPointerScale: getBodyZoom,
   });
   const { handlePointerDown: handleBottomResizePointerDown } = useResizableFloatingWindow({
     mode: "bottom",
     bounds: windowBounds,
     onChangeBounds: setWindowBounds,
     clampBounds: clampModalBoundsToViewport,
+    getPointerScale: getBodyZoom,
   });
   const { handlePointerDown: handleBottomLeftResizePointerDown } = useResizableFloatingWindow({
     mode: "bottom-left",
     bounds: windowBounds,
     onChangeBounds: setWindowBounds,
     clampBounds: clampModalBoundsToViewport,
+    getPointerScale: getBodyZoom,
   });
   const { handlePointerDown: handleLeftResizePointerDown } = useResizableFloatingWindow({
     mode: "left",
     bounds: windowBounds,
     onChangeBounds: setWindowBounds,
     clampBounds: clampModalBoundsToViewport,
+    getPointerScale: getBodyZoom,
   });
   const { handlePointerDown: handleBottomRightResizePointerDown } = useResizableFloatingWindow({
     mode: "bottom-right",
     bounds: windowBounds,
     onChangeBounds: setWindowBounds,
     clampBounds: clampModalBoundsToViewport,
+    getPointerScale: getBodyZoom,
   });
 
   if (!isOpen) return null;
@@ -647,7 +667,9 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
   const modalPositionerClassName = isMobileViewport
     ? "absolute inset-x-0 top-[54px] h-[calc(100dvh-54px)]"
     : "absolute";
-  const modalPositionerStyle = isMobileViewport ? undefined : { top: windowPosition.top, left: windowPosition.left };
+  const modalPositionerStyle = isMobileViewport
+    ? undefined
+    : { top: Math.max(0, windowPosition.top), left: windowPosition.left };
   const modalContainerClassName = isMobileViewport
     ? "pointer-events-auto flex h-[calc(100dvh-54px)] w-screen flex-col overflow-hidden rounded-none bg-neutral-0 shadow-none"
     : "pointer-events-auto rounded-[20px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-none flex flex-col overflow-hidden";
