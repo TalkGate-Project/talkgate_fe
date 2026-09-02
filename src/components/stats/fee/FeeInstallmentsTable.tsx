@@ -17,6 +17,7 @@ type FeeInstallmentsTableProps = {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  onRowClick: (item: FeeStatisticsInstallmentItem) => void;
   /** 담당자 열은 법무법인 프로젝트에서만 노출 (영업점 프로젝트는 하위 담당자 개념이 없음) */
   showAssigneeColumn: boolean;
 };
@@ -29,6 +30,7 @@ export default function FeeInstallmentsTable({
   currentPage,
   totalPages,
   onPageChange,
+  onRowClick,
   showAssigneeColumn,
 }: FeeInstallmentsTableProps) {
   const columnCount = showAssigneeColumn ? 6 : 5;
@@ -105,7 +107,19 @@ export default function FeeInstallmentsTable({
               items.map((item) => {
                 const pill = getFeeStatusPill(item.status);
                 return (
-                  <tr key={item.id} className="h-[52px] border-b border-neutral-20">
+                  <tr
+                    key={item.id}
+                    role="link"
+                    tabIndex={0}
+                    aria-label={`${item.customerName || "고객"} 분석 상세 보기`}
+                    onClick={() => onRowClick(item)}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter" && event.key !== " ") return;
+                      event.preventDefault();
+                      onRowClick(item);
+                    }}
+                    className="h-[52px] cursor-pointer border-b border-neutral-20 transition-colors hover:bg-neutral-10 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary-60"
+                  >
                     <td className="px-2 md:px-4 pl-3 md:pl-[30px] text-[13px] md:text-[15px] text-neutral-80 whitespace-nowrap">
                       {formatFeeDateDot(item.scheduledDate)}
                     </td>
