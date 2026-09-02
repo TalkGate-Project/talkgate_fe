@@ -32,14 +32,14 @@ export default function ProjectNameSection({
           type="text"
           value={serviceName}
           onChange={(e) => setServiceName(e.target.value)}
-          className="flex-1 px-3 md:py-2 border border-neutral-30 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
+          className="flex-1 min-w-0 px-3 md:py-2 border border-neutral-30 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
           placeholder="이름"
           disabled={isSaving}
         />
         <button 
           onClick={onUpdate}
           disabled={isSaving || serviceName === originalServiceName}
-          className="w-[48px] md:w-[72px] py-2 bg-neutral-90 text-neutral-20 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors tracking-[-0.02em] leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-[48px] md:w-[72px] shrink-0 py-2 bg-neutral-90 text-neutral-20 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors tracking-[-0.02em] leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSaving ? (
             "변경중..."
