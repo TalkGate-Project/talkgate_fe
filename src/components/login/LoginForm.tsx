@@ -123,6 +123,10 @@ export function LoginForm() {
     const isLogoutRedirect = searchParams.get('logout') === 'success';
     
     if (isLogoutRedirect) {
+      clearPendingInviteInfo();
+      sessionStorage.removeItem("tg_invite_backup");
+      sessionStorage.removeItem("tg_last_social_provider");
+
       const url = new URL(window.location.href);
       url.searchParams.delete('logout');
       window.history.replaceState({}, '', url.pathname + (url.search || ''));
@@ -144,7 +148,7 @@ export function LoginForm() {
         // 이미 인증된 상태
         window.location.replace(getPostAuthDestination(redirectUrl));
       })
-      .catch((err) => {
+      .catch((_err) => {
         setChecking(false);
       });
   };

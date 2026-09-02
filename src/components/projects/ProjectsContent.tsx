@@ -13,17 +13,51 @@ import ProjectPrivacyConsentModal from "@/components/projects/ProjectPrivacyCons
 import ServiceDeleteModal from "@/components/common/ServiceDeleteModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
-import { setSelectedProjectId, setUseAttendanceMenu, setProjectType } from "@/lib/project";
+import {
+  clearProjectType,
+  clearSelectedProjectId,
+  clearUseAttendanceMenu,
+  setProjectType,
+  setSelectedProjectId,
+  setUseAttendanceMenu,
+} from "@/lib/project";
 import { getProjectSubdomainUrl, isDevelopment } from "@/lib/subdomain";
 import {
   getAllowedPostAuthRedirect,
   POST_AUTH_REDIRECT_STORAGE_KEY,
 } from "@/lib/postAuthRedirect";
+import {
+  notifyProjectAccessRestricted,
+  resetProjectAccessRestriction,
+} from "@/lib/projectAccessRestriction";
 import Image from "next/image";
 import projectAssignedCustomerImg from "@/assets/images/projects/project-assigned-customer.webp";
 import projectReservedItemImg from "@/assets/images/projects/project-reserved-item.webp";
 import projectNotAssignedCustomerImg from "@/assets/images/projects/project-not-assigned-customer.webp";
 import projectNotReservedItemImg from "@/assets/images/projects/project-not-reserved-item.webp";
+
+function getApiErrorCode(error: unknown): string | undefined {
+  if (!error || typeof error !== "object" || !("data" in error)) return undefined;
+  const data = error.data;
+  if (!data || typeof data !== "object" || !("code" in data)) return undefined;
+  return typeof data.code === "string" ? data.code : undefined;
+}
+
+function showProjectAccessRestrictedModal() {
+  showErrorModal({
+    type: "error",
+    title: "접근 제한",
+    headline: "접근할 수 없습니다.",
+    description:
+      "허용되지 않은 IP입니다.\n프로젝트 관리자에게 문의하세요.",
+    hideCancel: true,
+    confirmText: "확인",
+    persistent: true,
+    hideCloseButton: true,
+    projectAccessRestriction: true,
+    onConfirm: resetProjectAccessRestriction,
+  });
+}
 
 export default function ProjectsContent() {
   const searchParams = useSearchParams();
@@ -59,11 +93,20 @@ export default function ProjectsContent() {
     // 서브도메인 에러 확인
     const error = searchParams.get("error");
     const subdomain = searchParams.get("subdomain");
+    if (error === "ip_not_allowed") {
+      notifyProjectAccessRestricted("middleware-redirect");
+      clearSelectedProjectId();
+      clearUseAttendanceMenu();
+      clearProjectType();
+      sessionStorage.removeItem(POST_AUTH_REDIRECT_STORAGE_KEY);
+      showProjectAccessRestrictedModal();
+    }
     if (error === "invalid_subdomain" && subdomain) {
       setSubdomainError(
         `'${subdomain}' 서브도메인에 해당하는 프로젝트를 찾을 수 없습니다.`
       );
-      // URL에서 에러 파라미터 제거 (히스토리 정리)
+    }
+    if (error) {
       const url = new URL(window.location.href);
       url.searchParams.delete("error");
       url.searchParams.delete("subdomain");
@@ -179,11 +222,35 @@ export default function ProjectsContent() {
         : "navigate";
 
     setSelectingProjectId(p.id);
+    let isNavigating = false;
     try {
-      // 1단계: admin 여부 판별
+      // 1단계: 클릭한 프로젝트 ID로 접근 가능 여부를 먼저 확인한다.
+      try {
+        await ProjectsService.detailById({
+          "x-project-id": String(p.id),
+        });
+      } catch (error: unknown) {
+        if (getApiErrorCode(error) === "IP_NOT_ALLOWED") {
+          notifyProjectAccessRestricted(String(p.id));
+          showProjectAccessRestrictedModal();
+          return;
+        }
+
+        console.error("Failed to verify project access:", error);
+        showErrorModal({
+          type: "error",
+          headline: "프로젝트 접근 여부를 확인하지 못했습니다.",
+          description: "잠시 후 다시 시도해주세요.",
+          hideCancel: true,
+          confirmText: "확인",
+        });
+        return;
+      }
+
+      // 2단계: admin 여부 판별
       const isProjectAdmin = resolveIsProjectAdmin(p);
 
-      // 2단계: admin 이면 동의 여부 확인 (구독 안내 모달을 띄우기 전에 먼저 진행)
+      // 3단계: admin 이면 동의 여부 확인 (구독 안내 모달을 띄우기 전에 먼저 진행)
       if (isProjectAdmin) {
         try {
           const res = await ProjectPrivacyConsentService.get(p.id);
@@ -194,12 +261,17 @@ export default function ProjectsContent() {
             return;
           }
         } catch (error) {
+          if (getApiErrorCode(error) === "IP_NOT_ALLOWED") {
+            notifyProjectAccessRestricted(String(p.id));
+            showProjectAccessRestrictedModal();
+            return;
+          }
           // 동의 상태 확인 실패 시 기존 흐름으로 진행 (UI 차단 방지)
           console.error("Failed to check project privacy consent:", error);
         }
       }
 
-      // 3단계: 기존 분기 (만료 모달 / 구독 안내 모달 / 대시보드 진입)
+      // 4단계: 기존 분기 (만료 모달 / 구독 안내 모달 / 대시보드 진입)
       if (next === "expired") {
         setExpiredProject(p);
         return;
@@ -208,10 +280,11 @@ export default function ProjectsContent() {
         setSubscribeProject(p);
         return;
       }
+      isNavigating = true;
       navigateToProject(p);
     } finally {
       // 대시보드로 window.location.href 전환 중이면 스피너 유지, 그 외에는 해제
-      if (next !== "navigate") {
+      if (!isNavigating) {
         setSelectingProjectId(null);
       }
     }

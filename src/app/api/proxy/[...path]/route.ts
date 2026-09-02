@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
 import { getRememberPolicyFromRequest, setAuthCookies } from '@/lib/cookies';
+import { buildClientIpProxyHeaders } from '@/lib/clientIpProxy';
 
 /**
  * API 프록시 라우트
@@ -237,7 +238,7 @@ async function handleRequest(
     });
     
     // 요청 헤더 준비
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string> = buildClientIpProxyHeaders(request.headers);
 
     // 클라이언트에서 전달된 헤더 확인
     const clientHeaders = request.headers;

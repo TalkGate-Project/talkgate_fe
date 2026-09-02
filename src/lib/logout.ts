@@ -26,6 +26,7 @@ import { resetAuthSession, setLoggingOut } from "./authSession";
 import type { QueryClient } from "@tanstack/react-query";
 import { resolveLogoutRedirect } from "./postAuthRedirect";
 import { clearAllAnalysisDrafts } from "./analysisDraft";
+import { clearPendingInviteInfo } from "./invite";
 
 export interface LogoutOptions {
   redirectUrl?: string;
@@ -123,6 +124,15 @@ export function performLogout(options: LogoutOptions = {}): void {
 
   // 4. 초대 정보 정리 (preserveInviteInfo가 false인 경우만)
   // preserveInviteInfo가 true이면 초대 정보는 유지됨
+  if (!preserveInviteInfo) {
+    try {
+      clearPendingInviteInfo();
+      window.sessionStorage.removeItem("tg_invite_backup");
+      window.sessionStorage.removeItem("tg_last_social_provider");
+    } catch {
+      // 초대 정보 정리 실패가 로그아웃 자체를 막지 않게 한다.
+    }
+  }
 
   // 5. 서버로 리다이렉트 (쿠키 삭제 처리)
   try {

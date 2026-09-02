@@ -4,6 +4,7 @@ import { setProjectIdCookie, setAttendanceMenuCookie, setProjectTypeCookie, dele
 import type { Project } from "@/types/projects";
 import type { ApiSuccess } from "@/types/common";
 import { logger } from "@/lib/logger";
+import { buildClientIpProxyHeaders } from "@/lib/clientIpProxy";
 import { isMobileDeviceUserAgent } from "@/lib/device";
 
 // 보호가 필요한 경로에만 미들웨어를 적용
@@ -130,8 +131,8 @@ function getMainDomain(_host: string): string {
 async function fetchProjectBySubdomain(
   subdomain: string,
   accessToken: string,
-  host: string
-): Promise<Project | null> {
+  requestHeaders: Headers
+): Promise<Project | "IP_NOT_ALLOWED" | null> {
   try {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api-dev.talkgate.im";
 
@@ -140,10 +141,17 @@ async function fetchProjectBySubdomain(
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
+        ...buildClientIpProxyHeaders(requestHeaders),
       },
     });
 
     if (!response.ok) {
+      if (response.status === 403) {
+        const errorBody = await response.json().catch(() => null) as { code?: unknown } | null;
+        if (errorBody?.code === "IP_NOT_ALLOWED") {
+          return "IP_NOT_ALLOWED";
+        }
+      }
       return null;
     }
 
@@ -270,7 +278,13 @@ export async function middleware(req: NextRequest) {
     if (subdomain) {
       if (hasAuthCookie && accessToken) {
         // 인증됨 + 서브도메인 → 프로젝트 확인 후 대시보드로 리다이렉트
-        const project = await fetchProjectBySubdomain(subdomain, accessToken, host);
+        const project = await fetchProjectBySubdomain(subdomain, accessToken, req.headers);
+
+        if (project === "IP_NOT_ALLOWED") {
+          const redirectUrl = new URL(`${protocol}//${mainDomain}/projects`);
+          redirectUrl.searchParams.set("error", "ip_not_allowed");
+          return NextResponse.redirect(redirectUrl);
+        }
         
         if (project) {
           logger.server(`[Middleware] 루트 + 서브도메인 + 인증됨 → /dashboard로 리다이렉트`);
@@ -388,7 +402,13 @@ export async function middleware(req: NextRequest) {
 
     // 인증됨 + 서브도메인 있음 → 프로젝트 정보 확인
     if (subdomain && accessToken) {
-      const project = await fetchProjectBySubdomain(subdomain, accessToken, host);
+      const project = await fetchProjectBySubdomain(subdomain, accessToken, req.headers);
+
+      if (project === "IP_NOT_ALLOWED") {
+        const redirectUrl = new URL(`${protocol}//${mainDomain}/projects`);
+        redirectUrl.searchParams.set("error", "ip_not_allowed");
+        return NextResponse.redirect(redirectUrl);
+      }
 
       if (project) {
         // 회생·파산 미지원 프로젝트 타입(general)인데 /debt-relief를 직접 주소로 접근한 경우 차단
@@ -464,7 +484,12 @@ export async function middleware(req: NextRequest) {
     
     // 서브도메인이 있으면 프로젝트 ID도 설정
     if (subdomain && accessToken) {
-      const project = await fetchProjectBySubdomain(subdomain, accessToken, host);
+      const project = await fetchProjectBySubdomain(subdomain, accessToken, req.headers);
+      if (project === "IP_NOT_ALLOWED") {
+        const redirectUrl = new URL(`${protocol}//${mainDomain}/projects`);
+        redirectUrl.searchParams.set("error", "ip_not_allowed");
+        return NextResponse.redirect(redirectUrl);
+      }
       if (project) {
         const subdomainProjectId = String(project.id);
         const currentProjectId = req.cookies.get("tg_selected_project_id")?.value;

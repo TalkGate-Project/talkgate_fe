@@ -301,52 +301,51 @@ export default function SmsHistorySettings() {
 
             {/* 데스크탑 테이블 */}
             <div className="hidden md:block overflow-x-auto">
-              {/* 테이블 헤더 */}
-              <div className="bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-4 pl-10 h-[40px] flex items-center mb-1">
-                <div className="flex-[2] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
-                  발송일시
+              <div className="min-w-[900px]">
+                {/* 테이블 헤더 */}
+                <div className="bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-4 pl-10 h-[40px] flex items-center mb-1 whitespace-nowrap">
+                  <div className="flex-[2] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
+                    발송일시
+                  </div>
+                  <div className="flex-[2] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
+                    발신번호
+                  </div>
+                  <div className="flex-[1.2] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
+                    메시지 유형
+                  </div>
+                  <div className="flex-[1] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
+                    광고/정보
+                  </div>
+                  <div className="flex-[1.2] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
+                    전체 고객 수
+                  </div>
+                  <div className="flex-[1] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
+                    성공 수
+                  </div>
+                  <div className="flex-[1] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
+                    실패 수
+                  </div>
+                  <div className="flex-[1] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-center">
+                    상태
+                  </div>
                 </div>
-                <div className="flex-[2] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
-                  발신번호
-                </div>
-                <div className="flex-[1.2] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
-                  메시지 유형
-                </div>
-                <div className="flex-[1] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
-                  광고/정보
-                </div>
-                <div className="flex-[1.2] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
-                  전체 고객 수
-                </div>
-                <div className="flex-[1] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
-                  성공 수
-                </div>
-                <div className="flex-[1] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
-                  실패 수
-                </div>
-                <div className="flex-[1] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-center">
-                  상태
-                </div>
-              </div>
 
-              {/* 테이블 바디 */}
-              {loading ? (
-                <div className="flex items-center justify-center h-40 text-[14px] text-neutral-60 dark:text-neutral-60">
-                  로딩 중...
-                </div>
-              ) : histories.length === 0 ? (
-                <div className="flex items-center justify-center h-40 text-[14px] text-neutral-60 dark:text-neutral-60 border border-dashed border-neutral-30 dark:border-neutral-30 rounded-[10px] mt-2">
-                  문자 발송 이력이 없습니다.
-                </div>
-              ) : (
-                <div className="divide-y divide-neutral-30/40 dark:!divide-neutral-[#44444455]">
-                  {histories.map((history) => {
-                    const isLastRow = histories.indexOf(history) === histories.length - 1;
-                    return (
+                {/* 테이블 바디 */}
+                {loading ? (
+                  <div className="flex items-center justify-center h-40 text-[14px] text-neutral-60 dark:text-neutral-60">
+                    로딩 중...
+                  </div>
+                ) : histories.length === 0 ? (
+                  <div className="flex items-center justify-center h-40 text-[14px] text-neutral-60 dark:text-neutral-60 border border-dashed border-neutral-30 dark:border-neutral-30 rounded-[10px] mt-2">
+                    문자 발송 이력이 없습니다.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-neutral-30/40 dark:!divide-neutral-[#44444455]">
+                    {histories.map((history) => (
                       <div
                         key={history.id}
                         onClick={() => handleOpenDetailModal(history)}
-                        className={`px-4 pl-10 h-[52px] flex items-center hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors border-b border-neutral-30/40 dark:!border-[#44444455] cursor-pointer`}
+                        className="px-4 pl-10 h-[52px] flex items-center whitespace-nowrap hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors border-b border-neutral-30/40 dark:!border-[#44444455] cursor-pointer"
                       >
                         <div className="flex-[2] text-[14px] text-ink dark:text-neutral-80 text-left">
                           {formatDateTime(history.scheduledAt || history.createdAt)}
@@ -373,10 +372,10 @@ export default function SmsHistorySettings() {
                           <StatusBadge status={history.status} />
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* 페이지네이션 */}
