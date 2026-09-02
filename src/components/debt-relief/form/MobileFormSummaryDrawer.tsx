@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { DiagnosisDerivedValues, DiagnosisFormState } from "@/types/debtRelief";
 import type { FormStepMeta } from "./steps";
 import FormCustomerSummary from "./FormCustomerSummary";
@@ -91,9 +91,13 @@ export default function MobileFormSummaryDrawer({
   const [expanded, setExpanded] = useState(false);
   const step = steps[currentIndex];
 
-  const handleSelectStep = (index: number) => {
-    onSelectStep(index);
+  useEffect(() => {
     setExpanded(false);
+  }, [currentIndex]);
+
+  const handleSelectStep = (index: number) => {
+    if (index === currentIndex) return;
+    onSelectStep(index);
   };
 
   return (

@@ -20,6 +20,41 @@ const ADJUSTMENT_SUMMARY_PROCEDURES: readonly RecommendedProcedure[] = [
   "pre_workout",
 ];
 
+const REPAYMENT_RATE_PROCEDURES: readonly RecommendedProcedure[] = [
+  "individual_rehabilitation",
+  "personal_workout",
+];
+
+export function shouldShowRepaymentRate(procedure: RecommendedProcedure): boolean {
+  return REPAYMENT_RATE_PROCEDURES.includes(procedure);
+}
+
+export function calculateRepaymentRate(
+  totalPaymentManwon: number,
+  totalDebtManwon: number
+): number | null {
+  if (
+    !Number.isFinite(totalPaymentManwon) ||
+    !Number.isFinite(totalDebtManwon) ||
+    totalDebtManwon <= 0
+  ) {
+    return null;
+  }
+
+  return Math.min(
+    100,
+    Math.max(0, Math.floor((totalPaymentManwon / totalDebtManwon) * 100))
+  );
+}
+
+export function formatRepaymentRate(
+  totalPaymentManwon: number,
+  totalDebtManwon: number
+): string {
+  const repaymentRate = calculateRepaymentRate(totalPaymentManwon, totalDebtManwon);
+  return repaymentRate == null ? "-" : `${repaymentRate}%`;
+}
+
 export function resolveSectionKind(procedure: RecommendedProcedure): RepaymentSectionKind {
   if (procedure === "bankruptcy") return "bankruptcy_result";
   if (ADJUSTMENT_SUMMARY_PROCEDURES.includes(procedure)) return "adjustment_summary";
@@ -151,10 +186,12 @@ function RepaymentTimeline({
   months,
   monthlyPaymentManwon,
   consultedAt,
+  centerVertically = false,
 }: {
   months: number;
   monthlyPaymentManwon: number;
   consultedAt: string;
+  centerVertically?: boolean;
 }) {
   const startDate = parseConsultedAt(consultedAt);
   const endDate = startDate ? addMonths(startDate, months) : null;
@@ -162,6 +199,43 @@ function RepaymentTimeline({
   const endLabel = endDate ? formatYearMonth(endDate) : "—";
   const monthlyLabel = formatManwonComma(monthlyPaymentManwon);
   const yearsLabel = formatYearsLabel(months);
+  const timelineGraphic = (
+    <div className="relative mx-auto w-full md:max-w-[446px] h-[50px]">
+      {/* Vector 563: secondary-20 (#7EA5F8) */}
+      <div
+        className="absolute left-[23px] right-[23px] top-[26px] h-px bg-secondary-20"
+        aria-hidden
+      />
+
+      <div className="absolute left-0 top-0 flex flex-col items-center w-[47px]">
+        <span className="text-[13px] font-medium leading-4 text-neutral-60">시작</span>
+        <span
+          className="mt-1 w-3 h-3 rounded-full bg-secondary-40 shadow-[0px_0px_7px_2px_#CDDDFF] dark:shadow-none"
+          aria-hidden
+        />
+        <span className="mt-1 text-[12px] font-semibold leading-[14px] text-neutral-90 whitespace-nowrap">
+          {startLabel}
+        </span>
+      </div>
+
+      <div className="absolute left-1/2 -translate-x-1/2 -top-[5px] md:top-0">
+        <span className="text-[13px] font-semibold leading-4 text-secondary-60 whitespace-nowrap">
+          {months}개월 · {monthlyLabel}
+        </span>
+      </div>
+
+      <div className="absolute right-0 top-0 flex flex-col items-center w-[45px]">
+        <span className="text-[13px] font-medium leading-4 text-neutral-60">종료</span>
+        <span
+          className="mt-1 w-3 h-3 rounded-full bg-secondary-40 shadow-[0px_0px_7px_2px_#CDDDFF] dark:shadow-none"
+          aria-hidden
+        />
+        <span className="mt-1 text-[12px] font-semibold leading-[14px] text-neutral-90 whitespace-nowrap">
+          {endLabel}
+        </span>
+      </div>
+    </div>
+  );
 
   return (
     // 모바일 피그마: 327×118, pad 16, 헤더→타임라인 16, 타임라인 287×50
@@ -174,48 +248,26 @@ function RepaymentTimeline({
         </p>
       </div>
 
-      <div className="relative mx-auto w-full md:max-w-[446px] h-[50px]">
-        {/* Vector 563: secondary-20 (#7EA5F8) */}
-        <div
-          className="absolute left-[23px] right-[23px] top-[26px] h-px bg-secondary-20"
-          aria-hidden
-        />
-
-        <div className="absolute left-0 top-0 flex flex-col items-center w-[47px]">
-          <span className="text-[13px] font-medium leading-4 text-neutral-60">시작</span>
-          <span
-            className="mt-1 w-3 h-3 rounded-full bg-secondary-40 shadow-[0px_0px_7px_2px_#CDDDFF] dark:shadow-none"
-            aria-hidden
-          />
-          <span className="mt-1 text-[12px] font-semibold leading-[14px] text-neutral-90 whitespace-nowrap">
-            {startLabel}
-          </span>
-        </div>
-
-        <div className="absolute left-1/2 -translate-x-1/2 -top-[5px] md:top-0">
-          <span className="text-[13px] font-semibold leading-4 text-secondary-60 whitespace-nowrap">
-            {months}개월 · {monthlyLabel}
-          </span>
-        </div>
-
-        <div className="absolute right-0 top-0 flex flex-col items-center w-[45px]">
-          <span className="text-[13px] font-medium leading-4 text-neutral-60">종료</span>
-          <span
-            className="mt-1 w-3 h-3 rounded-full bg-secondary-40 shadow-[0px_0px_7px_2px_#CDDDFF] dark:shadow-none"
-            aria-hidden
-          />
-          <span className="mt-1 text-[12px] font-semibold leading-[14px] text-neutral-90 whitespace-nowrap">
-            {endLabel}
-          </span>
-        </div>
-      </div>
+      {centerVertically ? (
+        <div className="flex flex-1 items-center">{timelineGraphic}</div>
+      ) : (
+        timelineGraphic
+      )}
     </div>
   );
 }
 
 // 2026-08-08: 가용소득이 사실상 없어 월 변제액이 0원으로 산출되는 케이스(개인회생/개인워크아웃 등)는
 // "0원"이 아니라 "산정 불가"로 표시하고, 기간·총액도 의미가 없으므로 "-"로 비운다.
-function PlanRowsPanel({ plan }: { plan: RepaymentPlan }) {
+function PlanRowsPanel({
+  plan,
+  selectedProcedure,
+  totalDebtManwon,
+}: {
+  plan: RepaymentPlan;
+  selectedProcedure: RecommendedProcedure;
+  totalDebtManwon: number;
+}) {
   const isUnpayable = plan.monthlyPaymentManwon === 0;
   return (
     // pad 32×17, 행 간격 16
@@ -229,6 +281,16 @@ function PlanRowsPanel({ plan }: { plan: RepaymentPlan }) {
         label="총 변제액"
         value={isUnpayable ? "-" : formatManwonComma(plan.totalPaymentManwon)}
       />
+      {shouldShowRepaymentRate(selectedProcedure) && (
+        <PlanRow
+          label="변제율"
+          value={
+            isUnpayable
+              ? "-"
+              : formatRepaymentRate(plan.totalPaymentManwon, totalDebtManwon)
+          }
+        />
+      )}
     </div>
   );
 }
@@ -508,12 +570,17 @@ export default function SectionRepaymentPlan({
         // 월 변제액이 0원(가용소득 사실상 없음)이면 타임라인·면책/잔여 박스는 보여줄 수치가 없으므로
         // 아예 그리지 않는다 — PlanRowsPanel(산정 불가 표시)과 주의사항만 남는다.
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-x-[28px] lg:gap-y-4">
-          <PlanRowsPanel plan={plan} />
+          <PlanRowsPanel
+            plan={plan}
+            selectedProcedure={selectedProcedure}
+            totalDebtManwon={detail.debtStatus.totalDebtManwon}
+          />
           {plan.monthlyPaymentManwon > 0 && (
             <RepaymentTimeline
               months={plan.months}
               monthlyPaymentManwon={plan.monthlyPaymentManwon}
               consultedAt={detail.consultedAt}
+              centerVertically={shouldShowRepaymentRate(selectedProcedure)}
             />
           )}
           {plan.monthlyPaymentManwon > 0 && (

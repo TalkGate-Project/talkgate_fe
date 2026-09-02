@@ -130,7 +130,7 @@ function ActionButton({
           : "bg-neutral-90 text-neutral-20"
       }`}
     >
-      {label}
+      <span className="inline-block translate-y-px">{label}</span>
     </button>
   );
 }
