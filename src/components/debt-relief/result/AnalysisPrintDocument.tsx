@@ -25,10 +25,12 @@ import {
   REMAINING_DEBT_SUBTITLE,
   SECTION_TITLE as REPAYMENT_SECTION_TITLE,
   addMonths,
+  formatRepaymentRate,
   formatYearMonth,
   formatYearsLabel,
   parseConsultedAt,
   resolveSectionKind,
+  shouldShowRepaymentRate,
 } from "./SectionRepaymentPlan";
 import { TYPE_LABEL as MESSAGE_TYPE_LABEL } from "./SectionDeliveryMessages";
 
@@ -418,6 +420,20 @@ export default function AnalysisPrintDocument({
                   },
                   { label: "변제 기간", value: plan.monthlyPaymentManwon === 0 ? "-" : `${plan.months}개월 (${plan.years}년)` },
                   { label: "총 변제액", value: plan.monthlyPaymentManwon === 0 ? "-" : formatManwonComma(plan.totalPaymentManwon) },
+                  ...(shouldShowRepaymentRate(selectedProcedure)
+                    ? [
+                        {
+                          label: "변제율",
+                          value:
+                            plan.monthlyPaymentManwon === 0
+                              ? "-"
+                              : formatRepaymentRate(
+                                  plan.totalPaymentManwon,
+                                  detail.debtStatus.totalDebtManwon
+                                ),
+                        },
+                      ]
+                    : []),
                 ]}
               />
               {plan.monthlyPaymentManwon > 0 && (
