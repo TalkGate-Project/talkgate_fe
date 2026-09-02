@@ -87,7 +87,7 @@ export default function AnalysisLoadingOverlay({
 
         <p className="mt-6 typo-caption-1 text-neutral-60">{hint}</p>
 
-        <div className="mt-8 flex items-center gap-2" aria-hidden>
+        {/* <div className="mt-8 flex items-center gap-2" aria-hidden>
           {[0, 1, 2].map((index) => (
             <span
               key={index}
@@ -95,7 +95,7 @@ export default function AnalysisLoadingOverlay({
               style={{ animationDelay: `${index * 0.2}s` }}
             />
           ))}
-        </div>
+        </div> */}
       </div>
     </div>,
     document.body
