@@ -118,7 +118,7 @@ export default function AnalysisShareContactStep({
   const formDisabled = submitting || prefillLoading;
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center gap-2 px-6 pt-5 pb-4 shrink-0">
         <button
           type="button"
@@ -143,7 +143,11 @@ export default function AnalysisShareContactStep({
 
       <div className="px-6 pb-6 flex-1 flex flex-col gap-5 overflow-y-auto min-h-0">
         {prefillLoading ? (
-          <div className="flex flex-1 items-center justify-center py-12 text-[14px] text-neutral-60">
+          <div
+            className="flex flex-1 items-center justify-center py-12 text-[14px] text-neutral-60"
+            role="status"
+            aria-live="polite"
+          >
             불러오는 중...
           </div>
         ) : (
