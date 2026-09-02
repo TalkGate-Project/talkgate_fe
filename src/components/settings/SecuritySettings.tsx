@@ -303,11 +303,11 @@ export default function SecuritySettings() {
               </p>
             </div>
             <div className="flex flex-shrink-0 items-center gap-5 md:gap-6">
-              <span className="text-[14px] font-medium text-foreground">
-                {isEnabled ? (
+              {isEnabled && (
+                <span className="text-[14px] font-medium text-foreground">
                   <>{allowedIps.length}<span className="text-neutral-50">/{ALLOWED_IP_LIMIT}</span></>
-                ) : "해제"}
-              </span>
+                </span>
+              )}
               <button
                 type="button"
                 role="switch"
