@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import DateRangePicker from "@/components/common/DateRangePicker";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
@@ -8,6 +9,11 @@ import { useProjectType } from "@/hooks/useProjectType";
 import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { AnalysisService } from "@/services/analysis";
 import { AnalysisPartnersService } from "@/services/analysisPartners";
+import { ProjectsService } from "@/services/projects";
+import { setProjectType, setSelectedProjectId, setUseAttendanceMenu } from "@/lib/project";
+import { getProjectSubdomainUrl } from "@/lib/subdomain";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import type { FeeStatisticsInstallmentItem } from "@/types/analysisFeeStatistics";
 import { getCurrentRankingMonthStart } from "@/utils/datetime";
 import FeeSummaryCards from "./FeeSummaryCards";
 import FeeInstallmentsTable from "./FeeInstallmentsTable";
@@ -20,6 +26,7 @@ const PARTNER_LIMIT = 100;
 type DateMode = "monthly" | "custom";
 
 export default function FeePaymentStatusPanel() {
+  const router = useRouter();
   const [projectId, projectReady] = useSelectedProjectId();
   const { isLawyer, ready: projectTypeReady } = useProjectType();
   const { project: currentProject } = useCurrentProjectDetail();
@@ -171,6 +178,39 @@ export default function FeePaymentStatusPanel() {
     setPage(1);
   };
 
+  const handleInstallmentClick = async (item: FeeStatisticsInstallmentItem) => {
+    const detailPath = `/debt-relief/${item.analysisId}`;
+
+    try {
+      const sourceProject = currentProject?.id === item.sourceProjectId
+        ? currentProject
+        : (await ProjectsService.detailById({
+            "x-project-id": String(item.sourceProjectId),
+          })).data.data;
+
+      setSelectedProjectId(item.sourceProjectId);
+      setProjectType(sourceProject.type);
+      setUseAttendanceMenu(sourceProject.useAttendanceMenu);
+
+      const subdomainUrl = sourceProject.subDomain
+        ? getProjectSubdomainUrl(sourceProject.subDomain, detailPath)
+        : "";
+
+      if (subdomainUrl) {
+        window.location.href = subdomainUrl;
+        return;
+      }
+
+      router.push(detailPath);
+    } catch (error) {
+      console.error("Failed to open fee installment analysis detail:", error);
+      showErrorModal({
+        headline: "분석 상세 페이지로 이동하지 못했습니다.",
+        description: "잠시 후 다시 시도해주세요.",
+      });
+    }
+  };
+
   // 영업점 필터는 법무법인 프로젝트에서만 노출 (영업점 프로젝트에는 하위 영업점 개념이 없음)
   const branchSelect = isLawyer ? (
     <div className="flex items-center gap-2.5">
@@ -313,6 +353,7 @@ export default function FeePaymentStatusPanel() {
           currentPage={page}
           totalPages={totalPages}
           onPageChange={setPage}
+          onRowClick={(item) => void handleInstallmentClick(item)}
           showAssigneeColumn={isLawyer}
         />
       </section>
