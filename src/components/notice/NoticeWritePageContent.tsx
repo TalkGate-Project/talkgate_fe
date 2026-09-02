@@ -144,8 +144,8 @@ function NoticeWritePageContentInner() {
   }
 
   return (
-    <main className="container mx-auto max-w-[1324px] md:pt-6 md:pb-12 pb-20 md:pb-12">
-      <div className="bg-card rounded-none md:rounded-[14px] py-4 md:py-[26px]">
+    <main className="container mx-auto max-w-[1324px] pb-20 md:min-h-[calc(100vh-64px)] md:bg-card md:pb-0 lg:min-h-0 lg:bg-transparent lg:pt-6 lg:pb-12">
+      <div className="rounded-none bg-card py-4 md:py-[26px] lg:rounded-[14px]">
         {/* 헤더 영역 */}
         <div className="flex items-center md:justify-between mb-4 md:mb-6 px-4 md:px-7">
           {/* 모바일: 뒤로가기 + 제목 */}
@@ -306,8 +306,8 @@ export default function NoticeWritePageContent() {
   return (
     <Suspense
       fallback={
-        <main className="container mx-auto max-w-[1324px] md:pt-6 md:pb-12">
-          <div className="bg-card rounded-none md:rounded-[14px] p-4 md:p-6">
+        <main className="container mx-auto max-w-[1324px] md:min-h-[calc(100vh-64px)] md:bg-card lg:min-h-0 lg:bg-transparent lg:pt-6 lg:pb-12">
+          <div className="rounded-none bg-card p-4 md:p-6 lg:rounded-[14px]">
             <div className="text-center text-neutral-60">불러오는 중...</div>
           </div>
         </main>
