@@ -217,11 +217,11 @@ export default function SummaryCards({
         </div>
       </div>
 
-      {/* 상태 분포 — 안쪽 콘텐츠 ~248×104 (칩+바 행, gap 8, 항목이 많으면 내부 스크롤) */}
+      {/* 상태 분포 — 태블릿 2열에서는 카드 폭을 채우고, 4열부터 안쪽 콘텐츠를 ~248px로 제한 */}
       <div className={CARD_CLASS}>
         <p className={LABEL_CLASS}>상태 분포</p>
         <div
-          className="mt-1 md:mt-3 flex flex-col gap-1 md:gap-2 overflow-y-auto w-full md:max-w-[248px] md:h-[76px] pr-1"
+          className="mt-1 md:mt-3 flex flex-col gap-1 md:gap-2 overflow-y-auto w-full lg:max-w-[248px] md:h-[76px] pr-1"
           style={{ scrollbarWidth: "thin", scrollbarColor: "#D0D0D0 transparent" }}
         >
           {DIAGNOSIS_STATUS_DISTRIBUTION_ORDER.map((key) => {
@@ -240,7 +240,7 @@ export default function SummaryCards({
                     {DIAGNOSIS_STATUS_LABEL[key]}
                   </span>
                 </div>
-                <div className="w-full max-w-[140px] min-w-0 h-1 md:h-1.5 rounded-[30px] bg-neutral-30 overflow-hidden">
+                <div className="flex-1 lg:max-w-[140px] min-w-0 h-1 md:h-1.5 rounded-[30px] bg-neutral-30 overflow-hidden">
                   <div
                     className="h-full rounded-l-[30px] bg-neutral-70"
                     style={{ width: `${(count / totalStatusCount) * 100}%` }}
@@ -255,7 +255,7 @@ export default function SummaryCards({
         </div>
       </div>
 
-      {/* 진행단계 — 절차 셀렉트 + 스크롤 목록 (모바일·데스크톱 모두 높이 제한 후 내부 스크롤) */}
+      {/* 진행단계 — 태블릿에서는 목록이 카드 폭을 채우고, 4열부터 248px로 제한 */}
       <div className={`${CARD_PROGRESS_CLASS} min-h-0`}>
         <div className="flex items-center justify-between gap-2 shrink-0">
           <div className="flex items-center gap-0.5 min-w-0">
@@ -265,7 +265,7 @@ export default function SummaryCards({
           <ProgressProcedureSelect value={selectedProcedure} onChange={setSelectedProcedure} />
         </div>
         <div
-          className="mt-1 md:mt-3 flex flex-col gap-1 md:gap-3 overflow-y-auto w-full md:max-w-[248px] h-[76px] pr-1"
+          className="mt-1 md:mt-3 flex flex-col gap-1 md:gap-3 overflow-y-auto w-full lg:max-w-[248px] h-[76px] pr-1"
           style={{ scrollbarWidth: "thin", scrollbarColor: "#D0D0D0 transparent" }}
         >
           {progressSteps.length === 0 ? (

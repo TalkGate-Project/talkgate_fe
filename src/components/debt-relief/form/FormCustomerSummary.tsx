@@ -95,7 +95,7 @@ export default function FormCustomerSummary({
 
   return (
     <div className="flex h-[43px] min-w-0 items-center justify-between gap-3 text-left">
-      <div className="w-[99px] min-w-0 shrink-0 self-start">
+      <div className="min-w-0 flex-1 self-start">
         <p className="truncate text-[18px] font-bold leading-[21px] text-ink">
           {form.customerName || "고객명"}
         </p>
