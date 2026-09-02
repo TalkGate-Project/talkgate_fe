@@ -4,6 +4,7 @@ import { setProjectIdCookie, setAttendanceMenuCookie, setProjectTypeCookie, dele
 import type { Project } from "@/types/projects";
 import type { ApiSuccess } from "@/types/common";
 import { logger } from "@/lib/logger";
+import { buildClientIpProxyHeaders } from "@/lib/clientIpProxy";
 import { isMobileDeviceUserAgent } from "@/lib/device";
 
 // 보호가 필요한 경로에만 미들웨어를 적용
@@ -130,7 +131,7 @@ function getMainDomain(_host: string): string {
 async function fetchProjectBySubdomain(
   subdomain: string,
   accessToken: string,
-  _host: string
+  requestHeaders: Headers
 ): Promise<Project | "IP_NOT_ALLOWED" | null> {
   try {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api-dev.talkgate.im";
@@ -140,6 +141,7 @@ async function fetchProjectBySubdomain(
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
+        ...buildClientIpProxyHeaders(requestHeaders),
       },
     });
 
@@ -276,7 +278,7 @@ export async function middleware(req: NextRequest) {
     if (subdomain) {
       if (hasAuthCookie && accessToken) {
         // 인증됨 + 서브도메인 → 프로젝트 확인 후 대시보드로 리다이렉트
-        const project = await fetchProjectBySubdomain(subdomain, accessToken, host);
+        const project = await fetchProjectBySubdomain(subdomain, accessToken, req.headers);
 
         if (project === "IP_NOT_ALLOWED") {
           const redirectUrl = new URL(`${protocol}//${mainDomain}/projects`);
@@ -400,7 +402,7 @@ export async function middleware(req: NextRequest) {
 
     // 인증됨 + 서브도메인 있음 → 프로젝트 정보 확인
     if (subdomain && accessToken) {
-      const project = await fetchProjectBySubdomain(subdomain, accessToken, host);
+      const project = await fetchProjectBySubdomain(subdomain, accessToken, req.headers);
 
       if (project === "IP_NOT_ALLOWED") {
         const redirectUrl = new URL(`${protocol}//${mainDomain}/projects`);
@@ -482,7 +484,7 @@ export async function middleware(req: NextRequest) {
     
     // 서브도메인이 있으면 프로젝트 ID도 설정
     if (subdomain && accessToken) {
-      const project = await fetchProjectBySubdomain(subdomain, accessToken, host);
+      const project = await fetchProjectBySubdomain(subdomain, accessToken, req.headers);
       if (project === "IP_NOT_ALLOWED") {
         const redirectUrl = new URL(`${protocol}//${mainDomain}/projects`);
         redirectUrl.searchParams.set("error", "ip_not_allowed");

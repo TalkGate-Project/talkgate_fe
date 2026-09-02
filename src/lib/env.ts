@@ -163,4 +163,21 @@ export function getMainDomain(): string {
   return mainDomain;
 }
 
+/**
+ * 서버 프록시가 백엔드에 원본 클라이언트 IP를 전달할 때 사용하는 공유 비밀키입니다.
+ * 브라우저에서 호출하거나 NEXT_PUBLIC 환경 변수로 노출하지 않습니다.
+ */
+export function getClientIpProxySecret(): string {
+  if (typeof window !== "undefined") {
+    throw new Error("CLIENT_IP_PROXY_SECRET is server-only");
+  }
+
+  const secret = process.env.CLIENT_IP_PROXY_SECRET;
+  if (!secret) {
+    throw new Error("Missing environment variable: CLIENT_IP_PROXY_SECRET");
+  }
+
+  return secret;
+}
+
 
