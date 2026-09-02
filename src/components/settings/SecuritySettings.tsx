@@ -298,10 +298,16 @@ export default function SecuritySettings() {
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <h2 className="text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-foreground">접속 허용 IP</h2>
-              <p className="mt-2 text-[13px] font-medium leading-[17px] tracking-[0.2px] text-muted-foreground md:text-[14px]">관리자와 부관리자를 제외한 멤버는 등록된 IP에서만 접속이 가능합니다.</p>
+              <p className="mt-2 text-[13px] font-medium leading-[17px] tracking-[0.2px] text-muted-foreground md:text-[14px]">
+                관리자와 부관리자를 제외한 모든 멤버를 지정된 IP에서만 접속이 가능하도록 제한합니다.
+              </p>
             </div>
             <div className="flex flex-shrink-0 items-center gap-5 md:gap-6">
-              <span className="text-[14px] font-medium text-foreground">{allowedIps.length}<span className="text-neutral-50">/{ALLOWED_IP_LIMIT}</span></span>
+              <span className="text-[14px] font-medium text-foreground">
+                {isEnabled ? (
+                  <>{allowedIps.length}<span className="text-neutral-50">/{ALLOWED_IP_LIMIT}</span></>
+                ) : "해제"}
+              </span>
               <button
                 type="button"
                 role="switch"
@@ -316,10 +322,12 @@ export default function SecuritySettings() {
             </div>
           </div>
 
-          <div className="mt-3 h-px bg-neutral-30" />
-          <div className="mt-4">
-            <p className="mb-3 text-[14px] font-medium leading-[17px] tracking-[0.2px] text-muted-foreground">IP 관리</p>
-            <div className="flex min-h-[50px] flex-wrap items-center gap-3 rounded-[5px] bg-neutral-10 px-3 py-2 md:flex-nowrap md:gap-4 md:px-6">
+          {isEnabled && (
+            <>
+              <div className="mt-3 h-px bg-neutral-30" />
+              <div className="mt-4">
+                <p className="mb-3 text-[14px] font-medium leading-[17px] tracking-[0.2px] text-muted-foreground">IP 관리</p>
+                <div className="flex min-h-[50px] flex-wrap items-center gap-3 rounded-[5px] bg-neutral-10 px-3 py-2 md:flex-nowrap md:gap-4 md:px-6">
               <div className="relative h-[34px] w-[136px] flex-shrink-0">
                 <label className="sr-only" htmlFor="ip-input-mode">IP 입력 형식</label>
                 <select id="ip-input-mode" value={inputMode} onChange={(event) => handleInputModeChange(event.target.value as IpInputMode)} className={`${inputClassName} w-full cursor-pointer appearance-none pr-8`}>
@@ -359,28 +367,30 @@ export default function SecuritySettings() {
               )}
 
               <input value={memo} onChange={(event) => setMemo(event.target.value)} placeholder="메모" aria-label="메모" className={`${inputClassName} min-w-[160px] flex-1`} />
-              <button type="button" onClick={handleCreate} disabled={!composedIpValue || isSaving || allowedIps.length >= ALLOWED_IP_LIMIT} className="h-[34px] w-12 flex-shrink-0 cursor-pointer rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-20 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50">추가</button>
-            </div>
-          </div>
-
-          <div className="mt-3 divide-y divide-neutral-30">
-            {visibleAllowedIps.length === 0 ? (
-              <div className="py-10 text-center text-[14px] text-muted-foreground">등록된 허용 IP가 없습니다.</div>
-            ) : visibleAllowedIps.map((allowedIp) => (
-              <div key={allowedIp.id} className="flex min-h-[49px] items-center px-6">
-                <p className="w-[250px] min-w-0 flex-shrink-0 truncate text-[14px] font-semibold text-foreground/80">{allowedIp.value}</p>
-                <p className="min-w-0 flex-1 truncate text-[14px] font-semibold text-muted-foreground/80">{allowedIp.memo}</p>
-                <button type="button" onClick={() => handleDelete(allowedIp)} disabled={isSaving} aria-label={`${allowedIp.value} 삭제`} className="ml-4 flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center text-neutral-50 hover:text-danger-60 disabled:cursor-not-allowed disabled:opacity-50"><TrashIcon /></button>
+                  <button type="button" onClick={handleCreate} disabled={!composedIpValue || isSaving || allowedIps.length >= ALLOWED_IP_LIMIT} className="h-[34px] w-12 flex-shrink-0 cursor-pointer rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-20 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50">추가</button>
+                </div>
               </div>
-            ))}
-          </div>
 
-          {totalPages > 1 && (
-            <nav aria-label="허용 IP 페이지" className="mt-5 flex items-center justify-center gap-3">
-              <button type="button" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={page === 1} className="cursor-pointer text-[13px] font-semibold text-foreground disabled:cursor-not-allowed disabled:opacity-40">이전</button>
-              <span className="text-[13px] text-muted-foreground">{page} / {totalPages}</span>
-              <button type="button" onClick={() => setPage((value) => Math.min(totalPages, value + 1))} disabled={page === totalPages} className="cursor-pointer text-[13px] font-semibold text-foreground disabled:cursor-not-allowed disabled:opacity-40">다음</button>
-            </nav>
+              <div className="mt-3 divide-y divide-neutral-30">
+                {visibleAllowedIps.length === 0 ? (
+                  <div className="py-10 text-center text-[14px] text-muted-foreground">등록된 허용 IP가 없습니다.</div>
+                ) : visibleAllowedIps.map((allowedIp) => (
+                  <div key={allowedIp.id} className="flex min-h-[49px] items-center px-6">
+                    <p className="w-[250px] min-w-0 flex-shrink-0 truncate text-[14px] font-semibold text-foreground/80">{allowedIp.value}</p>
+                    <p className="min-w-0 flex-1 truncate text-[14px] font-semibold text-muted-foreground/80">{allowedIp.memo}</p>
+                    <button type="button" onClick={() => handleDelete(allowedIp)} disabled={isSaving} aria-label={`${allowedIp.value} 삭제`} className="ml-4 flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center text-neutral-50 hover:text-danger-60 disabled:cursor-not-allowed disabled:opacity-50"><TrashIcon /></button>
+                  </div>
+                ))}
+              </div>
+
+              {totalPages > 1 && (
+                <nav aria-label="허용 IP 페이지" className="mt-5 flex items-center justify-center gap-3">
+                  <button type="button" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={page === 1} className="cursor-pointer text-[13px] font-semibold text-foreground disabled:cursor-not-allowed disabled:opacity-40">이전</button>
+                  <span className="text-[13px] text-muted-foreground">{page} / {totalPages}</span>
+                  <button type="button" onClick={() => setPage((value) => Math.min(totalPages, value + 1))} disabled={page === totalPages} className="cursor-pointer text-[13px] font-semibold text-foreground disabled:cursor-not-allowed disabled:opacity-40">다음</button>
+                </nav>
+              )}
+            </>
           )}
         </section>
       </div>

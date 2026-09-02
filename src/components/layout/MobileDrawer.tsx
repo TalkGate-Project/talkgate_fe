@@ -133,7 +133,7 @@ export default function MobileDrawer({ isOpen, onClose, isDarkMode, onToggleThem
     if (pathname !== "/settings") return null;
     const tabParam = searchParams.get("tab");
     const validTabs: SettingsTab[] = [
-      "general", "profile", "consultation-channel", "sender-numbers",
+      "general", "security", "profile", "consultation-channel", "sender-numbers",
       "member", "invited-member", "customer-api", "team-management",
       "batch-registration", "sms-history"
     ];
