@@ -17,12 +17,15 @@ type Props = {
   onZoomChange?: (zoom: number) => void;
   onRemoveParentDrop?: (memberId: string) => void;
   canRemoveParent?: boolean;
+  navigationTarget?: { memberId: string; requestId: number } | null;
+  isFullscreen?: boolean;
 };
 
-// 노드 간 가로 간격
-const HORIZONTAL_GAP = 32;
+type EdgePanDirection = "left" | "right";
 
-export default function TeamTreeView({ data, dragHandlers, dragState, onMemberClick, zoom: externalZoom, onZoomChange, onRemoveParentDrop, canRemoveParent = false }: Props) {
+const EDGE_PAN_BASE_SPEED = 8;
+
+export default function TeamTreeView({ data, dragHandlers, dragState, onMemberClick, zoom: externalZoom, onZoomChange, onRemoveParentDrop, canRemoveParent = false, navigationTarget, isFullscreen = false }: Props) {
   const [internalZoom, setInternalZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isGrabbing, setIsGrabbing] = useState(false);
@@ -32,6 +35,15 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
   const lastTouchDistanceRef = useRef<number | null>(null);
   const isNodeDraggingRef = useRef(false);
   const [isDragOverRemoveParent, setIsDragOverRemoveParent] = useState(false);
+  const [focusedMemberId, setFocusedMemberId] = useState<string | null>(null);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const nodeRefs = useRef(new Map<string, HTMLDivElement>());
+  const navigationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const edgePanFrameRef = useRef<number | null>(null);
+  const edgePanDirectionRef = useRef<EdgePanDirection | null>(null);
+  const [activeEdgePanDirection, setActiveEdgePanDirection] = useState<EdgePanDirection | null>(null);
 
   // 외부 zoom이 제공되면 그것을 사용, 아니면 내부 상태 사용
   const zoom = externalZoom ?? internalZoom;
@@ -39,12 +51,92 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
   
   const isDragging = Boolean(dragState.draggedItemId);
 
+  const stopEdgePan = useCallback(() => {
+    edgePanDirectionRef.current = null;
+    setActiveEdgePanDirection(null);
+    if (edgePanFrameRef.current !== null) {
+      window.cancelAnimationFrame(edgePanFrameRef.current);
+      edgePanFrameRef.current = null;
+    }
+  }, []);
+
+  const startEdgePan = useCallback((direction: EdgePanDirection) => {
+    const edgePanSpeed = EDGE_PAN_BASE_SPEED * (isFullscreen ? 3 : 2.5);
+    edgePanDirectionRef.current = direction;
+    setActiveEdgePanDirection(direction);
+    if (edgePanFrameRef.current !== null) return;
+
+    const moveCanvas = () => {
+      const activeDirection = edgePanDirectionRef.current;
+      if (!activeDirection) {
+        edgePanFrameRef.current = null;
+        return;
+      }
+
+      setPan((currentPan) => ({
+        x: currentPan.x + (activeDirection === "left" ? edgePanSpeed : -edgePanSpeed),
+        y: currentPan.y,
+      }));
+      edgePanFrameRef.current = window.requestAnimationFrame(moveCanvas);
+    };
+
+    edgePanFrameRef.current = window.requestAnimationFrame(moveCanvas);
+  }, [isFullscreen]);
+
+  useEffect(() => {
+    if (!navigationTarget) return;
+
+    const viewportElement = viewportRef.current;
+    const nodeElement = nodeRefs.current.get(navigationTarget.memberId);
+    if (!viewportElement || !nodeElement) return;
+
+    const viewportRect = viewportElement.getBoundingClientRect();
+    const nodeRect = nodeElement.getBoundingClientRect();
+    const layoutToScreenScale = viewportElement.offsetWidth > 0
+      ? viewportRect.width / viewportElement.offsetWidth
+      : 1;
+    const horizontalScreenDelta = viewportRect.left + viewportRect.width / 2 - (nodeRect.left + nodeRect.width / 2);
+    const verticalScreenDelta = viewportRect.top + viewportRect.height / 2 - (nodeRect.top + nodeRect.height / 2);
+
+    setIsNavigating(true);
+    setFocusedMemberId(navigationTarget.memberId);
+    setPan((currentPan) => ({
+      x: currentPan.x + horizontalScreenDelta / layoutToScreenScale,
+      y: currentPan.y + verticalScreenDelta / layoutToScreenScale,
+    }));
+
+    if (navigationTimeoutRef.current) clearTimeout(navigationTimeoutRef.current);
+    if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
+    navigationTimeoutRef.current = setTimeout(() => setIsNavigating(false), 320);
+    focusTimeoutRef.current = setTimeout(() => setFocusedMemberId(null), 1400);
+  }, [navigationTarget]);
+
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) clearTimeout(navigationTimeoutRef.current);
+      if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
+      if (edgePanFrameRef.current !== null) {
+        window.cancelAnimationFrame(edgePanFrameRef.current);
+      }
+    };
+  }, []);
+
   // 드래그가 종료되면 가이드 영역 상태 리셋
   useEffect(() => {
     if (!isDragging) {
       setIsDragOverRemoveParent(false);
+      stopEdgePan();
     }
-  }, [isDragging]);
+  }, [isDragging, stopEdgePan]);
+
+  useEffect(() => {
+    window.addEventListener("dragend", stopEdgePan);
+    window.addEventListener("drop", stopEdgePan);
+    return () => {
+      window.removeEventListener("dragend", stopEdgePan);
+      window.removeEventListener("drop", stopEdgePan);
+    };
+  }, [stopEdgePan]);
 
   const onWheel = useCallback((e: WheelEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -208,9 +300,16 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
 
           {/* 노드 카드 */}
           <div
+            ref={(element) => {
+              if (element) {
+                nodeRefs.current.set(item.id, element);
+              } else {
+                nodeRefs.current.delete(item.id);
+              }
+            }}
             className={`group relative flex items-center px-3 md:px-6 gap-2 md:gap-4 border border-border rounded-[12px] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-secondary-40/40 md:min-w-[148px] min-w-[120px] ${
               isLeader ? "bg-team-leader-highlight" : "bg-neutral-10"
-            } ${isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""} ${isDragging ? "opacity-50" : ""}`}
+            } ${isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""} ${focusedMemberId === item.id ? "ring-2 ring-primary-80 ring-offset-2 ring-offset-card" : ""} ${isDragging ? "opacity-50" : ""}`}
             style={{
               height: `${TOKENS.node.leader.h}px`,
               touchAction: 'manipulation', // 노드 카드는 터치 조작 허용 (드래그 앤 드롭용)
@@ -224,7 +323,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
             onDragOver={(e: DragEvent<HTMLDivElement>) => dragHandlers.handleDragOver(e, item.id)}
             onDragLeave={dragHandlers.handleDragLeave}
             onDrop={(e: DragEvent<HTMLDivElement>) => dragHandlers.handleDrop(e, item.id)}
-            onDragEnd={(e: DragEvent<HTMLDivElement>) => {
+            onDragEnd={() => {
               isNodeDraggingRef.current = false;
               dragHandlers.handleDragEnd();
             }}
@@ -255,7 +354,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
         </div>
       );
     },
-    [dragHandlers, dragState, onMemberClick]
+    [dragHandlers, dragState, focusedMemberId, onMemberClick]
   );
 
   // 트리 노드 렌더링 (재귀) - 모든 자식을 가로로 배치
@@ -378,11 +477,27 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
     onRemoveParentDrop(dragState.draggedItemId);
   }, [isDragging, dragState.draggedItemId, onRemoveParentDrop]);
 
+  const handleEdgeDragOver = useCallback(
+    (event: DragEvent<HTMLDivElement>, direction: EdgePanDirection) => {
+      if (!isDragging) return;
+      event.preventDefault();
+      event.stopPropagation();
+      startEdgePan(direction);
+    },
+    [isDragging, startEdgePan]
+  );
+
+  const handleEdgeDrop = useCallback((event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    stopEdgePan();
+  }, [stopEdgePan]);
+
   // 빈 상태 처리
   if (data.length === 0) {
     return (
       <div
-        className="relative flex-1 min-h-40 min-w-0 max-w-full h-full overflow-hidden flex items-center justify-center md:min-w-[400px] md:max-w-[712px]"
+        className={`relative flex-1 min-h-40 min-w-0 max-w-full h-full overflow-hidden flex items-center justify-center md:min-w-[400px] ${isFullscreen ? "w-full" : "md:max-w-[712px]"}`}
         role="tree"
         aria-label="조직도 트리"
       >
@@ -395,7 +510,8 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
 
   return (
     <div
-      className={`relative flex-1 min-h-0 min-w-0 max-w-full overflow-hidden md:min-w-[400px] md:max-w-[712px] md:cursor-grab ${isGrabbing ? 'md:cursor-grabbing' : ''}`}
+      ref={viewportRef}
+      className={`relative flex-1 min-h-0 min-w-0 max-w-full overflow-hidden md:min-w-[400px] md:cursor-grab ${isFullscreen ? "w-full" : "md:max-w-[712px]"} ${isGrabbing ? 'md:cursor-grabbing' : ''}`}
       style={{ 
         touchAction: 'none', 
         userSelect: 'none',
@@ -411,6 +527,66 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
       role="tree"
       aria-label="조직도 트리"
     >
+      <AnimatePresence>
+        {isDragging && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className={`absolute inset-y-0 left-0 z-[8] flex items-center justify-center bg-gradient-to-r from-card via-card/80 to-transparent ${isFullscreen ? "w-20" : "w-16"}`}
+              onDragEnter={(event) => handleEdgeDragOver(event, "left")}
+              onDragOver={(event) => handleEdgeDragOver(event, "left")}
+              onDragLeave={stopEdgePan}
+              onDrop={handleEdgeDrop}
+              aria-hidden="true"
+            >
+              <div
+                className={`pointer-events-none flex items-center justify-center rounded-full border shadow-sm transition-all ${
+                  isFullscreen ? "h-12 w-12" : "h-10 w-10"
+                } ${
+                  activeEdgePanDirection === "left"
+                    ? "border-secondary-40 bg-secondary-40 text-neutral-0"
+                    : "border-border bg-card text-foreground"
+                }`}
+              >
+                <svg width={isFullscreen ? 22 : 18} height={isFullscreen ? 22 : 18} viewBox="0 0 18 18" fill="none">
+                  <path d="M11 4L6 9L11 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className={`absolute inset-y-0 right-0 z-[8] flex items-center justify-center bg-gradient-to-l from-card via-card/80 to-transparent ${isFullscreen ? "w-20" : "w-16"}`}
+              onDragEnter={(event) => handleEdgeDragOver(event, "right")}
+              onDragOver={(event) => handleEdgeDragOver(event, "right")}
+              onDragLeave={stopEdgePan}
+              onDrop={handleEdgeDrop}
+              aria-hidden="true"
+            >
+              <div
+                className={`pointer-events-none flex items-center justify-center rounded-full border shadow-sm transition-all ${
+                  isFullscreen ? "h-12 w-12" : "h-10 w-10"
+                } ${
+                  activeEdgePanDirection === "right"
+                    ? "border-secondary-40 bg-secondary-40 text-neutral-0"
+                    : "border-border bg-card text-foreground"
+                }`}
+              >
+                <svg width={isFullscreen ? 22 : 18} height={isFullscreen ? 22 : 18} viewBox="0 0 18 18" fill="none">
+                  <path d="M7 4L12 9L7 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* 드래그 중일 때만 표시되는 루트 해제 가이드 영역 (admin/subAdmin 권한 필요) */}
       <AnimatePresence>
         {isDragging && canRemoveParent && (
@@ -470,6 +646,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
             transformOrigin: "center top",
             width: "max-content",
+            transition: isNavigating ? "transform 300ms ease-out" : "none",
           }}
         >
           <div className="flex flex-nowrap gap-8 md:gap-16 items-start" style={{ width: "max-content" }}>

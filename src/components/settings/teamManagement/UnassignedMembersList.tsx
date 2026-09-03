@@ -29,7 +29,7 @@ export default function UnassignedMembersList({ data, dragHandlers, dragState, o
         return (
           <div
             key={member.id}
-            className={`max-w-[148px] h-[40px] flex items-center gap-3 px-4 border border-neutral-30 rounded-[10px] bg-neutral-10 cursor-move transition-all hover:border-neutral-50 ${
+            className={`max-w-[148px] h-[40px] flex items-center gap-3 px-4 border border-neutral-30 rounded-[10px] bg-neutral-10 cursor-move transition-all hover:shadow-[0_3px_10px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_3px_10px_rgba(0,0,0,0.35)] ${
               isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""
             } ${isDragging ? "opacity-50" : ""}`}
             draggable
