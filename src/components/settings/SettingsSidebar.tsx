@@ -30,6 +30,7 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
   const currentRole = member?.role;
   const { project } = useCurrentProjectDetail();
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set()); // 기본적으로 닫힘
+  const [openCompactParent, setOpenCompactParent] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   const projectLogoUrl = project?.logoUrl ?? null;
@@ -89,6 +90,7 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
 
   // 부모 항목 토글
   const toggleParent = (label: string) => {
+    setOpenCompactParent((currentLabel) => currentLabel === label ? null : label);
     setExpandedParents((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(label)) {
@@ -122,7 +124,6 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
           type="button"
           aria-label={item.label}
           aria-expanded={hasChildren ? isExpanded : undefined}
-          title={item.label}
           onClick={() => {
             if (item.isParent) {
               toggleParent(item.label);
@@ -169,29 +170,38 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
         </button>
         {hasChildren && (
           <>
-            <div className="absolute left-full top-0 z-30 ml-2 hidden w-[180px] rounded-[10px] border border-neutral-30 bg-card p-1 shadow-lg group-hover/settings-item:block group-focus-within/settings-item:block lg:hidden">
-              {item.children!.map((child) => {
-                const ChildIcon = child.icon;
-                const isChildActive = child.key === activeTab;
+            <div className="lg:hidden">
+              <div
+                className={`absolute left-full top-0 z-30 ml-2 w-[180px] rounded-[10px] border border-neutral-30 bg-card p-1 shadow-lg group-hover/settings-item:block ${
+                  openCompactParent === item.label ? "block" : "hidden"
+                }`}
+              >
+                {item.children!.map((child) => {
+                  const ChildIcon = child.icon;
+                  const isChildActive = child.key === activeTab;
 
-                return (
-                  <button
-                    key={child.label}
-                    type="button"
-                    onClick={() => child.key && onTabChange(child.key)}
-                    className={`flex h-11 w-full cursor-pointer items-center gap-3 rounded-[7px] px-3 text-left transition-colors ${
-                      isChildActive
-                        ? "bg-primary-10/30 text-primary-80"
-                        : "text-neutral-70 hover:bg-neutral-10"
-                    }`}
-                  >
-                    <span className="flex h-5 w-5 items-center justify-center [&>svg]:h-5 [&>svg]:w-5">
-                      <ChildIcon isActive={isChildActive} />
-                    </span>
-                    <span className="text-[14px] font-medium">{child.label}</span>
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={child.label}
+                      type="button"
+                      onClick={() => {
+                        setOpenCompactParent(null);
+                        if (child.key) onTabChange(child.key);
+                      }}
+                      className={`flex h-11 w-full cursor-pointer items-center gap-3 rounded-[7px] px-3 text-left transition-colors ${
+                        isChildActive
+                          ? "bg-primary-10/30 text-primary-80"
+                          : "text-neutral-70 hover:bg-neutral-10"
+                      }`}
+                    >
+                      <span className="flex h-5 w-5 items-center justify-center [&>svg]:h-5 [&>svg]:w-5">
+                        <ChildIcon isActive={isChildActive} />
+                      </span>
+                      <span className="text-[14px] font-medium">{child.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             {isExpanded && (
               <div className="hidden lg:block">

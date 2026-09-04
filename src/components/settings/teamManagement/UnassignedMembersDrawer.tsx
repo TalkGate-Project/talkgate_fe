@@ -33,7 +33,7 @@ export default function UnassignedMembersDrawer({
         <button
           type="button"
           onClick={onOpen}
-          className="md:hidden fixed bottom-6 right-4 w-12 h-12 rounded-full bg-neutral-90 text-neutral-0 flex items-center justify-center shadow-lg z-40"
+          className="lg:hidden fixed bottom-6 right-4 w-12 h-12 rounded-full bg-neutral-90 text-neutral-0 flex items-center justify-center shadow-lg z-40"
           aria-label="미배정 멤버 보기"
         >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -58,7 +58,7 @@ export default function UnassignedMembersDrawer({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={onClose}
-              className="fixed inset-0 bg-black/30 dark:bg-black/50 z-[100] md:hidden"
+              className="fixed inset-0 bg-black/30 dark:bg-black/50 z-[100] lg:hidden"
             />
             {/* Drawer Content */}
             <motion.div
@@ -66,7 +66,7 @@ export default function UnassignedMembersDrawer({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 bottom-0 w-[280px] bg-card dark:bg-neutral-10 z-[101] shadow-lg overflow-y-auto md:hidden"
+              className="fixed top-0 right-0 bottom-0 w-[280px] bg-card dark:bg-neutral-10 z-[101] shadow-lg overflow-y-auto lg:hidden"
             >
               {/* Header */}
               <div className="h-[64px] flex items-center justify-between px-4 border-b border-neutral-30 flex-shrink-0">

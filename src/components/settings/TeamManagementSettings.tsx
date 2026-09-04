@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import TeamManagementHeader from "./teamManagement/TeamManagementHeader";
 import TeamListView from "./teamManagement/TeamListView";
@@ -13,6 +13,8 @@ import TeamMoveConfirmModal from "./teamManagement/TeamMoveConfirmModal";
 import UnassignedMembersDrawer from "./teamManagement/UnassignedMembersDrawer";
 import TeamManagementLoading from "./teamManagement/TeamManagementLoading";
 import TeamManagementError from "./teamManagement/TeamManagementError";
+import TeamTreeNavigator from "./teamManagement/TeamTreeNavigator";
+import TeamCanvasControls from "./teamManagement/TeamCanvasControls";
 import { TeamMember } from "@/types/teams";
 import { getSelectedProjectId } from "@/lib/project";
 import {
@@ -29,6 +31,31 @@ import { useTeamSearch } from "@/hooks/useTeamSearch";
 import { useDepartmentFilter } from "@/hooks/useDepartmentFilter";
 import { ViewMode } from "@/types/teamManagement";
 
+const APP_HEADER_SCREEN_HEIGHT = 54;
+
+type FullscreenViewport = {
+  top: number;
+  width: number;
+  height: number;
+};
+
+function getBodyZoom(): number {
+  if (typeof document === "undefined") return 1;
+  const bodyZoom = Number.parseFloat(window.getComputedStyle(document.body).zoom);
+  return Number.isFinite(bodyZoom) && bodyZoom > 0 ? bodyZoom : 1;
+}
+
+function getFullscreenViewport(): FullscreenViewport {
+  const bodyZoom = getBodyZoom();
+  const headerScreenBottom =
+    document.querySelector("header")?.getBoundingClientRect().bottom ?? APP_HEADER_SCREEN_HEIGHT;
+  return {
+    top: headerScreenBottom / bodyZoom,
+    width: window.innerWidth / bodyZoom,
+    height: Math.max(0, window.innerHeight - headerScreenBottom) / bodyZoom,
+  };
+}
+
 export default function TeamManagementSettings() {
   const router = useRouter();
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -36,6 +63,13 @@ export default function TeamManagementSettings() {
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [isUnassignedDrawerOpen, setIsUnassignedDrawerOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fullscreenViewport, setFullscreenViewport] = useState<FullscreenViewport | null>(null);
+  const zoomBeforeFullscreenRef = useRef(1);
+  const [treeNavigationTarget, setTreeNavigationTarget] = useState<{
+    memberId: string;
+    requestId: number;
+  } | null>(null);
 
   useEffect(() => {
     const selected = getSelectedProjectId();
@@ -46,6 +80,40 @@ export default function TeamManagementSettings() {
     setProjectId(selected);
   }, [router]);
 
+  useEffect(() => {
+    if (!isFullscreen) {
+      setFullscreenViewport(null);
+      return;
+    }
+
+    const updateFullscreenViewport = () => {
+      setFullscreenViewport(getFullscreenViewport());
+    };
+
+    const previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    updateFullscreenViewport();
+    window.addEventListener("resize", updateFullscreenViewport);
+
+    return () => {
+      window.removeEventListener("resize", updateFullscreenViewport);
+      document.body.style.overflow = previousBodyOverflow;
+    };
+  }, [isFullscreen]);
+
+  useEffect(() => {
+    if (!isFullscreen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setIsFullscreen(false);
+      setZoom(zoomBeforeFullscreenRef.current);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isFullscreen]);
+
   const { data: treeData, isLoading: treeLoading, error: treeError } = useMembersTreeWithoutParent(projectId);
   const { data: teamsData, isLoading: teamsLoading, error: teamsError } = useTeams(projectId);
   const moveMutation = useMoveTeamMutation(projectId);
@@ -53,6 +121,10 @@ export default function TeamManagementSettings() {
   const { isAdminOrSubAdmin } = useMyMember(projectId);
 
   const { teamMembers, assignedMembers, unassignedMembers } = useTeamMembers(treeData, teamsData);
+  const assignableMembers = useMemo(
+    () => unassignedMembers.filter((member) => Boolean(member.id && member.name.trim())),
+    [unassignedMembers]
+  );
 
   const canDrag = !moveMutation.isPending && !removeParentMutation.isPending;
 
@@ -129,6 +201,38 @@ export default function TeamManagementSettings() {
     setSelectedMemberId(null);
   }, []);
 
+  const handleTreeNavigate = useCallback((memberId: string) => {
+    setTreeNavigationTarget((currentTarget) => ({
+      memberId,
+      requestId: (currentTarget?.requestId ?? 0) + 1,
+    }));
+  }, []);
+
+  const exitFullscreen = useCallback(() => {
+    setIsFullscreen(false);
+    setZoom(zoomBeforeFullscreenRef.current);
+  }, []);
+
+  const handleFullscreenToggle = useCallback(() => {
+    if (isFullscreen) {
+      exitFullscreen();
+      return;
+    }
+
+    const bodyZoom = getBodyZoom();
+    zoomBeforeFullscreenRef.current = zoom;
+    setFullscreenViewport(getFullscreenViewport());
+    setZoom(Math.min(2, Math.max(zoom, bodyZoom < 1 ? 1 / bodyZoom : 1.1)));
+    setIsFullscreen(true);
+  }, [exitFullscreen, isFullscreen, zoom]);
+
+  const handleViewModeChange = useCallback((nextViewMode: ViewMode) => {
+    if (nextViewMode === "list" && isFullscreen) {
+      exitFullscreen();
+    }
+    setViewMode(nextViewMode);
+  }, [exitFullscreen, isFullscreen]);
+
   if (!projectId) return null;
 
   if (treeLoading || teamsLoading) {
@@ -139,15 +243,22 @@ export default function TeamManagementSettings() {
     return <TeamManagementError />;
   }
 
-  const unassignedMembersArea = unassignedMembers.length > 0 && (
+  const unassignedMembersArea = assignableMembers.length > 0 && (
     <>
-      <div className="hidden md:flex flex-shrink-0 w-[190px] bg-neutral-10/50 overflow-hidden flex-col border-[#E2E2E2] dark:!border-[#44444455] border-l">
-        <div className="flex-1 overflow-y-auto max-h-[520px]">
+      <div className="hidden min-h-0 w-[218px] flex-shrink-0 self-stretch flex-col overflow-hidden border-l border-[#E2E2E2] bg-neutral-10/50 dark:!border-[#44444455] lg:flex">
+        <div
+          className={
+            viewMode === "list"
+              ? "h-[540px] flex-none overflow-y-auto"
+              : "min-h-0 flex-1 overflow-y-auto"
+          }
+        >
           <UnassignedMembersList
-            data={unassignedMembers}
+            data={assignableMembers}
             dragHandlers={dragHandlers}
             dragState={dragState}
             onMemberClick={handleMemberClick}
+            layout="panel"
           />
         </div>
       </div>
@@ -156,7 +267,7 @@ export default function TeamManagementSettings() {
         isOpen={isUnassignedDrawerOpen}
         onOpen={() => setIsUnassignedDrawerOpen(true)}
         onClose={() => setIsUnassignedDrawerOpen(false)}
-        members={unassignedMembers}
+        members={assignableMembers}
         dragHandlers={dragHandlers}
         dragState={dragState}
         onMemberClick={handleMemberClick}
@@ -165,9 +276,27 @@ export default function TeamManagementSettings() {
   );
 
   return (
-    <div className="w-full h-full bg-card rounded-[14px] rounded-t-none md:rounded-t-[14px] pb-7 overflow-hidden flex flex-col">
-      <TeamManagementHeader viewMode={viewMode} onChange={setViewMode} zoom={zoom} onZoomChange={setZoom} />
-      <div className="mx-4 md:mx-7 h-px bg-neutral-30 mb-3" />
+    <div
+      className={`w-full h-full bg-card overflow-hidden flex flex-col ${
+        isFullscreen
+          ? "fixed left-0 z-40 rounded-none pb-0"
+          : "rounded-[14px] rounded-t-none md:rounded-t-[14px] pb-7"
+      }`}
+      style={
+        isFullscreen && fullscreenViewport
+          ? {
+              top: fullscreenViewport.top,
+              width: fullscreenViewport.width,
+              height: fullscreenViewport.height,
+            }
+          : undefined
+      }
+    >
+      <TeamManagementHeader
+        viewMode={viewMode}
+        onChange={handleViewModeChange}
+      />
+      <div className={`mx-4 h-px bg-neutral-30 md:mx-7 ${viewMode === "list" ? "mb-3" : "mb-[2px]"}`} />
 
       {/* 검색 및 태그 영역 (스크롤되지 않는 상단 고정 영역) */}
       {viewMode === "list" && (
@@ -199,9 +328,32 @@ export default function TeamManagementSettings() {
           {unassignedMembersArea}
         </div>
       ) : (
-        <div className="flex-1 mx-4 md:mx-7 overflow-hidden flex gap-4 border-b border-[#E2E2E2] dark:!border-[#444444] relative md:min-h-[600px]">
+        <div
+          className={`relative mx-4 flex gap-4 overflow-hidden border-b border-[#E2E2E2] dark:!border-[#444444] md:mx-7 ${
+            isFullscreen
+              ? "h-0 min-h-0 flex-1"
+              : "h-0 flex-1 lg:h-[618px] lg:flex-none"
+          }`}
+        >
           {/* 트리 뷰 영역 - 스크롤은 TeamTreeView 내부에서만 처리 */}
-          <div className="flex-1 min-w-0 overflow-hidden flex flex-col">
+          <div
+            className="relative flex flex-1 min-w-0 overflow-hidden flex-col bg-card"
+            style={{
+              backgroundImage: "radial-gradient(circle at 1px 1px, var(--neutral-40) 1px, transparent 1px)",
+              backgroundSize: "30px 30px",
+            }}
+          >
+            <TeamCanvasControls
+              zoom={zoom}
+              isFullscreen={isFullscreen}
+              onZoomChange={setZoom}
+              onFullscreenToggle={handleFullscreenToggle}
+            />
+            <TeamTreeNavigator
+              teams={teamsData ?? []}
+              members={assignedMembers}
+              onNavigate={handleTreeNavigate}
+            />
             <TeamTreeView
               data={assignedMembers}
               dragHandlers={dragHandlers}
@@ -211,6 +363,8 @@ export default function TeamManagementSettings() {
               onZoomChange={setZoom}
               onRemoveParentDrop={handleRemoveParentDrop}
               canRemoveParent={isAdminOrSubAdmin}
+              navigationTarget={treeNavigationTarget}
+              isFullscreen={isFullscreen}
             />
           </div>
 

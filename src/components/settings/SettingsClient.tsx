@@ -192,7 +192,7 @@ export default function SettingsClient() {
       
       {/* 메인 컨텐츠: 780~1079 구간에서 우측 컨테이너 가로 스크롤 허용 */}
       <div className="flex-1 w-full md:w-auto min-w-0 md:overflow-x-auto lg:overflow-x-visible">
-        <div className="md:min-w-max lg:min-w-0">
+        <div className={activeTab === "team-management" ? "min-w-0" : "md:min-w-max lg:min-w-0"}>
           <ActiveComponent />
         </div>
       </div>
