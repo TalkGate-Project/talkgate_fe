@@ -170,9 +170,9 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
         </button>
         {hasChildren && (
           <>
-            <div className="lg:hidden">
+            <div className="lg:!hidden">
               <div
-                className={`absolute left-full top-0 z-30 ml-2 w-[180px] rounded-[10px] border border-neutral-30 bg-card p-1 shadow-lg group-hover/settings-item:block ${
+                className={`absolute left-full top-0 z-30 ml-2 w-[180px] rounded-[10px] border border-neutral-30 bg-card p-1 shadow-lg group-hover/settings-item:block lg:!hidden ${
                   openCompactParent === item.label ? "block" : "hidden"
                 }`}
               >
