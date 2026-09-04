@@ -9,7 +9,6 @@ type Props = {
   dragHandlers: DragHandlers;
   dragState: DragState;
   onMemberClick: (member: TeamMember) => void;
-  layout?: "panel" | "drawer";
 };
 
 export default function UnassignedMembersList({
@@ -17,7 +16,6 @@ export default function UnassignedMembersList({
   dragHandlers,
   dragState,
   onMemberClick,
-  layout = "drawer",
 }: Props) {
   if (data.length === 0) {
     return (
@@ -28,7 +26,7 @@ export default function UnassignedMembersList({
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 px-6 py-4">
       {data.map((member) => {
         const isDragOver = dragState.dragOverItemId === member.id;
         const isDragging = dragState.draggedItemId === member.id;
@@ -36,9 +34,7 @@ export default function UnassignedMembersList({
         return (
           <div
             key={member.id}
-            className={`flex cursor-move items-center gap-3 rounded-[10px] border border-neutral-30 bg-neutral-10 px-4 shadow-[0px_2px_6px_0px_#0000001F] transition-all hover:shadow-[0_3px_10px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_3px_10px_rgba(0,0,0,0.35)] ${
-              layout === "panel" ? "h-[44px] w-[176px] flex-none" : "h-[40px] max-w-[148px]"
-            } ${
+            className={`flex h-[44px] w-[153px] flex-none cursor-move items-center gap-2 rounded-[12px] border border-neutral-30 bg-neutral-10 px-4 shadow-[0px_2px_6px_0px_rgba(0,0,0,0.12)] transition-all hover:shadow-[0_3px_10px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_3px_10px_rgba(0,0,0,0.35)] ${
               isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""
             } ${isDragging ? "opacity-50" : ""}`}
             draggable
@@ -48,7 +44,7 @@ export default function UnassignedMembersList({
             onDrop={(e: DragEvent<HTMLDivElement>) => dragHandlers.handleDrop(e, member.id)}
             onDragEnd={dragHandlers.handleDragEnd}
           >
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[14px] font-semibold bg-neutral-60 flex-shrink-0">
+            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-neutral-60 text-[14px] font-semibold leading-[12px] text-white">
               {member.avatar}
             </div>
             <button
@@ -58,7 +54,7 @@ export default function UnassignedMembersList({
                 e.stopPropagation();
                 onMemberClick(member);
               }}
-              className="min-w-0 flex-1 truncate text-left text-[16px] font-medium text-foreground hover:underline focus:underline"
+              className="min-w-0 flex-1 truncate text-center text-[16px] font-semibold leading-6 text-foreground hover:underline focus:underline"
             >
               {member.name}
             </button>

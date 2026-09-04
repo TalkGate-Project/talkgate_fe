@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { flattenTeamData } from "@/hooks/useTeamTree";
 import { TeamMember } from "@/types/teams";
 import TeamNameBadge from "@/components/common/TeamNameBadge";
 import TeamSearchBar from "./TeamSearchBar";
@@ -17,36 +16,66 @@ type Props = {
   onNavigate: (memberId: string) => void;
 };
 
+type MemberSearchResult = {
+  member: TeamMember;
+  teamName: string;
+};
+
+function flattenMembersWithTeam(
+  members: TeamMember[],
+  teamNameByLeaderId: Map<string, string>,
+  inheritedTeamName: string = ""
+): MemberSearchResult[] {
+  return members.flatMap((member) => {
+    const teamName = teamNameByLeaderId.get(member.id) ?? inheritedTeamName;
+    return [
+      { member, teamName },
+      ...flattenMembersWithTeam(member.children ?? [], teamNameByLeaderId, teamName),
+    ];
+  });
+}
+
 export default function TeamTreeNavigator({ teams, members, onNavigate }: Props) {
   const [inputValue, setInputValue] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [areTeamsExpanded, setAreTeamsExpanded] = useState(false);
   const [canToggleTeams, setCanToggleTeams] = useState(false);
   const teamListRef = useRef<HTMLDivElement>(null);
+  const [areSearchResultsExpanded, setAreSearchResultsExpanded] = useState(false);
+  const [canToggleSearchResults, setCanToggleSearchResults] = useState(false);
+  const searchResultListRef = useRef<HTMLDivElement>(null);
+
+  const teamNameByLeaderId = useMemo(
+    () => new Map(teams.map((team) => [String(team.leaderMemberId), team.name])),
+    [teams]
+  );
 
   const searchResults = useMemo(() => {
     const normalizedSearchTerm = searchTerm.trim().toLowerCase();
     if (!normalizedSearchTerm) return [];
 
-    return flattenTeamData(members).filter((member) =>
+    return flattenMembersWithTeam(members, teamNameByLeaderId).filter(({ member }) =>
       member.name.toLowerCase().includes(normalizedSearchTerm)
     );
-  }, [members, searchTerm]);
+  }, [members, searchTerm, teamNameByLeaderId]);
 
   const handleInputChange = (value: string) => {
     setInputValue(value);
     if (!value.trim()) {
       setSearchTerm("");
+      setAreSearchResultsExpanded(false);
     }
   };
 
   const executeSearch = () => {
+    setAreSearchResultsExpanded(false);
     setSearchTerm(inputValue.trim());
   };
 
   const hasSearchTerm = Boolean(searchTerm.trim());
 
   useEffect(() => {
+    if (hasSearchTerm) return;
     const teamListElement = teamListRef.current;
     if (!teamListElement) return;
 
@@ -66,7 +95,30 @@ export default function TeamTreeNavigator({ teams, members, onNavigate }: Props)
     const resizeObserver = new ResizeObserver(updateTeamOverflow);
     resizeObserver.observe(teamListElement);
     return () => resizeObserver.disconnect();
-  }, [teams]);
+  }, [hasSearchTerm, teams]);
+
+  useEffect(() => {
+    if (!hasSearchTerm) return;
+    const searchResultListElement = searchResultListRef.current;
+    if (!searchResultListElement) return;
+
+    const updateSearchResultOverflow = () => {
+      const resultButtons = Array.from(searchResultListElement.children) as HTMLElement[];
+      const columnGap = Number.parseFloat(window.getComputedStyle(searchResultListElement).columnGap) || 0;
+      const contentWidth = resultButtons.reduce(
+        (totalWidth, button) => totalWidth + button.offsetWidth,
+        Math.max(0, resultButtons.length - 1) * columnGap
+      );
+      const hasOverflow = contentWidth > searchResultListElement.clientWidth + 1;
+      setCanToggleSearchResults(hasOverflow);
+      if (!hasOverflow) setAreSearchResultsExpanded(false);
+    };
+
+    updateSearchResultOverflow();
+    const resizeObserver = new ResizeObserver(updateSearchResultOverflow);
+    resizeObserver.observe(searchResultListElement);
+    return () => resizeObserver.disconnect();
+  }, [hasSearchTerm, searchResults]);
 
   return (
     <div className="relative z-10 flex-shrink-0 pb-3 pr-[42px] pt-4 md:pr-[132px]">
@@ -124,26 +176,56 @@ export default function TeamTreeNavigator({ teams, members, onNavigate }: Props)
           )}
         </div>
       ) : searchResults.length > 0 ? (
-        <div
-          className="flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-30 scrollbar-track-transparent pb-1"
-          aria-label="구성원 검색 결과"
-        >
-          {searchResults.map((member) => (
+        <div className="flex min-h-[22px] items-start gap-2" aria-label="구성원 검색 결과">
+          <div
+            ref={searchResultListRef}
+            className={`flex min-w-0 flex-1 gap-2 ${
+              areSearchResultsExpanded
+                ? "flex-wrap overflow-visible pb-[6px]"
+                : "max-h-[28px] flex-nowrap overflow-hidden pb-[6px]"
+            }`}
+          >
+            {searchResults.map(({ member, teamName }) => (
+              <button
+                key={member.id}
+                type="button"
+                onClick={() => onNavigate(member.id)}
+                className="flex flex-shrink-0 cursor-pointer items-center gap-1 rounded-[30px] transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-40"
+                aria-label={`${teamName ? `${teamName} ` : ""}${member.name}${member.isLeader ? " 팀장" : " 팀원"} 위치로 이동`}
+              >
+                {teamName && <TeamNameBadge label={teamName} />}
+                <span
+                  className={`flex h-[22px] items-center justify-center rounded-[30px] px-3 text-[12px] font-medium ${
+                    member.isLeader
+                      ? "bg-primary-10 text-primary-100"
+                      : "bg-secondary-10 text-secondary-100"
+                  }`}
+                >
+                  <span className="whitespace-nowrap">{member.name}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {canToggleSearchResults && (
             <button
-              key={member.id}
               type="button"
-              onClick={() => onNavigate(member.id)}
-              className={`flex h-[22px] flex-shrink-0 cursor-pointer items-center justify-center rounded-[30px] px-3 text-[12px] font-medium transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 ${
-                member.isLeader
-                  ? "bg-primary-10 text-primary-100 focus-visible:ring-primary-80"
-                  : "bg-secondary-10 text-secondary-100 focus-visible:ring-secondary-40"
-              }`}
-              aria-label={`${member.name}${member.isLeader ? " 팀장" : " 팀원"} 위치로 이동`}
+              onClick={() => setAreSearchResultsExpanded((isExpanded) => !isExpanded)}
+              className="mt-[3px] flex h-[22px] w-6 flex-shrink-0 cursor-pointer items-center justify-center rounded text-neutral-50 hover:text-neutral-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-40"
+              aria-expanded={areSearchResultsExpanded}
+              aria-label={areSearchResultsExpanded ? "검색 결과 접기" : "검색 결과 펼치기"}
             >
-              <span className="whitespace-nowrap">{member.name}</span>
-              <span className="ml-1 opacity-70">{member.isLeader ? "팀장" : "팀원"}</span>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <path
+                  d={areSearchResultsExpanded ? "M4 11L9 6L14 11" : "M4 7L9 12L14 7"}
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
-          ))}
+          )}
         </div>
       ) : (
         <p className="h-[22px] text-[12px] leading-[22px] text-muted-foreground">

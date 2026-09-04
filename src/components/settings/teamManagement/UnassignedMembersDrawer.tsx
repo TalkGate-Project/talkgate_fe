@@ -66,10 +66,10 @@ export default function UnassignedMembersDrawer({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 bottom-0 w-[280px] bg-card dark:bg-neutral-10 z-[101] shadow-lg overflow-y-auto lg:hidden"
+              className="fixed bottom-0 right-0 top-0 z-[101] w-[209px] overflow-y-auto bg-card shadow-lg dark:bg-neutral-10 lg:hidden"
             >
               {/* Header */}
-              <div className="h-[64px] flex items-center justify-between px-4 border-b border-neutral-30 flex-shrink-0">
+              <div className="flex h-[64px] flex-shrink-0 items-center justify-between border-b border-neutral-30 px-6">
                 <h3 className="text-[18px] font-semibold text-foreground">미배정 멤버</h3>
                 <button
                   type="button"
@@ -89,17 +89,15 @@ export default function UnassignedMembersDrawer({
                 </button>
               </div>
               {/* Content */}
-              <div className="p-4">
-                <UnassignedMembersList
-                  data={members}
-                  dragHandlers={dragHandlers}
-                  dragState={dragState}
-                  onMemberClick={(member) => {
-                    onMemberClick(member);
-                    onClose();
-                  }}
-                />
-              </div>
+              <UnassignedMembersList
+                data={members}
+                dragHandlers={dragHandlers}
+                dragState={dragState}
+                onMemberClick={(member) => {
+                  onMemberClick(member);
+                  onClose();
+                }}
+              />
             </motion.div>
           </>
         )}
