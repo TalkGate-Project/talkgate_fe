@@ -245,7 +245,7 @@ export default function TeamManagementSettings() {
 
   const unassignedMembersArea = assignableMembers.length > 0 && (
     <>
-      <div className="hidden min-h-0 w-[218px] flex-shrink-0 self-stretch flex-col overflow-hidden border-l border-[#E2E2E2] bg-neutral-10/50 dark:!border-[#44444455] lg:flex">
+      <div className="hidden min-h-0 w-[209px] flex-shrink-0 self-stretch flex-col overflow-hidden border-l border-[#E2E2E2] bg-neutral-10/50 dark:!border-[#44444455] lg:flex">
         <div
           className={
             viewMode === "list"
@@ -258,7 +258,6 @@ export default function TeamManagementSettings() {
             dragHandlers={dragHandlers}
             dragState={dragState}
             onMemberClick={handleMemberClick}
-            layout="panel"
           />
         </div>
       </div>
