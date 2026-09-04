@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { lockPageScroll, unlockPageScroll } from "@/lib/pageScrollLock";
 
 type BaseModalProps = {
   onClose: () => void;
@@ -19,44 +20,15 @@ type BaseModalProps = {
   disableScrollLock?: boolean;
 };
 
-// Simple shared counter to handle nested modals scroll lock
-const getCounter = () => {
-  if (typeof window === "undefined") return { value: 0 } as any;
-  // @ts-expect-error - Attaching modal counter to window object for global state
-  window.__tgModalCounter = window.__tgModalCounter || { value: 0 };
-  // @ts-expect-error - Accessing modal counter from window object
-  return window.__tgModalCounter as { value: number };
-};
-
 // 중첩된 BaseModal 각각이 독립적으로 window keydown을 구독하면 Escape/Tab 한 번에 스택 전체가
 // 반응한다(모두 같은 window에 붙어있어 이벤트가 버블링을 거치지 않고 전부에게 전달됨) — 마운트
 // 순서를 스택으로 추적해 최상단(가장 나중에 열린) 모달만 반응하도록 제한한다.
 let modalIdSeq = 0;
 const getModalStack = () => {
   if (typeof window === "undefined") return { ids: [] } as { ids: string[] };
-  // @ts-expect-error - Attaching modal stack to window object for global state
   window.__tgModalStack = window.__tgModalStack || { ids: [] };
-  // @ts-expect-error - Accessing modal stack from window object
-  return window.__tgModalStack as { ids: string[] };
+  return window.__tgModalStack;
 };
-
-function lockBodyScroll() {
-  const counter = getCounter();
-  counter.value += 1;
-  if (counter.value === 1) {
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
-  }
-}
-
-function unlockBodyScroll() {
-  const counter = getCounter();
-  counter.value = Math.max(0, counter.value - 1);
-  if (counter.value === 0) {
-    document.documentElement.style.overflow = "";
-    document.body.style.overflow = "";
-  }
-}
 
 export default function BaseModal({
   onClose,
@@ -80,7 +52,7 @@ export default function BaseModal({
 
   useEffect(() => {
     if (!disableScrollLock) {
-      lockBodyScroll();
+      lockPageScroll();
     }
     const stack = getModalStack();
     stack.ids.push(modalIdRef.current);
@@ -120,7 +92,7 @@ export default function BaseModal({
       const idx = stack.ids.lastIndexOf(modalIdRef.current);
       if (idx !== -1) stack.ids.splice(idx, 1);
       if (!disableScrollLock) {
-        unlockBodyScroll();
+        unlockPageScroll();
       }
     };
   }, [onClose, disableScrollLock]);

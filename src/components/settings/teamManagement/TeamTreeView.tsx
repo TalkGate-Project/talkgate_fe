@@ -52,8 +52,9 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
   const isDragging = Boolean(dragState.draggedItemId);
 
   const stopEdgePan = useCallback(() => {
+    const wasEdgePanning = edgePanDirectionRef.current !== null;
     edgePanDirectionRef.current = null;
-    setActiveEdgePanDirection(null);
+    if (wasEdgePanning) setActiveEdgePanDirection(null);
     if (edgePanFrameRef.current !== null) {
       window.cancelAnimationFrame(edgePanFrameRef.current);
       edgePanFrameRef.current = null;
@@ -307,9 +308,9 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
                 nodeRefs.current.delete(item.id);
               }
             }}
-            className={`group relative flex items-center px-3 md:px-6 gap-2 md:gap-4 border border-border rounded-[12px] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-secondary-40/40 md:min-w-[148px] min-w-[120px] ${
+            className={`group relative flex items-center px-3 md:px-6 gap-2 md:gap-4 border border-border rounded-[12px] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--secondary-40)] md:min-w-[148px] min-w-[120px] ${
               isLeader ? "bg-team-leader-highlight" : "bg-neutral-10"
-            } ${isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""} ${focusedMemberId === item.id ? "ring-2 ring-primary-80 ring-offset-2 ring-offset-card" : ""} ${isDragging ? "opacity-50" : ""}`}
+            } ${isDragOver ? "ring-2 ring-[var(--secondary-40)] bg-secondary-10" : ""} ${focusedMemberId === item.id ? "ring-2 ring-[var(--primary-60)] ring-offset-2 ring-offset-card" : ""} ${isDragging ? "opacity-50" : ""}`}
             style={{
               height: `${TOKENS.node.leader.h}px`,
               touchAction: 'manipulation', // 노드 카드는 터치 조작 허용 (드래그 앤 드롭용)
@@ -477,20 +478,32 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
     onRemoveParentDrop(dragState.draggedItemId);
   }, [isDragging, dragState.draggedItemId, onRemoveParentDrop]);
 
-  const handleEdgeDragOver = useCallback(
-    (event: DragEvent<HTMLDivElement>, direction: EdgePanDirection) => {
-      if (!isDragging) return;
-      event.preventDefault();
-      event.stopPropagation();
-      startEdgePan(direction);
-    },
-    [isDragging, startEdgePan]
-  );
+  const handleViewportDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
 
-  const handleEdgeDrop = useCallback((event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
+    const viewportRect = event.currentTarget.getBoundingClientRect();
+    const edgeThreshold = isFullscreen ? 80 : 64;
+    const pointerX = event.clientX - viewportRect.left;
+
+    if (pointerX <= edgeThreshold) {
+      startEdgePan("left");
+      return;
+    }
+    if (pointerX >= viewportRect.width - edgeThreshold) {
+      startEdgePan("right");
+      return;
+    }
     stopEdgePan();
+  }, [isDragging, isFullscreen, startEdgePan, stopEdgePan]);
+
+  const handleViewportDragLeave = useCallback((event: DragEvent<HTMLDivElement>) => {
+    const viewportRect = event.currentTarget.getBoundingClientRect();
+    const isOutsideViewport =
+      event.clientX < viewportRect.left ||
+      event.clientX > viewportRect.right ||
+      event.clientY < viewportRect.top ||
+      event.clientY > viewportRect.bottom;
+    if (isOutsideViewport) stopEdgePan();
   }, [stopEdgePan]);
 
   // 빈 상태 처리
@@ -521,6 +534,8 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseUp}
+      onDragOver={handleViewportDragOver}
+      onDragLeave={handleViewportDragLeave}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -535,11 +550,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className={`absolute inset-y-0 left-0 z-[8] flex items-center justify-center bg-gradient-to-r from-card via-card/80 to-transparent ${isFullscreen ? "w-20" : "w-16"}`}
-              onDragEnter={(event) => handleEdgeDragOver(event, "left")}
-              onDragOver={(event) => handleEdgeDragOver(event, "left")}
-              onDragLeave={stopEdgePan}
-              onDrop={handleEdgeDrop}
+              className={`pointer-events-none absolute inset-y-0 left-0 z-[8] flex items-center justify-center bg-gradient-to-r from-card via-card/80 to-transparent ${isFullscreen ? "w-20" : "w-16"}`}
               aria-hidden="true"
             >
               <div
@@ -562,11 +573,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className={`absolute inset-y-0 right-0 z-[8] flex items-center justify-center bg-gradient-to-l from-card via-card/80 to-transparent ${isFullscreen ? "w-20" : "w-16"}`}
-              onDragEnter={(event) => handleEdgeDragOver(event, "right")}
-              onDragOver={(event) => handleEdgeDragOver(event, "right")}
-              onDragLeave={stopEdgePan}
-              onDrop={handleEdgeDrop}
+              className={`pointer-events-none absolute inset-y-0 right-0 z-[8] flex items-center justify-center bg-gradient-to-l from-card via-card/80 to-transparent ${isFullscreen ? "w-20" : "w-16"}`}
               aria-hidden="true"
             >
               <div

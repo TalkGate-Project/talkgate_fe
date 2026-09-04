@@ -62,7 +62,7 @@ export default function TeamTreeNavigator({ teams, members, onNavigate }: Props)
               key={`${team.leaderMemberId}-${team.name}`}
               type="button"
               onClick={() => onNavigate(String(team.leaderMemberId))}
-              className="flex-shrink-0 cursor-pointer rounded-[30px] focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-40"
+              className="flex-shrink-0 cursor-pointer rounded-[30px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--secondary-40)]"
               aria-label={`${team.name} 팀으로 이동`}
             >
               <TeamNameBadge label={team.name} className="transition-opacity hover:opacity-80" />
@@ -81,8 +81,8 @@ export default function TeamTreeNavigator({ teams, members, onNavigate }: Props)
               onClick={() => onNavigate(member.id)}
               className={`flex h-[22px] flex-shrink-0 cursor-pointer items-center justify-center rounded-[30px] px-3 text-[12px] font-medium transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 ${
                 member.isLeader
-                  ? "bg-primary-10 text-primary-100 focus-visible:ring-primary-80"
-                  : "bg-secondary-10 text-secondary-100 focus-visible:ring-secondary-40"
+                  ? "bg-primary-10 text-primary-100 focus-visible:ring-[var(--primary-80)]"
+                  : "bg-secondary-10 text-secondary-100 focus-visible:ring-[var(--secondary-40)]"
               }`}
               aria-label={`${member.name}${member.isLeader ? " 팀장" : " 팀원"} 위치로 이동`}
             >

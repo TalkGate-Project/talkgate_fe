@@ -1,35 +1,46 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Props = {
   zoom: number;
   isFullscreen: boolean;
   onZoomChange: (zoom: number) => void;
   onFullscreenToggle: () => void;
+  onMobilePopoverOpenChange?: (isOpen: boolean) => void;
 };
 
 const CONTROL_CLASS_NAME =
-  "flex h-[34px] w-[34px] cursor-pointer items-center justify-center rounded-[5px] border border-[#E2E2E2] bg-black text-white transition-colors hover:bg-neutral-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-40 disabled:cursor-not-allowed disabled:opacity-50";
+  "flex h-[34px] w-[34px] cursor-pointer items-center justify-center rounded-[5px] border border-[#E2E2E2] bg-black text-white transition-colors hover:bg-neutral-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--secondary-40)] disabled:cursor-not-allowed disabled:opacity-50";
 
 export default function TeamCanvasControls({
   zoom,
   isFullscreen,
   onZoomChange,
   onFullscreenToggle,
+  onMobilePopoverOpenChange,
 }: Props) {
   const [isMobilePopoverOpen, setIsMobilePopoverOpen] = useState(false);
   const mobileControlsRef = useRef<HTMLDivElement>(null);
+
+  const updateMobilePopoverOpen = useCallback((isOpen: boolean) => {
+    setIsMobilePopoverOpen(isOpen);
+    onMobilePopoverOpenChange?.(isOpen);
+  }, [onMobilePopoverOpenChange]);
+
+  useEffect(() => {
+    return () => onMobilePopoverOpenChange?.(false);
+  }, [onMobilePopoverOpenChange]);
 
   useEffect(() => {
     if (!isMobilePopoverOpen) return;
 
     const handleOutsideClick = (event: MouseEvent) => {
       if (mobileControlsRef.current?.contains(event.target as Node)) return;
-      setIsMobilePopoverOpen(false);
+      updateMobilePopoverOpen(false);
     };
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsMobilePopoverOpen(false);
+      if (event.key === "Escape") updateMobilePopoverOpen(false);
     };
 
     document.addEventListener("mousedown", handleOutsideClick);
@@ -38,7 +49,7 @@ export default function TeamCanvasControls({
       document.removeEventListener("mousedown", handleOutsideClick);
       window.removeEventListener("keydown", handleEscape);
     };
-  }, [isMobilePopoverOpen]);
+  }, [isMobilePopoverOpen, updateMobilePopoverOpen]);
 
   const handleZoomIn = () => {
     onZoomChange(Number(Math.min(2, zoom + 0.1).toFixed(2)));
@@ -49,7 +60,7 @@ export default function TeamCanvasControls({
   };
 
   const handleFullscreenToggle = () => {
-    setIsMobilePopoverOpen(false);
+    updateMobilePopoverOpen(false);
     onFullscreenToggle();
   };
 
@@ -111,7 +122,7 @@ export default function TeamCanvasControls({
       <div ref={mobileControlsRef} className="absolute right-0 top-4 z-30 md:hidden">
         <button
           type="button"
-          onClick={() => setIsMobilePopoverOpen((isOpen) => !isOpen)}
+          onClick={() => updateMobilePopoverOpen(!isMobilePopoverOpen)}
           aria-expanded={isMobilePopoverOpen}
           aria-haspopup="menu"
           aria-label={isMobilePopoverOpen ? "조직도 도구 닫기" : "조직도 도구 열기"}

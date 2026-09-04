@@ -30,6 +30,7 @@ import { useTeamDragAndDrop } from "@/hooks/useTeamDragAndDrop";
 import { useTeamSearch } from "@/hooks/useTeamSearch";
 import { useDepartmentFilter } from "@/hooks/useDepartmentFilter";
 import { ViewMode } from "@/types/teamManagement";
+import { hasOpenModal, lockPageScroll, unlockPageScroll } from "@/lib/pageScrollLock";
 
 const APP_HEADER_SCREEN_HEIGHT = 54;
 
@@ -64,6 +65,7 @@ export default function TeamManagementSettings() {
   const [isUnassignedDrawerOpen, setIsUnassignedDrawerOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isCanvasControlsOpen, setIsCanvasControlsOpen] = useState(false);
   const [fullscreenViewport, setFullscreenViewport] = useState<FullscreenViewport | null>(null);
   const zoomBeforeFullscreenRef = useRef(1);
   const [treeNavigationTarget, setTreeNavigationTarget] = useState<{
@@ -90,14 +92,13 @@ export default function TeamManagementSettings() {
       setFullscreenViewport(getFullscreenViewport());
     };
 
-    const previousBodyOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    lockPageScroll();
     updateFullscreenViewport();
     window.addEventListener("resize", updateFullscreenViewport);
 
     return () => {
       window.removeEventListener("resize", updateFullscreenViewport);
-      document.body.style.overflow = previousBodyOverflow;
+      unlockPageScroll();
     };
   }, [isFullscreen]);
 
@@ -105,14 +106,14 @@ export default function TeamManagementSettings() {
     if (!isFullscreen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
+      if (event.key !== "Escape" || hasOpenModal() || isCanvasControlsOpen) return;
       setIsFullscreen(false);
       setZoom(zoomBeforeFullscreenRef.current);
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isFullscreen]);
+  }, [isCanvasControlsOpen, isFullscreen]);
 
   const { data: treeData, isLoading: treeLoading, error: treeError } = useMembersTreeWithoutParent(projectId);
   const { data: teamsData, isLoading: teamsLoading, error: teamsError } = useTeams(projectId);
@@ -222,6 +223,15 @@ export default function TeamManagementSettings() {
     setIsFullscreen(true);
   }, [isFullscreen, zoom]);
 
+  const handleViewModeChange = useCallback((nextViewMode: ViewMode) => {
+    if (nextViewMode === "list" && isFullscreen) {
+      setIsFullscreen(false);
+      setIsCanvasControlsOpen(false);
+      setZoom(zoomBeforeFullscreenRef.current);
+    }
+    setViewMode(nextViewMode);
+  }, [isFullscreen]);
+
   if (!projectId) return null;
 
   if (treeLoading || teamsLoading) {
@@ -276,7 +286,7 @@ export default function TeamManagementSettings() {
     >
       <TeamManagementHeader
         viewMode={viewMode}
-        onChange={setViewMode}
+        onChange={handleViewModeChange}
       />
       <div className={`mx-4 h-px bg-neutral-30 md:mx-7 ${viewMode === "list" ? "mb-3" : "mb-[2px]"}`} />
 
@@ -324,6 +334,7 @@ export default function TeamManagementSettings() {
               isFullscreen={isFullscreen}
               onZoomChange={setZoom}
               onFullscreenToggle={handleFullscreenToggle}
+              onMobilePopoverOpenChange={setIsCanvasControlsOpen}
             />
             <TeamTreeNavigator
               teams={teamsData ?? []}

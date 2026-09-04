@@ -11,11 +11,13 @@ export default function DepartmentTags({
   selectedDepartment,
   onDepartmentClick,
 }: DepartmentTagsProps) {
-  if (departments.length === 0) return null;
+  const uniqueDepartments = Array.from(new Set(departments.filter(Boolean)));
+
+  if (uniqueDepartments.length === 0) return null;
 
   return (
     <div className="flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-30 scrollbar-track-transparent pb-1">
-      {departments.map((tag) => (
+      {uniqueDepartments.map((tag) => (
         <button
           key={tag}
           type="button"
