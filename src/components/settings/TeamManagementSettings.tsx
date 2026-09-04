@@ -30,7 +30,6 @@ import { useTeamDragAndDrop } from "@/hooks/useTeamDragAndDrop";
 import { useTeamSearch } from "@/hooks/useTeamSearch";
 import { useDepartmentFilter } from "@/hooks/useDepartmentFilter";
 import { ViewMode } from "@/types/teamManagement";
-import { hasOpenModal, lockPageScroll, unlockPageScroll } from "@/lib/pageScrollLock";
 
 const APP_HEADER_SCREEN_HEIGHT = 54;
 
@@ -65,7 +64,6 @@ export default function TeamManagementSettings() {
   const [isUnassignedDrawerOpen, setIsUnassignedDrawerOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isCanvasControlsOpen, setIsCanvasControlsOpen] = useState(false);
   const [fullscreenViewport, setFullscreenViewport] = useState<FullscreenViewport | null>(null);
   const zoomBeforeFullscreenRef = useRef(1);
   const [treeNavigationTarget, setTreeNavigationTarget] = useState<{
@@ -92,13 +90,14 @@ export default function TeamManagementSettings() {
       setFullscreenViewport(getFullscreenViewport());
     };
 
-    lockPageScroll();
+    const previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     updateFullscreenViewport();
     window.addEventListener("resize", updateFullscreenViewport);
 
     return () => {
       window.removeEventListener("resize", updateFullscreenViewport);
-      unlockPageScroll();
+      document.body.style.overflow = previousBodyOverflow;
     };
   }, [isFullscreen]);
 
@@ -106,14 +105,14 @@ export default function TeamManagementSettings() {
     if (!isFullscreen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || hasOpenModal() || isCanvasControlsOpen) return;
+      if (event.key !== "Escape") return;
       setIsFullscreen(false);
       setZoom(zoomBeforeFullscreenRef.current);
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isCanvasControlsOpen, isFullscreen]);
+  }, [isFullscreen]);
 
   const { data: treeData, isLoading: treeLoading, error: treeError } = useMembersTreeWithoutParent(projectId);
   const { data: teamsData, isLoading: teamsLoading, error: teamsError } = useTeams(projectId);
@@ -209,10 +208,14 @@ export default function TeamManagementSettings() {
     }));
   }, []);
 
+  const exitFullscreen = useCallback(() => {
+    setIsFullscreen(false);
+    setZoom(zoomBeforeFullscreenRef.current);
+  }, []);
+
   const handleFullscreenToggle = useCallback(() => {
     if (isFullscreen) {
-      setIsFullscreen(false);
-      setZoom(zoomBeforeFullscreenRef.current);
+      exitFullscreen();
       return;
     }
 
@@ -221,16 +224,14 @@ export default function TeamManagementSettings() {
     setFullscreenViewport(getFullscreenViewport());
     setZoom(Math.min(2, Math.max(zoom, bodyZoom < 1 ? 1 / bodyZoom : 1.1)));
     setIsFullscreen(true);
-  }, [isFullscreen, zoom]);
+  }, [exitFullscreen, isFullscreen, zoom]);
 
   const handleViewModeChange = useCallback((nextViewMode: ViewMode) => {
     if (nextViewMode === "list" && isFullscreen) {
-      setIsFullscreen(false);
-      setIsCanvasControlsOpen(false);
-      setZoom(zoomBeforeFullscreenRef.current);
+      exitFullscreen();
     }
     setViewMode(nextViewMode);
-  }, [isFullscreen]);
+  }, [exitFullscreen, isFullscreen]);
 
   if (!projectId) return null;
 
@@ -244,13 +245,20 @@ export default function TeamManagementSettings() {
 
   const unassignedMembersArea = assignableMembers.length > 0 && (
     <>
-      <div className="hidden lg:flex flex-shrink-0 w-[190px] bg-neutral-10/50 overflow-hidden flex-col border-[#E2E2E2] dark:!border-[#44444455] border-l">
-        <div className="flex-1 overflow-y-auto max-h-[520px]">
+      <div className="hidden min-h-0 w-[218px] flex-shrink-0 self-stretch flex-col overflow-hidden border-l border-[#E2E2E2] bg-neutral-10/50 dark:!border-[#44444455] lg:flex">
+        <div
+          className={
+            viewMode === "list"
+              ? "h-[540px] flex-none overflow-y-auto"
+              : "min-h-0 flex-1 overflow-y-auto"
+          }
+        >
           <UnassignedMembersList
             data={assignableMembers}
             dragHandlers={dragHandlers}
             dragState={dragState}
             onMemberClick={handleMemberClick}
+            layout="panel"
           />
         </div>
       </div>
@@ -320,7 +328,13 @@ export default function TeamManagementSettings() {
           {unassignedMembersArea}
         </div>
       ) : (
-        <div className={`flex-1 mx-4 md:mx-7 overflow-hidden flex gap-4 border-b border-[#E2E2E2] dark:!border-[#444444] relative ${isFullscreen ? "min-h-0" : "md:min-h-[600px]"}`}>
+        <div
+          className={`relative mx-4 flex gap-4 overflow-hidden border-b border-[#E2E2E2] dark:!border-[#444444] md:mx-7 ${
+            isFullscreen
+              ? "h-0 min-h-0 flex-1"
+              : "h-0 flex-1 lg:h-[618px] lg:flex-none"
+          }`}
+        >
           {/* 트리 뷰 영역 - 스크롤은 TeamTreeView 내부에서만 처리 */}
           <div
             className="relative flex flex-1 min-w-0 overflow-hidden flex-col bg-card"
@@ -334,7 +348,6 @@ export default function TeamManagementSettings() {
               isFullscreen={isFullscreen}
               onZoomChange={setZoom}
               onFullscreenToggle={handleFullscreenToggle}
-              onMobilePopoverOpenChange={setIsCanvasControlsOpen}
             />
             <TeamTreeNavigator
               teams={teamsData ?? []}

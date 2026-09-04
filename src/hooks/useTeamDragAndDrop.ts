@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { TeamMember } from "@/types/teams";
 import { DragHandlers, DragState, isDescendant } from "@/hooks/useTeamTree";
 import { findNodeWithParent } from "@/utils/teamManagement";
@@ -9,7 +9,8 @@ export function useTeamDragAndDrop(
   canDrag: boolean,
   onMove: (sourceId: string, targetId: string) => void
 ) {
-  const [draggedItem, setDraggedItem] = useState<TeamMember | null>(null);
+  const draggedItemRef = useRef<TeamMember | null>(null);
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
   const [pendingMove, setPendingMove] = useState<MoveContext | null>(null);
 
@@ -17,48 +18,59 @@ export function useTeamDragAndDrop(
     () => ({
       handleDragStart: (e, item) => {
         if (!canDrag) return;
-        setDraggedItem(item);
+        draggedItemRef.current = item;
+        setDraggedItemId(item.id);
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", item.id);
       },
       handleDragOver: (e, targetId) => {
         if (!canDrag) return;
         e.preventDefault();
-        if (draggedItem?.id === targetId) return;
-        setDragOverItemId(targetId);
+        e.dataTransfer.dropEffect = "move";
+        if (draggedItemRef.current?.id === targetId) return;
+        setDragOverItemId((currentTargetId) =>
+          currentTargetId === targetId ? currentTargetId : targetId
+        );
       },
-      handleDragLeave: () => {
+      handleDragLeave: (e) => {
         if (!canDrag) return;
+        if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
         setDragOverItemId(null);
       },
       handleDrop: (e, targetId) => {
         if (!canDrag) return;
         e.preventDefault();
         setDragOverItemId(null);
+        const draggedItem = draggedItemRef.current;
         if (!draggedItem || draggedItem.id === targetId) {
-          setDraggedItem(null);
+          draggedItemRef.current = null;
+          setDraggedItemId(null);
           return;
         }
         if (isDescendant(teamMembers, draggedItem.id, targetId)) {
-          setDraggedItem(null);
+          draggedItemRef.current = null;
+          setDraggedItemId(null);
           return;
         }
         setPendingMove({ sourceId: draggedItem.id, targetId });
+        draggedItemRef.current = null;
+        setDraggedItemId(null);
       },
       handleDragEnd: () => {
-        setDraggedItem(null);
+        draggedItemRef.current = null;
+        setDraggedItemId(null);
         setDragOverItemId(null);
       },
     }),
-    [canDrag, draggedItem, teamMembers]
+    [canDrag, teamMembers]
   );
 
   const dragState: DragState = useMemo(
     () => ({
-      draggedItemId: draggedItem ? draggedItem.id : null,
+      draggedItemId,
       dragOverItemId,
     }),
-    [dragOverItemId, draggedItem]
+    [dragOverItemId, draggedItemId]
   );
 
   const pendingMoveInfo = useMemo(() => {
@@ -74,7 +86,8 @@ export function useTeamDragAndDrop(
   }, [pendingMove, teamMembers]);
 
   const clearDragState = useCallback(() => {
-    setDraggedItem(null);
+    draggedItemRef.current = null;
+    setDraggedItemId(null);
     setDragOverItemId(null);
     setPendingMove(null);
   }, []);

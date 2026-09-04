@@ -15,8 +15,8 @@ export const TOKENS = {
     },
   },
   node: {
-    leader: { w: 148, h: 44, avatar: 32 },
-    member: { w: 148, h: 44, avatar: 32 },
+    leader: { w: 153, h: 44, avatar: 28 },
+    member: { w: 153, h: 44, avatar: 28 },
     badge: { w: 66, h: 22 },
   },
   connector: {

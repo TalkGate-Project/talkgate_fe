@@ -9,9 +9,16 @@ type Props = {
   dragHandlers: DragHandlers;
   dragState: DragState;
   onMemberClick: (member: TeamMember) => void;
+  layout?: "panel" | "drawer";
 };
 
-export default function UnassignedMembersList({ data, dragHandlers, dragState, onMemberClick }: Props) {
+export default function UnassignedMembersList({
+  data,
+  dragHandlers,
+  dragState,
+  onMemberClick,
+  layout = "drawer",
+}: Props) {
   if (data.length === 0) {
     return (
       <div className="w-full h-full flex items-center justify-center text-neutral-50 text-[14px]">
@@ -29,7 +36,9 @@ export default function UnassignedMembersList({ data, dragHandlers, dragState, o
         return (
           <div
             key={member.id}
-            className={`max-w-[148px] h-[40px] flex items-center gap-3 px-4 border border-neutral-30 rounded-[10px] bg-neutral-10 cursor-move transition-all hover:shadow-[0_3px_10px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_3px_10px_rgba(0,0,0,0.35)] ${
+            className={`flex cursor-move items-center gap-3 rounded-[10px] border border-neutral-30 bg-neutral-10 px-4 shadow-[0px_2px_6px_0px_#0000001F] transition-all hover:shadow-[0_3px_10px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_3px_10px_rgba(0,0,0,0.35)] ${
+              layout === "panel" ? "h-[44px] w-[176px] flex-none" : "h-[40px] max-w-[148px]"
+            } ${
               isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""
             } ${isDragging ? "opacity-50" : ""}`}
             draggable
@@ -49,7 +58,7 @@ export default function UnassignedMembersList({ data, dragHandlers, dragState, o
                 e.stopPropagation();
                 onMemberClick(member);
               }}
-              className="text-left text-[16px] font-medium text-foreground hover:underline focus:underline truncate"
+              className="min-w-0 flex-1 truncate text-left text-[16px] font-medium text-foreground hover:underline focus:underline"
             >
               {member.name}
             </button>
