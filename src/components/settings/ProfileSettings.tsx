@@ -425,7 +425,7 @@ export default function ProfileSettings() {
       </div>
 
       {/* Divider */}
-      <div className="w-full h-[1px] bg-neutral-30/40 dark:bg-neutral-30/40 mb-4.5 md:mb-6.5"></div>
+      <div className="h-px bg-neutral-30/50 mb-4.5 md:mb-6.5"></div>
 
       {/* 프로필 정보 섹션 */}
       <div className="mb-5">
@@ -466,7 +466,7 @@ export default function ProfileSettings() {
           </div>
         </div>
         
-        <div className="mx-6 md:mx-7 h-[1px] bg-neutral-30 dark:bg-neutral-30 mb-5 md:mb-[54px]"></div>
+        <div className="mx-6 md:mx-7 h-px bg-neutral-30/20 mb-5 md:mb-[54px]"></div>
 
         {/* 프로필 썸네일 - 중앙 정렬 */}
         <div className="flex justify-center mb-5 md:mb-[54px]">

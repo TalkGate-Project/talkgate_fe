@@ -137,8 +137,7 @@ export default function ProjectPrivacyConsentModal({
                     width="22"
                     height="22"
                     rx="5"
-                    fill="#FFFFFF"
-                    className="dark:fill-neutral-20"
+                    fill="none"
                     stroke="#D0D0D0"
                     strokeWidth="2"
                   />

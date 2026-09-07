@@ -263,7 +263,7 @@ function TimelineSection({ detail }: { detail: ProcedureGuideDetail }) {
 
 export default function ProcedureDetailView({ detail }: { detail: ProcedureGuideDetail }) {
   return (
-    <div className="flex flex-col gap-5 md:gap-9">
+    <div className="flex flex-col gap-5 md:gap-3 lg:gap-9">
       <SectionCard>
         <SectionHeading>신청대상</SectionHeading>
         <p className="mt-3 text-[14px] font-medium leading-5 tracking-[-0.02em] text-neutral-80 md:mt-4 md:text-[13px]">{detail.target}</p>

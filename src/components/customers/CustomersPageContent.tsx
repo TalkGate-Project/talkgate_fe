@@ -387,11 +387,11 @@ function CustomersPageContentInner() {
   if (!projectId) return null;
 
   return (
-    <main className="md:min-h-[calc(100vh-54px)] bg-card lg:bg-neutral-10">
+    <main className="md:min-h-[calc(100vh-54px)] bg-card md:bg-neutral-10">
       <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 pt-0 md:pt-9 pb-0 md:pb-12">
       {/* Top panel: title + search */}
       <Panel
-        className="rounded-none md:rounded-[14px] mb-0 md:mb-9"
+        className="rounded-none md:rounded-[14px] mb-0 md:mb-3 lg:mb-9"
         title={
           <div className="flex w-full min-w-0 items-center justify-between gap-3 md:items-start">
             <div className="flex min-w-0 items-end gap-3">

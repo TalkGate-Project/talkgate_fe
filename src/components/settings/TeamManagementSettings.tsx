@@ -276,7 +276,7 @@ export default function TeamManagementSettings() {
 
   return (
     <div
-      className={`w-full h-full bg-card overflow-hidden flex flex-col ${
+      className={`w-full h-[calc(100dvh-54px)] bg-card overflow-hidden flex flex-col md:h-[calc(100dvh-138px)] lg:h-full ${
         isFullscreen
           ? "fixed left-0 z-40 rounded-none pb-0"
           : "rounded-[14px] rounded-t-none md:rounded-t-[14px] pb-7"
@@ -331,7 +331,7 @@ export default function TeamManagementSettings() {
           className={`relative mx-4 flex gap-4 overflow-hidden border-b border-[#E2E2E2] dark:!border-[#444444] md:mx-7 ${
             isFullscreen
               ? "h-0 min-h-0 flex-1"
-              : "h-0 flex-1 lg:h-[618px] lg:flex-none"
+              : "h-0 min-h-0 flex-1 lg:h-[618px] lg:flex-none"
           }`}
         >
           {/* 트리 뷰 영역 - 스크롤은 TeamTreeView 내부에서만 처리 */}
