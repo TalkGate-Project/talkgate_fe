@@ -161,7 +161,7 @@ function AttendancePageContentInner() {
   // 근태 메뉴가 준비되지 않았거나 비활성화된 경우 로딩 표시
   if (!attendanceReady || memberLoading || !isAttendanceMenuEnabled) {
     return (
-      <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
+      <main className="min-h-[calc(100vh-54px)] bg-card lg:bg-neutral-10">
         <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-12">
           <div className="flex items-center justify-center h-64">
             <div className="text-neutral-60">페이지를 확인하는 중...</div>
@@ -172,7 +172,7 @@ function AttendancePageContentInner() {
   }
 
   return (
-    <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
+    <main className="min-h-[calc(100vh-54px)] bg-card lg:bg-neutral-10">
       <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 md:pb-12">
         {/* Top panel: title + date selector */}
         <AttendanceHeader
@@ -229,7 +229,7 @@ export default function AttendancePageContent() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
+        <main className="min-h-[calc(100vh-54px)] bg-card lg:bg-neutral-10">
           <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-12">
             <div className="text-neutral-60">불러오는 중...</div>
           </div>

@@ -50,7 +50,7 @@ export default function SectionCard({
     : "md:rounded-[14px]";
   const shadowClass = isJoined
     ? "shadow-none"
-    : "shadow-none md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:md:shadow-none";
+    : "shadow-none lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:lg:shadow-none";
   const joinBorderClass =
     joined === "start" && joinBottomDivider
       ? "border-b border-neutral-30"

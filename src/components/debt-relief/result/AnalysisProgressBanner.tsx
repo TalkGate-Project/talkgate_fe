@@ -192,7 +192,7 @@ export default function AnalysisProgressBanner({
 
       <section
         aria-label="분석 진행 단계"
-        className="hidden min-h-[104px] flex-col justify-center gap-3 rounded-[12px] border border-neutral-30 bg-card px-[22px] py-4 shadow-[0_3px_4px_rgba(9,30,66,0.1)] dark:shadow-none md:flex lg:hidden"
+        className="hidden min-h-[104px] flex-col justify-center gap-3 rounded-[12px] border border-neutral-30 bg-card px-[22px] py-4 shadow-none md:flex lg:hidden"
       >
         <div className="min-w-0">
           {isExceptionalStatus ? (

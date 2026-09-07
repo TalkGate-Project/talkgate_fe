@@ -196,7 +196,7 @@ export default function DebtReliefHubContent() {
   return (
     <div className="mx-auto max-w-[1324px] w-full bg-card px-0 md:bg-transparent md:px-6 lg:px-0 md:pt-9 md:pb-12 flex flex-col gap-0">
       {/* 상단 카드: 제목 + 요약 카드 */}
-      <section className="surface px-6 pt-3 pb-0 md:rounded-[14px] md:px-7 md:py-6 md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+      <section className="surface px-6 pt-3 pb-0 md:rounded-[14px] md:px-7 md:py-6 lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
         {/* 모바일·데스크톱 모두 제목과 안내 액션을 한 줄에 배치한다. */}
         <div className="mb-3 flex items-center justify-between gap-3 md:mb-6 md:gap-4">
           <div className="flex min-w-0 flex-wrap items-center gap-4">
@@ -247,7 +247,7 @@ export default function DebtReliefHubContent() {
       {/* 하단 카드: 검색 + 테이블 + 페이지네이션. 탭이 좌상단에 맞닿으므로 top-left만 각지게 둔다.
           shadow가 box 경계 위로도 번져서 탭 바로 아래에 그림자 띠가 겹쳐 보이던 문제 —
           clip-path로 상단 바깥쪽(그림자 번짐 영역)만 잘라내 탭과 카드가 이어붙은 것처럼 보이게 함. */}
-      <section className="surface px-6 pt-0 pb-6 md:rounded-tr-[14px] md:rounded-br-[14px] md:rounded-bl-[14px] md:px-7 md:pt-6 md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none md:[clip-path:inset(0_-100px_-100px_-100px)]">
+      <section className="surface px-6 pt-0 pb-6 md:rounded-tr-[14px] md:rounded-br-[14px] md:rounded-bl-[14px] md:px-7 md:pt-6 lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none md:[clip-path:inset(0_-100px_-100px_-100px)]">
         {/* 모바일: 전체/반려 탭 — 검색·필터 행 위 풀폭 2등분 브라우저탭 스타일 */}
         <div className="mb-4 md:hidden">
           <DiagnosisListTabs value={listTab} onChange={selectListTab} variant="pill" />

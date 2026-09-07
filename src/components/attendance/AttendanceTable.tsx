@@ -50,7 +50,7 @@ export default function AttendanceTable({
   onFilterClick,
 }: AttendanceTableProps) {
   return (
-    <div className="bg-card rounded-none md:rounded-[14px] px-6 pt-4 md:pt-7 md:p-7 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+    <div className="bg-card rounded-none md:rounded-[14px] px-6 pt-4 md:pt-7 md:p-7 shadow-none lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
       {/* 헤더 영역 */}
       <div className="flex items-center gap-3 mb-[30px]">
         <h2 className="text-[18px] font-semibold text-neutral-90">

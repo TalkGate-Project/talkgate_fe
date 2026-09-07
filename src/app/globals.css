@@ -368,11 +368,10 @@ body {
   font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
 }
 
-/* Mobile/tablet viewport uses fixed page background by theme.
-   779px는 이 앱의 모바일→데스크톱 레이아웃 전환 기준(--breakpoint-tablet/md: 780px)과 맞춘 값 —
-   기존 639px 기준이면 640~779px(세로로 긴 태블릿 세로모드 등)에서 레이아웃은 아직 모바일 형태인데
-   배경만 회색(--background)으로 바뀌어 카드가 짧을 때 하단에 이질적인 색이 노출됐다. */
-@media (max-width: 779px) {
+/* Mobile/tablet viewport uses the card color as the page background.
+   1079px는 이 앱의 태블릿→데스크톱 전환 기준(--breakpoint-lg: 1080px)과 맞춘 값이다.
+   대시보드와 프로젝트 선택 페이지는 자체 bg-background를 사용하므로 기존 배경색을 유지한다. */
+@media (max-width: 1079px) {
   body {
     background-color: #ffffff;
   }
