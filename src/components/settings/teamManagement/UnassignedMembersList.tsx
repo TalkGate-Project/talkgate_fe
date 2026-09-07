@@ -34,7 +34,7 @@ export default function UnassignedMembersList({
         return (
           <div
             key={member.id}
-            className={`flex h-[44px] w-[153px] flex-none cursor-move items-center gap-2 rounded-[12px] border border-neutral-30 bg-neutral-10 px-4 shadow-[0px_2px_6px_0px_rgba(0,0,0,0.12)] transition-all hover:shadow-[0_3px_10px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_3px_10px_rgba(0,0,0,0.35)] ${
+            className={`flex h-[44px] w-[153px] flex-none cursor-move items-center gap-2 rounded-[12px] border border-neutral-30 bg-neutral-10 px-4 shadow-none transition-all hover:shadow-[0_3px_10px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_3px_10px_rgba(0,0,0,0.35)] ${
               isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""
             } ${isDragging ? "opacity-50" : ""}`}
             draggable
