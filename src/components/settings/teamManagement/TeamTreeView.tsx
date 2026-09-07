@@ -557,7 +557,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
   if (data.length === 0) {
     return (
       <div
-        className={`relative flex-1 min-h-40 min-w-0 max-w-full h-full overflow-hidden flex items-center justify-center md:min-w-[400px] ${isFullscreen ? "w-full" : "md:max-w-[712px]"}`}
+        className="relative flex-1 min-h-40 min-w-0 max-w-full h-full overflow-hidden flex items-center justify-center md:min-w-[400px]"
         role="tree"
         aria-label="조직도 트리"
       >
@@ -571,7 +571,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
   return (
     <div
       ref={viewportRef}
-      className={`relative flex-1 min-h-0 min-w-0 max-w-full overflow-hidden md:min-w-[400px] md:cursor-grab ${isFullscreen ? "w-full" : "md:max-w-[712px]"} ${isGrabbing ? 'md:cursor-grabbing' : ''}`}
+      className={`relative flex-1 min-h-0 min-w-0 max-w-full overflow-hidden md:min-w-[400px] md:cursor-grab ${isGrabbing ? 'md:cursor-grabbing' : ''}`}
       style={{ 
         touchAction: 'none', 
         userSelect: 'none',
