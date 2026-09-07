@@ -97,7 +97,7 @@ export default function ProcedureGuideContent() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-[1324px] flex-col gap-5 px-0 pb-8 pt-0 md:gap-9 md:px-6 md:pb-12 md:pt-9 lg:px-0">
+    <main className="mx-auto flex w-full max-w-[1324px] flex-col gap-5 px-0 pb-8 pt-0 md:gap-3 md:px-6 md:pb-12 md:pt-9 lg:gap-9 lg:px-0">
       <section
         className={`surface overflow-hidden md:rounded-[14px] lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none ${
           activeTab === "all" ? "md:min-h-[835px]" : ""

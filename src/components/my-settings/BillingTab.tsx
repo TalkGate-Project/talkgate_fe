@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   SubscriptionService,
@@ -19,6 +19,7 @@ import ProjectPrivacyConsentModal from "@/components/projects/ProjectPrivacyCons
 import { ProjectPrivacyConsentService } from "@/services/projectPrivacyConsent";
 import { formatDateCompact } from "@/utils/datetime";
 import { LANDING_URLS } from "@/lib/constants";
+import Pagination from "@/components/common/Pagination";
 
 function formatCount(value: number): string {
   return new Intl.NumberFormat("ko-KR").format(value);
@@ -100,11 +101,14 @@ const STATE_ORDER: Record<SubscriptionState, number> = {
   none: 2,
 };
 
+const PROJECTS_PER_PAGE = 4;
+
 export default function BillingTab() {
   const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedProject, setSelectedProject] =
     useState<ProjectWithSubscription | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
   const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
   // 개인정보 처리 위탁 계약 동의 모달 상태 (구독하기 클릭 시 동의 여부 확인용)
@@ -221,6 +225,20 @@ export default function BillingTab() {
       (a, b) => STATE_ORDER[a.subscriptionState] - STATE_ORDER[b.subscriptionState]
     )
     .map(mapAdminProjectToViewModel);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(projectsWithSubscription.length / PROJECTS_PER_PAGE)
+  );
+  const displayedPage = Math.min(currentPage, totalPages);
+  const paginatedProjects = projectsWithSubscription.slice(
+    (displayedPage - 1) * PROJECTS_PER_PAGE,
+    displayedPage * PROJECTS_PER_PAGE
+  );
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
 
   if (viewMode === "detail" && selectedProject) {
     return (
@@ -360,7 +378,7 @@ export default function BillingTab() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-[30px]">
             {isLoading ? (
               // 로딩 스켈레톤
-              Array.from({ length: 3 }).map((_, i) => (
+              Array.from({ length: PROJECTS_PER_PAGE }).map((_, i) => (
                 <div
                   key={i}
                   className="bg-card rounded-[12px] p-6 border border-neutral-20 animate-pulse"
@@ -395,7 +413,7 @@ export default function BillingTab() {
                 </p>
               </div>
             ) : (
-              projectsWithSubscription.map((project) => (
+              paginatedProjects.map((project) => (
                 <ProjectCard
                   key={project.id}
                   project={project}
@@ -410,6 +428,16 @@ export default function BillingTab() {
               ))
             )}
           </div>
+
+          {!isLoading && !isError && totalPages > 1 && (
+            <div className="flex justify-center">
+              <Pagination
+                page={displayedPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
 
         </div>
       </div>

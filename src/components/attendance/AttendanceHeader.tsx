@@ -20,7 +20,7 @@ export default function AttendanceHeader({
 
   return (
     <Panel
-      className="rounded-none md:rounded-[14px] md:mb-9"
+      className="rounded-none md:rounded-[14px] md:mb-3 lg:mb-9"
       title={
         <div className="flex w-full min-w-0 items-center justify-between gap-3 md:items-start">
           <div className="flex min-w-0 items-end gap-4">

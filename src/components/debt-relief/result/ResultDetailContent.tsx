@@ -323,7 +323,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     <>
       {/* 데스크톱만 fixed 서브헤더(48px) + 허브와 비슷한 상단 여백(36px) → 84px 확보.
           모바일은 sticky 내비(48px)가 문서 흐름에 자리를 차지하므로 별도 상단 여백이 필요 없다. */}
-      <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-[84px] pb-[calc(3rem+env(safe-area-inset-bottom))] flex flex-col gap-0 md:gap-9">
+      <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-[84px] pb-[calc(3rem+env(safe-area-inset-bottom))] flex flex-col gap-0 md:gap-3 lg:gap-9">
         {/* 모바일: 내비게이터만 전역 헤더(54px) 아래 고정. 제목/액션은 카드 안에서 스크롤된다.
             카드 밖에 두어 overview를 지나도 sticky가 풀리지 않도록 한다. */}
         <div className="md:hidden sticky top-[54px] z-30 bg-card border-b border-neutral-30">
@@ -500,7 +500,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         />
       </div>
       {/* hidePrompt 상태의 검토 컴포넌트는 버튼·모달 컨트롤러 역할만 한다. 메인 flex 안에
-          두면 높이 0인 wrapper도 md:gap-9의 독립 항목이 되어 배너와 헤더 사이에 gap이 두 번 생긴다. */}
+          두면 높이 0인 wrapper도 반응형 section gap의 독립 항목이 되어 배너와 헤더 사이에 gap이 두 번 생긴다. */}
       {showReviewBanner ? (
         <AnalysisReviewBanner detail={detail} projectId={projectId} onDecided={refetch} hidePrompt />
       ) : null}

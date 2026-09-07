@@ -244,7 +244,7 @@ export default function FeePaymentStatusPanel() {
     // 모바일·태블릿: 흰 섹션을 붙여 body bg가 비치지 않도록. PC(lg+): 카드 간격 유지.
     <div className="space-y-0 lg:space-y-9">
       {/* 결제 현황 요약 — 피그마: 흰 카드 안 #F8F8F8 메트릭 4열 */}
-      <section className="surface rounded-none md:rounded-t-[14px] md:rounded-b-none lg:rounded-[14px] px-6 md:px-6 lg:px-[24px] pt-6 md:pt-[27px] pb-6 md:pb-[30px] shadow-none lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+      <section className="surface rounded-none md:rounded-t-[14px] md:rounded-b-none lg:rounded-[14px] px-6 md:px-6 lg:px-[24px] pt-[17px] md:pt-2 lg:pt-[27px] pb-6 md:pb-[30px] shadow-none lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
         <h2 className="mb-5 md:mb-6 text-[18px] font-semibold leading-[21px] text-foreground">
           결제 현황
         </h2>
