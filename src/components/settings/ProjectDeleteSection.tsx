@@ -10,7 +10,7 @@ type Props = {
  */
 export default function ProjectDeleteSection({ serviceName, onDelete }: Props) {
   return (
-    <div className="md:bg-card md:rounded-[14px] md:shadow-sm p-6 md:p-7">
+    <div className="md:bg-card md:rounded-[14px] lg:shadow-sm p-6 md:p-7">
       <div className="flex items-center gap-3 mb-[6px]">
         <h3 className="text-[16px] font-semibold text-danger-40 tracking-[0.2px] leading-[1]">프로젝트 삭제</h3>
         <span className="w-[44px] bg-danger-10 dark:bg-danger-10/30 text-[12px] font-medium text-danger-40 dark:text-danger-40 rounded-[30px] text-center h-[22px] leading-[22px] opacity-80">

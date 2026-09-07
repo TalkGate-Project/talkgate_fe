@@ -250,7 +250,7 @@ function NotificationsPageContentInner() {
   });
 
   return (
-    <main className="min-h-screen bg-card md:bg-background">
+    <main className="min-h-screen bg-card lg:bg-background">
       <div className="mx-auto max-w-[1410px] px-0 md:px-6 lg:px-0 pt-0 md:pt-9 md:pb-24">
         {/* 모바일: 하나의 배경으로 통합, 데스크탑: 두 개의 section으로 분리 */}
         <div className="bg-card md:rounded-[14px] min-h-screen md:min-h-0">
@@ -404,7 +404,7 @@ function NotificationsPageContentInner() {
 export default function NotificationsPageContent() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-background">
+      <main className="min-h-screen bg-card lg:bg-background">
         <div className="mx-auto max-w-[1410px] px-6 lg:px-0 pt-9 pb-24 text-neutral-60">불러오는 중...</div>
       </main>
     }>

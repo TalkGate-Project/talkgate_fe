@@ -219,7 +219,7 @@ export default function ChatLeftSidebar({
 
   return (
     <div className="w-full md:max-w-[286px] h-full">
-      <div className="w-full md:w-[286px] h-full bg-card dark:bg-neutral-0 rounded-[14px] md:rounded-[14px] rounded-t-none md:rounded-t-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none overflow-hidden flex flex-col">
+      <div className="w-full md:w-[286px] h-full bg-card dark:bg-neutral-0 rounded-[14px] md:rounded-[14px] rounded-t-none md:rounded-t-[14px] shadow-none lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none overflow-hidden flex flex-col">
         <div className="px-4 md:px-7 pt-4 md:pt-[26px] pb-3 md:pb-[18px] flex items-center justify-between shrink-0">
           <h2 className="text-[24px] leading-[1.2] tracking-[-0.04em] font-bold text-neutral-90">
             상담채팅

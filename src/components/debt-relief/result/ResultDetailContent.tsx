@@ -341,7 +341,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         {/* 헤더 + (데스크톱) 탭 바 + AI 분석 추천 (같은 카드).
             변호사 공유 건은 AI 분석 추천을 숨기고 overview·scores를 하나의 카드처럼 붙인다. */}
         {hideAiRecommendation ? (
-          <div className="flex flex-col gap-0 md:rounded-[14px] md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:md:shadow-none">
+          <div className="flex flex-col gap-0 md:rounded-[14px] lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:lg:shadow-none">
             <SectionCard
               id="overview"
               compactTop

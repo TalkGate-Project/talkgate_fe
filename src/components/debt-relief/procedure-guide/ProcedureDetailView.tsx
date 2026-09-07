@@ -75,7 +75,7 @@ function NoteBadge({ type, text }: { type: ProcedureGuideNoteType; text: string 
 
 function SectionCard({ children }: { children: React.ReactNode }) {
   return (
-    <section className="surface px-[clamp(16px,6.4vw,24px)] py-0 md:rounded-[14px] md:px-7 md:py-6 md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+    <section className="surface px-[clamp(16px,6.4vw,24px)] py-0 md:rounded-[14px] md:px-7 md:py-6 lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
       {children}
     </section>
   );

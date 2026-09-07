@@ -282,12 +282,12 @@ export default function SecuritySettings() {
   }
 
   if (!projectId) {
-    return <div className="p-6 text-center text-muted-foreground md:rounded-[14px] md:bg-card md:p-7 md:shadow-sm">프로젝트를 선택한 뒤 다시 시도해주세요.</div>;
+    return <div className="p-6 text-center text-muted-foreground md:rounded-[14px] md:bg-card md:p-7 lg:shadow-sm">프로젝트를 선택한 뒤 다시 시도해주세요.</div>;
   }
 
   const isEnabled = allowedIpData?.isEnabled ?? false;
   return (
-    <div className="min-h-[620px] bg-card md:min-h-[828px] md:rounded-[14px] md:shadow-sm">
+    <div className="min-h-[620px] bg-card md:min-h-[828px] md:rounded-[14px] lg:shadow-sm">
       <header className="flex h-[68px] items-center px-5 md:h-[76px] md:px-7">
         <h1 className="text-[20px] font-bold leading-none text-foreground md:text-[24px]">보안</h1>
       </header>

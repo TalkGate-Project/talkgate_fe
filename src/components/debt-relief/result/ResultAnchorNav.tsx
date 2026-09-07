@@ -13,7 +13,7 @@ type Props = {
 // 데스크톱: 자체 md:fixed로 전역 헤더 바로 아래 전체 폭에 고정.
 export default function ResultAnchorNav({ sections, activeId, onNavigate }: Props) {
   return (
-    <div className="bg-card md:fixed md:top-[54px] md:left-0 md:right-0 md:z-40 md:shadow-[0px_4px_8px_rgba(0,0,0,0.08)] dark:md:shadow-[0px_4px_8px_rgba(0,0,0,0.4)]">
+    <div className="bg-card md:fixed md:top-[54px] md:left-0 md:right-0 md:z-40 lg:shadow-[0px_4px_8px_rgba(0,0,0,0.08)] dark:lg:shadow-[0px_4px_8px_rgba(0,0,0,0.4)]">
       {/* 탭 바 자체는 풀폭. 첫/끝 탭 패딩만으로 화면 가장자리 여백을 맞춤 —
           바깥 컨테이너에 px를 또 주면 콘텐츠 카드와 탭 정렬이 어긋나고 이중 여백이 된다. */}
       <div className="mx-auto w-full max-w-[1324px] md:px-6 lg:px-0">
