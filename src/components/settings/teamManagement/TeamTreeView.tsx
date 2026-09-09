@@ -303,7 +303,6 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
   const renderNodeCard = useCallback(
     (item: TeamMember, isCompactMember: boolean = false) => {
       const isLeader = item.isLeader;
-
       return (
         <div className="flex flex-col items-center">
           {/* 팀/부서 배지 (리더일 경우) 또는 높이 맞춤용 빈 공간 */}

@@ -7,6 +7,7 @@ import {
   MemberTreeResponse,
   MoveTeamInput,
   RemoveParentInput,
+  ReplaceTeamLeaderInput,
   TeamsResponse,
   UpdateTeamInput,
 } from "@/types/membersTree";
@@ -85,5 +86,14 @@ export const MembersTreeService = {
     await apiClient.put("/v1/members-tree/team/remove-parent", { memberId }, {
       headers: { "x-project-id": String(projectId) },
     });
+  },
+
+  async replaceTeamLeader(input: ReplaceTeamLeaderInput) {
+    const { projectId, memberId, newLeaderMemberId } = input;
+    await apiClient.put(
+      "/v1/members-tree/team/replace-leader",
+      { memberId, newLeaderMemberId },
+      { headers: { "x-project-id": String(projectId) } }
+    );
   },
 };
