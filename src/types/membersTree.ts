@@ -62,3 +62,9 @@ export interface RemoveParentInput {
   projectId: string | number;
   memberId: number;
 }
+
+export interface ReplaceTeamLeaderInput {
+  projectId: string | number;
+  memberId: number;
+  newLeaderMemberId: number;
+}

@@ -146,3 +146,31 @@ export function useRemoveParentMutation(projectId?: string | number | null) {
     },
   });
 }
+
+export function useAssignTeamLeaderMutation(projectId?: string | number | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { memberId: number; newLeaderMemberId: number }) => {
+      if (!projectId) throw new Error("프로젝트가 선택되지 않았습니다.");
+      return MembersTreeService.replaceTeamLeader({ ...input, projectId });
+    },
+    onSuccess: async () => {
+      if (!projectId) return;
+      try {
+        const [nextTree, nextTeams] = await Promise.all([
+          MembersTreeService.fetchRootWithoutParent(projectId),
+          MembersTreeService.fetchTeams(projectId),
+        ]);
+        queryClient.setQueryData(treeWithoutParentQueryKey(projectId), nextTree);
+        queryClient.setQueryData(teamsQueryKey(projectId), nextTeams);
+      } catch (error) {
+        console.error("Failed to refresh team leader change data:", error);
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: treeWithoutParentQueryKey(projectId) }),
+          queryClient.invalidateQueries({ queryKey: teamsQueryKey(projectId) }),
+        ]);
+      }
+      queryClient.invalidateQueries({ queryKey: treeQueryKey(projectId) });
+    },
+  });
+}

@@ -4,3 +4,8 @@ export type MoveContext = {
   sourceId: string;
   targetId: string;
 };
+
+export type LeaderChangeContext = {
+  memberId: string;
+  currentLeaderId: string;
+};

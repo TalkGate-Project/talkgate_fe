@@ -10,6 +10,7 @@ import UnassignedMembersList from "./teamManagement/UnassignedMembersList";
 import TeamSearchBar from "./teamManagement/TeamSearchBar";
 import DepartmentTags from "./teamManagement/DepartmentTags";
 import TeamMoveConfirmModal from "./teamManagement/TeamMoveConfirmModal";
+import TeamLeaderChangeConfirmModal from "./teamManagement/TeamLeaderChangeConfirmModal";
 import UnassignedMembersDrawer from "./teamManagement/UnassignedMembersDrawer";
 import TeamManagementLoading from "./teamManagement/TeamManagementLoading";
 import TeamManagementError from "./teamManagement/TeamManagementError";
@@ -21,10 +22,12 @@ import {
   useMembersTreeWithoutParent,
   useTeams,
   useMoveTeamMutation,
+  useAssignTeamLeaderMutation,
   useRemoveParentMutation,
 } from "@/hooks/useMembersTree";
 import { useMyMember } from "@/hooks/useMyMember";
 import { showErrorModal } from "@/lib/errorModalEvents";
+import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { useTeamMembers } from "@/hooks/useTeamMembers";
 import { useTeamDragAndDrop } from "@/hooks/useTeamDragAndDrop";
 import { useTeamSearch } from "@/hooks/useTeamSearch";
@@ -117,6 +120,7 @@ export default function TeamManagementSettings() {
   const { data: treeData, isLoading: treeLoading, error: treeError } = useMembersTreeWithoutParent(projectId);
   const { data: teamsData, isLoading: teamsLoading, error: teamsError } = useTeams(projectId);
   const moveMutation = useMoveTeamMutation(projectId);
+  const assignLeaderMutation = useAssignTeamLeaderMutation(projectId);
   const removeParentMutation = useRemoveParentMutation(projectId);
   const { isAdminOrSubAdmin } = useMyMember(projectId);
 
@@ -126,7 +130,7 @@ export default function TeamManagementSettings() {
     [unassignedMembers]
   );
 
-  const canDrag = !moveMutation.isPending && !removeParentMutation.isPending;
+  const canDrag = !moveMutation.isPending && !removeParentMutation.isPending && !assignLeaderMutation.isPending;
 
   const handleMove = useCallback(
     async (sourceId: string, targetId: string) => {
@@ -147,14 +151,47 @@ export default function TeamManagementSettings() {
     [moveMutation]
   );
 
+  const handleInvalidMemberDrop = useCallback(() => {
+    showConfirmModal({
+      type: "info",
+      title: "조직 이동 안내",
+      headline: "팀원 하위로는 이동할 수 없습니다.",
+      message: "멤버 상세 화면에서 팀 생성을 먼저 진행해주세요.",
+      confirmText: "확인",
+      cancelText: null,
+    });
+  }, []);
+
   const {
     dragHandlers,
     dragState,
     pendingMove,
     pendingMoveInfo,
+    pendingLeaderChange,
+    pendingLeaderChangeInfo,
     confirmMove,
     cancelMove,
-  } = useTeamDragAndDrop(teamMembers, canDrag, handleMove);
+    cancelLeaderChange,
+  } = useTeamDragAndDrop(teamMembers, canDrag, handleMove, handleInvalidMemberDrop);
+
+  const confirmLeaderChange = useCallback(async () => {
+    if (!pendingLeaderChange) return;
+    try {
+      await assignLeaderMutation.mutateAsync({
+        memberId: Number(pendingLeaderChange.currentLeaderId),
+        newLeaderMemberId: Number(pendingLeaderChange.memberId),
+      });
+      cancelLeaderChange();
+    } catch (error) {
+      console.error("Team leader change failed:", error);
+      showErrorModal({
+        type: "error",
+        headline: "팀장 교체에 실패했습니다.",
+        description: "잠시 후 다시 시도해주세요.",
+        hideCancel: true,
+      });
+    }
+  }, [assignLeaderMutation, cancelLeaderChange, pendingLeaderChange]);
 
   const { inputValue, setInputValue, searchTerm, executeSearch, matchingIds, expandedForSearch } =
     useTeamSearch(assignedMembers);
@@ -381,6 +418,16 @@ export default function TeamManagementSettings() {
           isPending={moveMutation.isPending}
           onConfirm={confirmMove}
           onCancel={cancelMove}
+        />
+      )}
+
+      {pendingLeaderChange && pendingLeaderChangeInfo && (
+        <TeamLeaderChangeConfirmModal
+          member={pendingLeaderChangeInfo.member}
+          currentLeader={pendingLeaderChangeInfo.currentLeader}
+          isPending={assignLeaderMutation.isPending}
+          onConfirm={confirmLeaderChange}
+          onCancel={cancelLeaderChange}
         />
       )}
 

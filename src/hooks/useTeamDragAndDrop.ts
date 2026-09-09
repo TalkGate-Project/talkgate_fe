@@ -2,17 +2,19 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { TeamMember } from "@/types/teams";
 import { DragHandlers, DragState, isDescendant } from "@/hooks/useTeamTree";
 import { findNodeWithParent } from "@/utils/teamManagement";
-import { MoveContext } from "@/types/teamManagement";
+import { LeaderChangeContext, MoveContext } from "@/types/teamManagement";
 
 export function useTeamDragAndDrop(
   teamMembers: TeamMember[],
   canDrag: boolean,
-  onMove: (sourceId: string, targetId: string) => void
+  onMove: (sourceId: string, targetId: string) => void,
+  onInvalidMemberDrop: () => void
 ) {
   const draggedItemRef = useRef<TeamMember | null>(null);
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
   const [pendingMove, setPendingMove] = useState<MoveContext | null>(null);
+  const [pendingLeaderChange, setPendingLeaderChange] = useState<LeaderChangeContext | null>(null);
 
   const dragHandlers: DragHandlers = useMemo(
     () => ({
@@ -47,6 +49,22 @@ export function useTeamDragAndDrop(
           setDraggedItemId(null);
           return;
         }
+        const target = findNodeWithParent(teamMembers, targetId)?.node;
+        if (target && !target.isLeader) {
+          draggedItemRef.current = null;
+          setDraggedItemId(null);
+          onInvalidMemberDrop();
+          return;
+        }
+        if (!draggedItem.isLeader && target?.isLeader && draggedItem.parentId === target.id) {
+          setPendingLeaderChange({
+            memberId: draggedItem.id,
+            currentLeaderId: target.id,
+          });
+          draggedItemRef.current = null;
+          setDraggedItemId(null);
+          return;
+        }
         if (isDescendant(teamMembers, draggedItem.id, targetId)) {
           draggedItemRef.current = null;
           setDraggedItemId(null);
@@ -62,7 +80,7 @@ export function useTeamDragAndDrop(
         setDragOverItemId(null);
       },
     }),
-    [canDrag, teamMembers]
+    [canDrag, onInvalidMemberDrop, teamMembers]
   );
 
   const dragState: DragState = useMemo(
@@ -85,11 +103,23 @@ export function useTeamDragAndDrop(
     };
   }, [pendingMove, teamMembers]);
 
+  const pendingLeaderChangeInfo = useMemo(() => {
+    if (!pendingLeaderChange) return null;
+    const memberInfo = findNodeWithParent(teamMembers, pendingLeaderChange.memberId);
+    const currentLeaderInfo = findNodeWithParent(teamMembers, pendingLeaderChange.currentLeaderId);
+    if (!memberInfo || !currentLeaderInfo) return null;
+    return {
+      member: memberInfo.node,
+      currentLeader: currentLeaderInfo.node,
+    };
+  }, [pendingLeaderChange, teamMembers]);
+
   const clearDragState = useCallback(() => {
     draggedItemRef.current = null;
     setDraggedItemId(null);
     setDragOverItemId(null);
     setPendingMove(null);
+    setPendingLeaderChange(null);
   }, []);
 
   const confirmMove = useCallback(async () => {
@@ -107,13 +137,20 @@ export function useTeamDragAndDrop(
     clearDragState();
   }, [clearDragState]);
 
+  const cancelLeaderChange = useCallback(() => {
+    clearDragState();
+  }, [clearDragState]);
+
   return {
     dragHandlers,
     dragState,
     pendingMove,
     pendingMoveInfo,
+    pendingLeaderChange,
+    pendingLeaderChangeInfo,
     confirmMove,
     cancelMove,
+    cancelLeaderChange,
     clearDragState,
   };
 }
