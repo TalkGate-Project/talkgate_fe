@@ -32,6 +32,7 @@ export function useMemberDetail(memberId: number | null, projectId?: string | nu
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,
+    dataUpdatedAt: query.dataUpdatedAt,
     refetch: query.refetch,
   };
 }

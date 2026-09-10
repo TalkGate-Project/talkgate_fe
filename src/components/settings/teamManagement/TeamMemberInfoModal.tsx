@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { memberDetailQueryKey, useMemberDetail } from "@/hooks/useMemberDetail";
@@ -35,6 +35,7 @@ export default function TeamMemberInfoModal({
   projectId,
   onMemberClick,
 }: Props) {
+  const openedAtRef = useRef(Date.now());
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<TabKey>("organization");
   const [localNotes, setLocalNotes] = useState<HrNote[]>([]);
@@ -58,10 +59,11 @@ export default function TeamMemberInfoModal({
   const projectIdString = effectiveProjectId !== null ? String(effectiveProjectId) : null;
   const { isAdminOrSubAdmin } = useMyMember(projectIdString);
 
-  const { member, isLoading, isError } = useMemberDetail(
+  const { member, isLoading, isError, dataUpdatedAt } = useMemberDetail(
     open ? memberId : null,
     effectiveProjectId
   );
+  const hasLoadedSinceOpen = dataUpdatedAt >= openedAtRef.current;
 
   // 모달이 처음 열리거나 memberId가 변경될 때만 초기화
   useEffect(() => {
@@ -296,7 +298,7 @@ export default function TeamMemberInfoModal({
   const orgTreeRoot = transformOrgTree(member?.organizationTree);
 
   // 로딩 상태
-  if (isLoading) {
+  if (isLoading || (!hasLoadedSinceOpen && !isError)) {
     return (
       <BaseModal
         onClose={onClose}
