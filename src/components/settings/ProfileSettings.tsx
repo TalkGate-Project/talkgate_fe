@@ -243,7 +243,7 @@ export default function ProfileSettings() {
 
   if (!mounted || loading) {
     return (
-      <div className="bg-card rounded-[14px] shadow-sm p-6">
+      <div className="bg-card rounded-[14px] shadow-none lg:shadow-sm p-6">
         <div className="animate-pulse">
           <div className="h-8 bg-neutral-20 rounded w-1/4 mb-6"></div>
           <div className="h-40 bg-neutral-20 rounded"></div>
@@ -389,7 +389,7 @@ export default function ProfileSettings() {
   };
 
   return (
-    <div className="bg-card dark:bg-neutral-0 md:rounded-[14px] rounded-t-none md:rounded-t-[14px] shadow-sm pb-6.5 md:min-h-[728px] relative">
+    <div className="bg-card dark:bg-neutral-0 md:rounded-[14px] rounded-t-none md:rounded-t-[14px] shadow-none lg:shadow-sm pb-6.5 md:min-h-[728px] relative">
       {/* 헤더 */}
       <div className="px-6 md:px-7 flex items-center justify-between py-4.5 md:py-0 md:h-[76px]">
          <h1 className="text-[18px] md:text-[24px] font-bold text-ink dark:text-neutral-80 leading-[20px]">프로필</h1>
@@ -425,7 +425,7 @@ export default function ProfileSettings() {
       </div>
 
       {/* Divider */}
-      <div className="w-full h-[1px] bg-neutral-30/40 dark:bg-neutral-30/40 mb-4.5 md:mb-6.5"></div>
+      <div className="h-px bg-neutral-30/50 mb-4.5 md:mb-6.5"></div>
 
       {/* 프로필 정보 섹션 */}
       <div className="mb-5">
@@ -466,7 +466,7 @@ export default function ProfileSettings() {
           </div>
         </div>
         
-        <div className="mx-6 md:mx-7 h-[1px] bg-neutral-30 dark:bg-neutral-30 mb-5 md:mb-[54px]"></div>
+        <div className="mx-6 md:mx-7 h-px bg-neutral-30/20 mb-5 md:mb-[54px]"></div>
 
         {/* 프로필 썸네일 - 중앙 정렬 */}
         <div className="flex justify-center mb-5 md:mb-[54px]">

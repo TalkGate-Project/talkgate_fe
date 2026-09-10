@@ -347,7 +347,7 @@ export default function SecurityTab() {
       </div>
 
       {/* Third Box - Delete Account */}
-      <div className="bg-card rounded-none md:rounded-[14px] md:shadow-sm pb-[140px] md:pb-0">
+      <div className="bg-card rounded-none md:rounded-[14px] lg:shadow-sm pb-[140px] md:pb-0">
         {/* Mobile Layout */}
         <div className="block md:hidden px-4 py-6">
           <div className="flex items-center justify-between h-full gap-3">

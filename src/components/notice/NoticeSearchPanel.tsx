@@ -31,9 +31,9 @@ export default function NoticeSearchPanel({
       title={
         <div className="flex w-full min-w-0 items-center justify-between gap-3 md:items-start">
           <div className="flex min-w-0 items-end gap-4">
-            <h1 className="translate-y-[3px] text-[18px] md:text-[24px] md:leading-[20px] font-bold text-neutral-90">공지사항</h1>
+            <h1 className="translate-y-[3px] text-[18px] md:text-[20px] lg:text-[24px] md:leading-[20px] font-bold text-neutral-90">공지사항</h1>
             <span className="hidden md:block w-px h-4 bg-neutral-60 opacity-60" />
-            <p className="hidden md:block translate-y-[3px] text-[18px] leading-[20px] font-medium text-neutral-60">
+            <p className="hidden md:block translate-y-[3px] text-[14px] lg:text-[18px] leading-[20px] font-medium text-neutral-60">
               공지사항과 중요한 안내사항을 확인하세요
             </p>
           </div>
@@ -45,7 +45,7 @@ export default function NoticeSearchPanel({
           />
         </div>
       }
-      bodyClassName="px-4 md:px-7 py-4 md:py-[30px] border-t border-neutral-30"
+      bodyClassName="px-4 py-4 md:px-7 md:py-3 lg:py-[30px] border-t border-neutral-30"
     >
       {/* 검색 및 버튼 영역 */}
       <div className="flex items-center md:justify-between gap-2 md:gap-3">
@@ -94,7 +94,7 @@ export default function NoticeSearchPanel({
                 className="peer sr-only"
               />
               <div
-                className="w-6 h-6 border border-[#B0B0B0] rounded-[5px] peer-checked:bg-primary-60 peer-checked:border-primary-60 transition-colors flex items-center justify-center"
+                className="w-6 h-6 bg-transparent border border-[#B0B0B0] rounded-[5px] peer-checked:bg-primary-60 peer-checked:border-primary-60 transition-colors flex items-center justify-center"
               >
                 {showImportantOnly && (
                   <svg

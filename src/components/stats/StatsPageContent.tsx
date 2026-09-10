@@ -339,11 +339,11 @@ function StatsPageContentInner() {
       : registration.chartMonthlyData;
 
   return (
-    <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
+    <main className="min-h-[calc(100vh-54px)] bg-card md:bg-neutral-10">
       <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 md:pb-12">
         {/* Top panel with tabs */}
         <Panel
-          className="rounded-none md:rounded-[14px] md:mb-9"
+          className="rounded-none md:rounded-[14px] md:mb-3 lg:mb-9"
           title={
             <div className="flex w-full min-w-0 items-center justify-between gap-3 md:items-start">
               <div className="flex min-w-0 items-end gap-4">
@@ -365,7 +365,7 @@ function StatsPageContentInner() {
               />
             </div>
           }
-          bodyClassName="px-7 py-[30px] border-t border-neutral-30"
+          bodyClassName="px-6 py-3 border-t border-neutral-30 md:px-7 lg:py-[30px]"
         >
           <div
             ref={tabScrollRef}
@@ -404,7 +404,7 @@ function StatsPageContentInner() {
         {/* Apply Tab: 신청통계 */}
         {active === "apply" && (
           <>
-            <section className="surface md:rounded-[14px] px-6 md:px-7 pt-[17px] pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+            <section className="surface md:rounded-[14px] px-6 md:px-7 pt-2 lg:pt-[17px] pb-[30px] shadow-none lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
               <div className="flex items-center justify-between">
                 <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
                   신청통계
@@ -450,7 +450,7 @@ function StatsPageContentInner() {
               </div>
             </section>
 
-            <section className="md:mt-9 surface md:rounded-[14px] pt-6 px-6 md:px-7 pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+            <section className="md:mt-3 lg:mt-9 surface md:rounded-[14px] pt-6 px-6 md:px-7 pb-[30px] shadow-none lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
               <RegistrationDetailTable
                 rows={registration.rows}
                 isLoading={registration.showTableSkeleton}
@@ -481,7 +481,7 @@ function StatsPageContentInner() {
 
         {/* Assign Tab: 배정통계 */}
         {active === "assign" && (
-          <section className="surface md:rounded-[14px] px-6 md:px-7 pt-[17px] pb-[55px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+          <section className="surface md:rounded-[14px] px-6 md:px-7 pt-2 lg:pt-[17px] pb-[55px] shadow-none lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <div className="flex items-center justify-between h-[48px]">
               <div className="flex flex-1 min-w-0 items-center gap-3">
                 <h2 className="hidden md:block shrink-0 text-[18px] font-semibold text-neutral-90">
@@ -530,7 +530,7 @@ function StatsPageContentInner() {
 
         {/* Payment Tab: 매출통계 */}
         {active === "payment" && (
-          <section className="surface md:rounded-[14px] px-6 md:px-7 pt-[17px] pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+          <section className="surface md:rounded-[14px] px-6 md:px-7 pt-2 lg:pt-[17px] pb-[30px] shadow-none lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <div className="flex items-center justify-between">
               <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
                 매출통계
@@ -581,7 +581,7 @@ function StatsPageContentInner() {
 
         {/* Status Tab: 카테고리 */}
         {active === "status" && (
-          <section className="surface md:rounded-[14px] px-6 md:px-7 md:py-[30px] md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+          <section className="surface md:rounded-[14px] px-6 md:px-7 pt-2 md:pb-[30px] lg:py-[30px] lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <div className="flex flex-wrap items-center gap-3">
               <h2 className="hidden md:block shrink-0 text-[18px] font-semibold text-neutral-90">
                 카테고리 통계
@@ -598,10 +598,10 @@ function StatsPageContentInner() {
                 showMember
               />
             </div>
-            <div className="md:mt-4 md:mt-[30px] text-[16px] text-neutral-90 font-semibold tracking-[0.02em]">
+            <div className="mt-4 lg:mt-[30px] text-[16px] text-neutral-90 font-semibold tracking-[0.02em]">
               상태별 분포
             </div>
-            <div className="mt-6 md:mt-[96px]">
+            <div className="mt-6 lg:mt-[96px]">
               <StatusBarChart ref={statusChartRef} />
             </div>
           </section>
@@ -609,7 +609,7 @@ function StatsPageContentInner() {
 
         {/* Ranking Tab: 전체랭킹 */}
         {active === "ranking" && (
-          <section className="surface md:rounded-[14px] px-4 md:px-7 md:pt-[17px] pb-4 md:pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+          <section className="surface md:rounded-[14px] px-4 md:px-7 pt-2 lg:pt-[17px] pb-4 md:pb-6 shadow-none lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <div className="flex items-start justify-between">
               <div className="pt-[11px]">
                 <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">

@@ -404,7 +404,7 @@ function NotificationsPageContentInner() {
 export default function NotificationsPageContent() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-background">
+      <main className="min-h-screen bg-card md:bg-background">
         <div className="mx-auto max-w-[1410px] px-6 lg:px-0 pt-9 pb-24 text-neutral-60">불러오는 중...</div>
       </main>
     }>

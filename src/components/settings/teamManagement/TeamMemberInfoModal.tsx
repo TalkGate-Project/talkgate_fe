@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { useMemberDetail } from "@/hooks/useMemberDetail";
+import { memberDetailQueryKey, useMemberDetail } from "@/hooks/useMemberDetail";
 import { useMyMember } from "@/hooks/useMyMember";
 import { useCreateTeamMutation, useDeleteTeamMutation, useUpdateTeamMutation } from "@/hooks/useMembersTree";
+import { getSelectedProjectId } from "@/lib/project";
 import { HRService } from "@/services/hr";
 import type { HrNote } from "@/types/members";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
@@ -34,6 +35,7 @@ export default function TeamMemberInfoModal({
   projectId,
   onMemberClick,
 }: Props) {
+  const openedAtRef = useRef(Date.now());
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<TabKey>("organization");
   const [localNotes, setLocalNotes] = useState<HrNote[]>([]);
@@ -53,12 +55,15 @@ export default function TeamMemberInfoModal({
   const createTeam = useCreateTeamMutation(projectId);
   const deleteTeam = useDeleteTeamMutation(projectId);
   const updateTeam = useUpdateTeamMutation(projectId);
-  const projectIdString = projectId !== null ? String(projectId) : null;
+  const effectiveProjectId = projectId ?? getSelectedProjectId();
+  const projectIdString = effectiveProjectId !== null ? String(effectiveProjectId) : null;
   const { isAdminOrSubAdmin } = useMyMember(projectIdString);
 
-  const { member, isLoading, isError } = useMemberDetail(
-    open ? memberId : null
+  const { member, isLoading, isError, dataUpdatedAt } = useMemberDetail(
+    open ? memberId : null,
+    effectiveProjectId
   );
+  const hasLoadedSinceOpen = dataUpdatedAt >= openedAtRef.current;
 
   // 모달이 처음 열리거나 memberId가 변경될 때만 초기화
   useEffect(() => {
@@ -103,7 +108,7 @@ export default function TeamMemberInfoModal({
       const response = await HRService.addMemberNote(memberId, {
         note: trimmed,
       });
-      await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
+      await queryClient.invalidateQueries({ queryKey: memberDetailQueryKey(effectiveProjectId, memberId) });
       if (response.data?.data) {
         setLocalNotes((prev) => [response.data.data, ...prev]);
       }
@@ -131,7 +136,7 @@ export default function TeamMemberInfoModal({
         try {
           setIsSubmittingNote(true);
           await HRService.removeMemberNote(memberId, noteId);
-          await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
+          await queryClient.invalidateQueries({ queryKey: memberDetailQueryKey(effectiveProjectId, memberId) });
           setLocalNotes((prev) => prev.filter((note) => note.id !== noteId));
         } catch (e: any) {
           console.error(e);
@@ -158,7 +163,7 @@ export default function TeamMemberInfoModal({
         birth: hrFormData.birthDate ? format(hrFormData.birthDate, "yyyy-MM-dd") : "",
         address: hrFormData.address,
       });
-      await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
+      await queryClient.invalidateQueries({ queryKey: memberDetailQueryKey(effectiveProjectId, memberId) });
       showErrorModal({
         type: "success",
         headline: "프로필 정보가 저장되었습니다.",
@@ -201,7 +206,7 @@ export default function TeamMemberInfoModal({
         teamName: trimmed,
       });
       // 멤버 상세 정보 쿼리 무효화하여 최신 데이터 반영
-      await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
+      await queryClient.invalidateQueries({ queryKey: memberDetailQueryKey(effectiveProjectId, memberId) });
       setTeamCreateMode(false);
       setTeamNameDraft("");
     } catch (err: any) {
@@ -224,7 +229,7 @@ export default function TeamMemberInfoModal({
       onConfirm: async () => {
         try {
           await deleteTeam.mutateAsync({ memberId: memberId });
-          await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
+          await queryClient.invalidateQueries({ queryKey: memberDetailQueryKey(effectiveProjectId, memberId) });
           showErrorModal({
             type: "success",
             headline: "팀이 제거되었습니다.",
@@ -257,7 +262,7 @@ export default function TeamMemberInfoModal({
         teamName: trimmed,
       });
       // 멤버 상세 정보 쿼리 무효화하여 최신 데이터 반영
-      await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
+      await queryClient.invalidateQueries({ queryKey: memberDetailQueryKey(effectiveProjectId, memberId) });
       setTeamEditMode(false);
       showErrorModal({
         type: "success",
@@ -293,7 +298,7 @@ export default function TeamMemberInfoModal({
   const orgTreeRoot = transformOrgTree(member?.organizationTree);
 
   // 로딩 상태
-  if (isLoading) {
+  if (isLoading || (!hasLoadedSinceOpen && !isError)) {
     return (
       <BaseModal
         onClose={onClose}

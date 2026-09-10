@@ -5,11 +5,11 @@ import SettingsClient from "@/components/settings/SettingsClient";
 
 export default function SettingsPageContent() {
   return (
-    <main className="bg-neutral-0 md:bg-background md:pt-9 md:pb-12">
+    <main className="bg-card md:bg-background md:pt-9 md:pb-12">
       <div className="container mx-auto max-w-[1324px] px-0 md:px-6 lg:px-0">
         <Suspense fallback={
           <div className="flex gap-8">
-            <div className="hidden min-h-[552px] w-20 rounded-[14px] bg-card p-3 shadow-sm md:block lg:min-h-0 lg:w-[280px] lg:p-6">
+            <div className="hidden min-h-[552px] w-20 rounded-[14px] bg-card p-3 shadow-none md:block lg:min-h-0 lg:w-[280px] lg:p-6 lg:shadow-sm">
               <div className="animate-pulse lg:hidden">
                 <div className="mx-auto mb-6 mt-3 h-7 w-7 rounded-full bg-neutral-20" />
                 <div className="mb-2 h-px bg-neutral-20" />
@@ -32,7 +32,7 @@ export default function SettingsPageContent() {
               </div>
             </div>
             <div className="flex-1 min-w-0 md:overflow-x-auto lg:overflow-x-visible">
-              <div className="md:min-w-max lg:min-w-0 bg-card rounded-[14px] shadow-sm p-6">
+              <div className="md:min-w-max lg:min-w-0 bg-card rounded-[14px] shadow-none lg:shadow-sm p-6">
                 <div className="animate-pulse">
                   <div className="h-8 bg-neutral-20 rounded mb-6"></div>
                   <div className="space-y-4">

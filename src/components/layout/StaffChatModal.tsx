@@ -154,6 +154,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
   const initialScrollDoneRoomRef = useRef<number | null>(null);
   const isAtBottomRef = useRef(true);
   const isComposingRef = useRef(false);
+  const participantsPopoverRef = useRef<HTMLDivElement>(null);
   const [projectId] = useSelectedProjectId();
   const {
     emojiPickerOpen,
@@ -228,6 +229,18 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
       setViewMode("list");
     }
   }, [isOpen, activeRoomId]);
+
+  useEffect(() => {
+    if (!showParticipants) return;
+
+    const handleOutsidePointerDown = (event: PointerEvent) => {
+      if (participantsPopoverRef.current?.contains(event.target as Node)) return;
+      setShowParticipants(false);
+    };
+
+    document.addEventListener("pointerdown", handleOutsidePointerDown);
+    return () => document.removeEventListener("pointerdown", handleOutsidePointerDown);
+  }, [showParticipants]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -827,17 +840,46 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                 <div className="min-w-0">
                   <p className="text-[15px] font-semibold text-foreground truncate">{activeRoom?.name}</p>
                 </div>
-                <button
-                  type="button"
-                  className="cursor-pointer ml-1 flex items-center gap-1 text-neutral-60 hover:text-foreground"
-                  onClick={() => setShowParticipants((prev) => !prev)}
-                >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8.00039 7.1999C9.32587 7.1999 10.4004 6.12539 10.4004 4.7999C10.4004 3.47442 9.32587 2.3999 8.00039 2.3999C6.67491 2.3999 5.60039 3.47442 5.60039 4.7999C5.60039 6.12539 6.67491 7.1999 8.00039 7.1999Z" fill="#B0B0B0" />
-                    <path d="M2.40039 14.3999C2.40039 11.3071 4.9076 8.7999 8.00039 8.7999C11.0932 8.7999 13.6004 11.3071 13.6004 14.3999H2.40039Z" fill="#B0B0B0" />
-                  </svg>
-                  <span className="text-[12px]">· {activeRoom?.participantCount ?? 0}</span>
-                </button>
+                <div ref={participantsPopoverRef} data-no-drag="true" className="relative ml-1 shrink-0">
+                  <button
+                    type="button"
+                    className="cursor-pointer flex items-center gap-1 text-neutral-60 hover:text-foreground"
+                    onClick={() => setShowParticipants((prev) => !prev)}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8.00039 7.1999C9.32587 7.1999 10.4004 6.12539 10.4004 4.7999C10.4004 3.47442 9.32587 2.3999 8.00039 2.3999C6.67491 2.3999 5.60039 3.47442 5.60039 4.7999C5.60039 6.12539 6.67491 7.1999 8.00039 7.1999Z" fill="#B0B0B0" />
+                      <path d="M2.40039 14.3999C2.40039 11.3071 4.9076 8.7999 8.00039 8.7999C11.0932 8.7999 13.6004 11.3071 13.6004 14.3999H2.40039Z" fill="#B0B0B0" />
+                    </svg>
+                    <span className="text-[12px]">· {activeRoom?.participantCount ?? 0}</span>
+                  </button>
+
+                  {showParticipants && (
+                    <div className="absolute left-0 top-full z-20 mt-3 w-[220px] overflow-x-hidden rounded-[10px] bg-card dark:bg-[#252525] text-foreground dark:text-white border border-border dark:border-neutral-30 p-3 shadow-xl">
+                      <div className="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto overflow-x-hidden">
+                        {participants.map((p) => (
+                          <button
+                            key={p.memberId}
+                            type="button"
+                            onClick={() => {
+                              setShowParticipants(false);
+                              setMemberInfoModalMemberId(p.memberId);
+                            }}
+                            className="cursor-pointer flex min-w-0 max-w-full items-center gap-1.5 rounded-[8px] p-1 text-left hover:bg-neutral-20 dark:hover:bg-neutral-30"
+                          >
+                            <div className="relative dark:text-[#111111] w-7 h-7 rounded-full bg-neutral-20 dark:bg-[#B9B9B9] text-[11px] grid place-items-center shrink-0">
+                              {initial(p.name)}
+                              <span
+                                className={`absolute -right-0.5 -bottom-0.5 w-2 h-2 rounded-full border border-card dark:border-[#252525] ${p.isOnline ? "bg-primary-60" : "bg-[#959595]"
+                                  }`}
+                              />
+                            </div>
+                            <span className="text-[11px] truncate dark:text-[#F5F5F5]">{p.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               <div data-no-drag="true" className="flex items-center gap-2">
                 {!isMobileViewport && opacityControl}
@@ -853,35 +895,6 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                 </button>
               </div>
 
-              {showParticipants && (
-                <div
-                  data-no-drag="true"
-                  className="absolute right-3 top-[46px] z-20 w-[220px] overflow-x-hidden rounded-[10px] bg-card dark:bg-[#252525] text-foreground dark:text-white border border-border dark:border-neutral-30 p-3 shadow-xl"
-                >
-                  <div className="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto overflow-x-hidden">
-                    {participants.map((p) => (
-                      <button
-                        key={p.memberId}
-                        type="button"
-                        onClick={() => {
-                          setShowParticipants(false);
-                          setMemberInfoModalMemberId(p.memberId);
-                        }}
-                        className="cursor-pointer flex items-center gap-1.5 min-w-0 max-w-full text-left hover:bg-neutral-20 dark:hover:bg-neutral-30 rounded-[8px] p-1 -m-1"
-                      >
-                        <div className="relative dark:text-[#111111] w-7 h-7 rounded-full bg-neutral-20 dark:bg-[#B9B9B9] text-[11px] grid place-items-center shrink-0">
-                          {initial(p.name)}
-                          <span
-                            className={`absolute -right-0.5 -bottom-0.5 w-2 h-2 rounded-full border border-card dark:border-[#252525] ${p.isOnline ? "bg-primary-60" : "bg-[#959595]"
-                              }`}
-                          />
-                        </div>
-                        <span className="text-[11px] truncate dark:text-[#F5F5F5]">{p.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
             <div

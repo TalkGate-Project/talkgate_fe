@@ -12,7 +12,7 @@ type PanelProps = {
 
 export default function Panel({ title, action, className, children, style, bodyClassName, headerClassName }: PanelProps) {
   return (
-    <section className={`surface rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none flex flex-col h-full w-full ${className ?? ""}`} style={style}>
+    <section className={`surface rounded-[14px] shadow-none lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none flex flex-col h-full w-full ${className ?? ""}`} style={style}>
       {(title || action) && (
         <div className={headerClassName ?? "flex items-center justify-between px-4 md:px-7 pt-4 md:pt-7 pb-4 md:pb-7"}>
           {typeof title === "string" ? (

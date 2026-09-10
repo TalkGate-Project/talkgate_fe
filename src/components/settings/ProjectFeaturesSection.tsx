@@ -15,7 +15,7 @@ export default function ProjectFeaturesSection({
   onToggle,
 }: Props) {
   return (
-    <div className="md:bg-card md:rounded-[14px] md:shadow-sm px-6 md:px-7 md:py-[30px] mt-5 md:mt-0">
+    <div className="md:bg-card md:rounded-[14px] lg:shadow-sm px-6 md:px-7 md:py-[30px] mt-5 md:mt-0">
       <h3 className="text-[16px] font-semibold text-foreground mb-[10px] tracking-[0.2px] leading-[1]">프로젝트 기능</h3>
       <p className="hidden md:block text-[14px] text-neutral-60 mb-3 tracking-[0.2px] leading-[12px]">출퇴근 기능 및 근태메뉴를 활성화 합니다.</p>
       

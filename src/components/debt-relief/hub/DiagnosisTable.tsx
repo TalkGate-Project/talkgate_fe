@@ -152,7 +152,6 @@ export default function DiagnosisTable({
                   onChange={onToggleSelectAll}
                   ariaLabel="전체 선택"
                   size={24}
-                  uncheckedFill="var(--neutral-20)"
                   className="shrink-0"
                 />
               </div>

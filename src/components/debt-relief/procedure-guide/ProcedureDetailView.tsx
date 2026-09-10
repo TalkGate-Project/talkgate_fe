@@ -75,7 +75,7 @@ function NoteBadge({ type, text }: { type: ProcedureGuideNoteType; text: string 
 
 function SectionCard({ children }: { children: React.ReactNode }) {
   return (
-    <section className="surface px-[clamp(16px,6.4vw,24px)] py-0 md:rounded-[14px] md:px-7 md:py-6 md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+    <section className="surface px-[clamp(16px,6.4vw,24px)] py-0 md:rounded-[14px] md:px-7 md:py-6 lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
       {children}
     </section>
   );
@@ -263,7 +263,7 @@ function TimelineSection({ detail }: { detail: ProcedureGuideDetail }) {
 
 export default function ProcedureDetailView({ detail }: { detail: ProcedureGuideDetail }) {
   return (
-    <div className="flex flex-col gap-5 md:gap-9">
+    <div className="flex flex-col gap-5 md:gap-3 lg:gap-9">
       <SectionCard>
         <SectionHeading>신청대상</SectionHeading>
         <p className="mt-3 text-[14px] font-medium leading-5 tracking-[-0.02em] text-neutral-80 md:mt-4 md:text-[13px]">{detail.target}</p>

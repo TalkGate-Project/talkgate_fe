@@ -416,7 +416,7 @@ export default function ProjectsContent() {
             return (
               <div
                 key={p.id}
-                className={`px-4 md:px-7 pt-4 md:pt-6 pb-4 md:pb-[30px] md:min-w-[646px] rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] dark:shadow-[0px_18px_28px_0px_rgba(9,30,66,0.1)] bg-card border transition-all duration-300 ease-out ${
+                className={`px-4 md:px-7 pt-4 md:pt-6 pb-4 md:pb-[30px] md:min-w-[646px] rounded-[14px] shadow-none lg:shadow-[0_13px_61px_rgba(169,169,169,0.37)] dark:shadow-none dark:lg:shadow-[0px_18px_28px_0px_rgba(9,30,66,0.1)] bg-card border transition-all duration-300 ease-out ${
                   isSelecting
                     ? "border-primary-60 opacity-80"
                     : isAnySelecting
@@ -496,7 +496,7 @@ export default function ProjectsContent() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 md:gap-6 mt-5">
-                  <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 hidden md:flex items-center justify-between">
+                  <div className="rounded-[14px] bg-card shadow-none lg:shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 hidden md:flex items-center justify-between">
                     <div>
                       <div className="text-[13px] md:text-[16px] font-semibold text-foreground">
                         나에게 할당된 고객
@@ -520,7 +520,7 @@ export default function ProjectsContent() {
                       className="w-[60px] h-[60px]"
                     />
                   </div>
-                  <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 md:hidden">
+                  <div className="rounded-[14px] bg-card shadow-none lg:shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 md:hidden">
                     <div className="text-[13px] md:text-[16px] font-semibold text-foreground">
                       나에게 할당된 고객
                     </div>
@@ -541,7 +541,7 @@ export default function ProjectsContent() {
                       />
                     </div>
                   </div>
-                  <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 hidden md:flex items-center justify-between">
+                  <div className="rounded-[14px] bg-card shadow-none lg:shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 hidden md:flex items-center justify-between">
                     <div>
                       <div className="text-[13px] md:text-[16px] font-semibold text-foreground">
                         오늘 예약 일정
@@ -565,7 +565,7 @@ export default function ProjectsContent() {
                       className="w-[60px] h-[60px]"
                     />
                   </div>
-                  <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 md:hidden">
+                  <div className="rounded-[14px] bg-card shadow-none lg:shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 md:hidden">
                     <div className="text-[13px] md:text-[16px] font-semibold text-foreground">
                       오늘 예약 일정
                     </div>

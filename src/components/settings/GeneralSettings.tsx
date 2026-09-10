@@ -230,7 +230,7 @@ export default function GeneralSettings() {
   if (!mounted || isLoading || memberLoading) {
     return (
       <div className="space-y-6">
-        <div className="md:bg-card md:rounded-[14px] md:shadow-sm p-6 md:p-7 animate-pulse">
+        <div className="md:bg-card md:rounded-[14px] lg:shadow-sm p-6 md:p-7 animate-pulse">
           <div className="h-6 bg-neutral-20 rounded w-1/4 mb-4"></div>
           <div className="h-10 bg-neutral-20 rounded"></div>
         </div>

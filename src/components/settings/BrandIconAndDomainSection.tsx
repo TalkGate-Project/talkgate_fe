@@ -25,7 +25,7 @@ export default function BrandIconAndDomainSection({
   onRemoveBrandIcon,
 }: Props) {
   return (
-    <div className="md:bg-card md:rounded-[14px] md:shadow-sm px-6 md:px-7 md:py-[30px]">
+    <div className="md:bg-card md:rounded-[14px] lg:shadow-sm px-6 md:px-7 md:py-[30px]">
       <h3 className="text-[16px] font-semibold text-foreground mb-2 tracking-[0.2px] leading-[1]">브랜드 아이콘 및 도메인</h3>
       <p className="hidden md:block text-[14px] text-neutral-60 font-medium mb-3 tracking-[0.2px]">브랜드 아이콘과 도메인을 설정합니다.</p>
       

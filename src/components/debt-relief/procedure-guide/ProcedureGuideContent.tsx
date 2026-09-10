@@ -97,9 +97,9 @@ export default function ProcedureGuideContent() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-[1324px] flex-col gap-5 px-0 pb-8 pt-0 md:gap-9 md:px-6 md:pb-12 md:pt-9 lg:px-0">
+    <main className="mx-auto flex w-full max-w-[1324px] flex-col gap-5 px-0 pb-8 pt-0 md:gap-3 md:px-6 md:pb-12 md:pt-9 lg:gap-9 lg:px-0">
       <section
-        className={`surface overflow-hidden md:rounded-[14px] md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none ${
+        className={`surface overflow-hidden md:rounded-[14px] lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none ${
           activeTab === "all" ? "md:min-h-[835px]" : ""
         }`}
       >
@@ -126,7 +126,7 @@ export default function ProcedureGuideContent() {
         <div
           role="tablist"
           aria-label="채무조정 제도"
-          className="scrollbar-hide flex h-[34px] items-stretch gap-6 overflow-x-auto border-b border-neutral-30 px-[clamp(16px,6.4vw,24px)] shadow-none dark:border-[#4D4D4D] md:h-12 md:gap-0 md:border-b-0 md:px-0 md:shadow-[0_8px_12px_rgba(9,30,66,0.08)] dark:md:shadow-[0_8px_12px_rgba(0,0,0,0.2)]"
+          className="scrollbar-hide flex h-[34px] items-stretch gap-6 overflow-x-auto border-b border-neutral-30 px-[clamp(16px,6.4vw,24px)] shadow-none dark:border-[#4D4D4D] md:h-12 md:gap-0 md:border-b-0 md:px-0 lg:shadow-[0_8px_12px_rgba(9,30,66,0.08)] dark:lg:shadow-[0_8px_12px_rgba(0,0,0,0.2)]"
         >
           <button
             type="button"

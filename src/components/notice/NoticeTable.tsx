@@ -47,9 +47,9 @@ export default function NoticeTable({
   };
 
   return (
-    <div className="bg-card rounded-none md:rounded-[14px] px-4 md:px-7 pt-4 md:pt-[30px] pb-4 md:pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none h-full md:h-auto flex flex-col">
+    <div className="bg-card rounded-none md:rounded-[14px] px-4 md:px-7 pt-4 md:pt-3 lg:pt-[30px] pb-4 md:pb-[30px] shadow-none lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none h-full md:h-auto flex flex-col">
       {/* Title & Filter */}
-      <div className="hidden md:flex items-center justify-between mb-7">
+      <div className="hidden md:flex items-center justify-between mb-4 lg:mb-7">
         <h2 className="text-[18px] font-semibold text-neutral-90">
           공지사항
         </h2>
@@ -65,7 +65,7 @@ export default function NoticeTable({
                 className="peer sr-only"
               />
               <div
-                className="w-6 h-6 border border-[#B0B0B0] rounded-[5px] peer-checked:bg-primary-60 peer-checked:border-primary-60 transition-colors flex items-center justify-center"
+                className="w-6 h-6 bg-transparent border border-[#B0B0B0] rounded-[5px] peer-checked:bg-primary-60 peer-checked:border-primary-60 transition-colors flex items-center justify-center"
               >
                 {showImportantOnly && (
                   <svg

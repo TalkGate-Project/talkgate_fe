@@ -132,7 +132,7 @@ export default function TeamListView({
         return (
           <div key={itemPath} className="relative mb-2">
             <div
-              className={`h-[60px] flex items-center px-6 gap-4 border border-border rounded-[12px] cursor-move transition-all md:!ml-[var(--desktop-indent)] ${
+              className={`relative h-[60px] flex items-center px-6 gap-4 border border-border rounded-[12px] cursor-move transition-all md:!ml-[var(--desktop-indent)] ${
                 item.isLeader
                   ? "bg-team-leader-highlight"
                   : "bg-card"

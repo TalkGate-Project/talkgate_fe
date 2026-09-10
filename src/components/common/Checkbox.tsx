@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import checkedImg from "@/assets/images/common/checked.webp";
-import uncheckedImg from "@/assets/images/common/unchecked.webp";
 
 type Props = {
   checked: boolean;
@@ -10,8 +9,6 @@ type Props = {
   size?: number; // px
   className?: string;
   ariaLabel?: string;
-  /** Unchecked 상태 채움색. 테이블 헤더(bg-neutral-20/#EDEDED)처럼 배경과 맞출 때 사용. */
-  uncheckedFill?: string;
 };
 
 export default function Checkbox({
@@ -21,10 +18,8 @@ export default function Checkbox({
   size = 18,
   className,
   ariaLabel,
-  uncheckedFill,
 }: Props) {
   const [imgBroken, setImgBroken] = useState(false);
-  const useCustomUnchecked = Boolean(uncheckedFill) && !checked;
 
   return (
     <button
@@ -44,7 +39,7 @@ export default function Checkbox({
       className={`inline-flex items-center justify-center ${disabled ? "opacity-50" : "cursor-pointer"} ${className ?? ""}`}
       style={{ width: size, height: size }}
     >
-      {useCustomUnchecked ? (
+      {!checked ? (
         <svg width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
           <rect
             x="1"
@@ -52,7 +47,7 @@ export default function Checkbox({
             width="22"
             height="22"
             rx="4"
-            fill={uncheckedFill}
+            fill="none"
             stroke="#B0B0B0"
             strokeWidth="2"
           />
@@ -60,8 +55,8 @@ export default function Checkbox({
       ) : !imgBroken ? (
         // Use native img to bypass Next.js optimizer; more resilient to small PNGs
         <img
-          src={(checked ? checkedImg : uncheckedImg).src}
-          alt={checked ? "checked" : "unchecked"}
+          src={checkedImg.src}
+          alt="checked"
           width={size}
           height={size}
           onError={() => setImgBroken(true)}
@@ -69,25 +64,10 @@ export default function Checkbox({
         />
       ) : (
         // Fallback SVG if image fails to load
-        checked ? (
-          <svg width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-            <rect x="0" y="0" width="24" height="24" rx="4" fill="#00E272" />
-            <path d="M6 12l3.5 3.5L18 7" stroke="#fff" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        ) : (
-          <svg width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-            <rect
-              x="1"
-              y="1"
-              width="22"
-              height="22"
-              rx="4"
-              fill={uncheckedFill ?? "#fff"}
-              stroke="#9CA3AF"
-              strokeWidth="2"
-            />
-          </svg>
-        )
+        <svg width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <rect x="0" y="0" width="24" height="24" rx="4" fill="#00E272" />
+          <path d="M6 12l3.5 3.5L18 7" stroke="#fff" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       )}
     </button>
   );
