@@ -67,7 +67,7 @@ export default function TeamLeaderChangeConfirmModal({
     >
       <div className="px-7 pb-[30px] pt-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-[18px] font-semibold text-foreground">팀원 이동 확인</h2>
+          <h2 className="text-[18px] font-semibold text-foreground">팀장 변경 확인</h2>
           <button
             type="button"
             onClick={handleClose}
@@ -117,7 +117,7 @@ export default function TeamLeaderChangeConfirmModal({
           disabled={isPending}
           className="flex h-[34px] w-[80px] cursor-pointer items-center justify-center whitespace-nowrap rounded-[5px] bg-neutral-90 px-3 text-[14px] font-semibold text-neutral-20 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isPending ? "이동 중..." : "팀원이동"}
+          {isPending ? "변경 중..." : "팀장변경"}
         </button>
       </div>
     </BaseModal>
