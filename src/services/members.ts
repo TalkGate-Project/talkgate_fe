@@ -41,8 +41,8 @@ export const MembersService = {
   updateRole(payload: UpdateMemberRolePayload) {
     return apiClient.patch<void>(`/v1/members/role`, payload);
   },
-  detail(memberId: string | number) {
-    return apiClient.get<MemberDetailResponse>(`/v1/members/${memberId}`);
+  detail(memberId: string | number, headers?: Record<string, string>) {
+    return apiClient.get<MemberDetailResponse>(`/v1/members/${memberId}`, headers ? { headers } : undefined);
   },
 
   // Invitations
