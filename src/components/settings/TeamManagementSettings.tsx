@@ -434,6 +434,7 @@ export default function TeamManagementSettings() {
       {/* 멤버 정보 모달 */}
       {selectedMemberId && (
         <TeamMemberInfoModal
+          key={selectedMemberId}
           open={Boolean(selectedMemberId)}
           memberId={selectedMemberId}
           onClose={closeMemberModal}
