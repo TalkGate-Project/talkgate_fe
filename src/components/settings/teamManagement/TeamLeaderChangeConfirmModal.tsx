@@ -15,6 +15,32 @@ function buildMemberLabel(member: TeamMember) {
   return member.department ? `${member.name} (${member.department})` : member.name;
 }
 
+function MemberChangeField({
+  label,
+  memberLabel,
+  isChanged,
+}: {
+  label: string;
+  memberLabel: string;
+  isChanged?: boolean;
+}) {
+  return (
+    <div className="min-w-0">
+      <span className="block text-[14px] font-medium tracking-[0.2px] text-neutral-60">{label}</span>
+      <span
+        className={`mt-2 flex h-[34px] items-center rounded-[5px] border border-border px-3 text-[14px] font-medium ${
+          isChanged
+            ? "bg-primary-10 text-primary-80"
+            : "bg-card text-foreground"
+        }`}
+        title={memberLabel}
+      >
+        <span className="truncate">{memberLabel}</span>
+      </span>
+    </div>
+  );
+}
+
 export default function TeamLeaderChangeConfirmModal({
   member,
   currentLeader,
@@ -55,31 +81,23 @@ export default function TeamLeaderChangeConfirmModal({
           </button>
         </div>
 
-        <div className="mt-[30px] rounded-[5px] bg-neutral-10 px-6 py-5">
-          <div>
-            <span className="block text-[14px] font-medium tracking-[0.2px] text-neutral-60">이동할 팀원</span>
-            <span className="mt-2 inline-flex h-[34px] max-w-full items-center rounded-[5px] border border-border bg-card px-3 text-[14px] font-medium text-foreground">
-              <span className="truncate" title={memberLabel}>{memberLabel}</span>
-            </span>
+        <div className="relative mt-[26px] rounded-[5px] bg-neutral-10 px-6 py-5">
+          <div className="grid grid-cols-2 gap-x-16 gap-y-5">
+            <MemberChangeField label="현재 팀원" memberLabel={memberLabel} />
+            <MemberChangeField label="팀장 변경" memberLabel={memberLabel} isChanged />
+            <MemberChangeField label="현재 팀장" memberLabel={currentLeaderLabel} isChanged />
+            <MemberChangeField label="팀원 변경" memberLabel={currentLeaderLabel} />
           </div>
-
-          <div className="mt-5 grid grid-cols-[minmax(0,1fr)_24px_minmax(0,1fr)] items-end gap-3">
-            <div className="min-w-0">
-              <span className="block text-[14px] font-medium tracking-[0.2px] text-neutral-60">현재 팀원</span>
-              <span className="mt-2 flex h-[34px] items-center rounded-[5px] border border-border bg-warning-10 px-3 text-[14px] font-medium text-warning-60">
-                <span className="truncate" title={memberLabel}>{memberLabel}</span>
-              </span>
-            </div>
-            <svg className="mb-[5px] text-neutral-50" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M5 12H19M14 7L19 12L14 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <div className="min-w-0">
-              <span className="block text-[14px] font-medium tracking-[0.2px] text-neutral-60">팀장 변경</span>
-              <span className="mt-2 flex h-[34px] items-center rounded-[5px] border border-border bg-primary-10 px-3 text-[14px] font-medium text-primary-80">
-                <span className="truncate" title={currentLeaderLabel}>{currentLeaderLabel}</span>
-              </span>
-            </div>
-          </div>
+          <svg
+            className="absolute left-1/2 top-[80px] -translate-x-1/2"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path d="M14 19L21 12L14 5M21 12L3 12" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </div>
       </div>
 
@@ -97,7 +115,7 @@ export default function TeamLeaderChangeConfirmModal({
           type="button"
           onClick={onConfirm}
           disabled={isPending}
-          className="flex h-[34px] min-w-[84px] cursor-pointer items-center justify-center rounded-[5px] bg-neutral-90 px-3 text-[14px] font-semibold text-neutral-20 disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex h-[34px] w-[80px] cursor-pointer items-center justify-center whitespace-nowrap rounded-[5px] bg-neutral-90 px-3 text-[14px] font-semibold text-neutral-20 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending ? "이동 중..." : "팀원이동"}
         </button>
