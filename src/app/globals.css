@@ -900,6 +900,66 @@ svg path:focus {
   animation: payment-nudge-in 0.28s ease-out;
 }
 
+/* 분석 상세: 현재 진행 단계 원이 천천히 밝아지며 퍼지는 glow */
+@keyframes delivery-latest-glow {
+  0%,
+  100% {
+    filter: brightness(1);
+    box-shadow: 0 0 0 0 rgb(63 147 255 / 0.12), 0 0 4px rgb(63 147 255 / 0.28);
+  }
+  50% {
+    filter: brightness(1.3);
+    box-shadow: 0 0 0 4px rgb(63 147 255 / 0.08), 0 0 10px rgb(63 147 255 / 0.62);
+  }
+}
+
+.analysis-progress-current {
+  animation: delivery-latest-glow 2.8s ease-in-out infinite;
+}
+
+/* 전달사항: 최신 타임라인 점만 은은하게 꺼졌다가 원래 밝기로 돌아온다. */
+@keyframes delivery-latest-fade {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.32;
+  }
+}
+
+.delivery-latest-dot {
+  animation: delivery-latest-fade 2.8s ease-in-out infinite;
+}
+
+/* 절차별 성공 가능성: 실제 너비는 유지하고 X축만 0에서 펼쳐 레이아웃 이동을 막는다. */
+@keyframes procedure-score-fill {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+.procedure-score-bar {
+  transform-origin: left center;
+  animation: procedure-score-fill 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analysis-progress-current,
+  .delivery-latest-dot,
+  .procedure-score-bar {
+    animation: none;
+  }
+
+  .analysis-progress-current {
+    box-shadow: 0 0 0 2px rgb(63 147 255 / 0.18), 0 0 8px rgb(63 147 255 / 0.34);
+  }
+}
+
 /* Debt-relief analysis loading dots */
 @keyframes analysis-dot {
   0%,

@@ -63,7 +63,9 @@ function TimelineDot({
 
   return (
     <span
-      className={`relative z-[1] block h-3 w-3 shrink-0 rounded-full ${className}`}
+      className={`relative z-[1] block h-3 w-3 shrink-0 rounded-full ${className} ${
+        isLatest ? "delivery-latest-dot" : ""
+      }`}
       aria-hidden
     />
   );

@@ -84,6 +84,37 @@ const STATUS_CHIP: Record<ConditionStatus, string> = {
   risk: "bg-danger-10 text-danger-40 dark:bg-danger-10/90 dark:text-danger-80",
 };
 
+const SCORE_ANIMATION_DURATION = 900;
+
+function AnimatedScore({ value }: { value: number }) {
+  const targetValue = Math.max(0, Math.min(100, Math.round(value)));
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      setDisplayValue(targetValue);
+      return;
+    }
+
+    let animationFrame = 0;
+    const startedAt = performance.now();
+
+    const updateValue = (now: number) => {
+      const progress = Math.min((now - startedAt) / SCORE_ANIMATION_DURATION, 1);
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(Math.round(targetValue * easedProgress));
+
+      if (progress < 1) animationFrame = requestAnimationFrame(updateValue);
+    };
+
+    animationFrame = requestAnimationFrame(updateValue);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [targetValue]);
+
+  return <>{displayValue}</>;
+}
+
 function ConditionIcon({ status }: { status: ConditionStatus }) {
   if (status === "met") {
     return (
@@ -168,7 +199,7 @@ export function ScoreRow({
 
       <div className="flex-1 min-w-0 h-2 rounded-full bg-neutral-30 overflow-hidden">
         <div
-          className={`h-full rounded-l-full ${
+          className={`procedure-score-bar h-full rounded-l-full ${
             isSelected && !compact ? "bg-neutral-70" : "bg-neutral-40"
           }`}
           style={{ width: `${score.score}%` }}
@@ -177,7 +208,7 @@ export function ScoreRow({
 
       <div className="flex items-baseline gap-0.5 shrink-0 w-[42px] md:w-[49px] justify-end">
         <span className="text-[16px] font-semibold leading-[19px] text-neutral-90 text-right">
-          {score.score}
+          <AnimatedScore value={score.score} />
         </span>
         <span className="text-[12px] font-medium leading-[14px] tracking-[-0.02em] text-neutral-60">
           /100
@@ -265,7 +296,7 @@ function GroupScoreHeader({
 
       <div className="flex-1 min-w-0 h-2 rounded-full bg-neutral-30 overflow-hidden">
         <div
-          className={`h-full rounded-l-full ${
+          className={`procedure-score-bar h-full rounded-l-full ${
             highlighted && !inPanel ? "bg-neutral-70" : "bg-neutral-40"
           }`}
           style={{ width: `${score}%` }}
@@ -274,7 +305,7 @@ function GroupScoreHeader({
 
       <div className="flex items-baseline gap-0.5 shrink-0 w-[42px] md:w-[49px] justify-end">
         <span className="text-[16px] font-semibold leading-[19px] text-neutral-90 text-right">
-          {score}
+          <AnimatedScore value={score} />
         </span>
         <span className="text-[12px] font-medium leading-[14px] tracking-[-0.02em] text-neutral-60">
           /100
