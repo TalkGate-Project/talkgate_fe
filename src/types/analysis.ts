@@ -7,7 +7,12 @@ import type { FeePlan, FeePlanSummary } from "@/types/analysisFeePlan";
 // src/types/debtRelief.ts의 RecommendedProcedure는 이 파일의 AnalysisProcedureType 별칭이다
 // (2026-08-04 일원화) — 절차 코드는 도메인/API 구분 없이 같은 값을 그대로 쓴다.
 
+// 2026-09-11 스펙 추가: 작성중 임시저장 도입으로 "drafting"이 추가됨(FRONTEND_CHANGES5.md).
+// 목록 기본 조회에는 포함되지만 GET /analysis/summary의 총 건수·이번 달 건수·상태 분포에서는
+// 제외된다 — DiagnosisHubSummary.statusDistribution이 이 상태를 Exclude하는 이유.
+// 작성중 건은 공유·자체진행·채팅·수임료·절차 단계 수정이 모두 불가하다.
 export type AnalysisStatus =
+  | "drafting"
   | "consulting"
   | "reviewing"
   | "rejected"
@@ -251,12 +256,45 @@ export type AnalysisFormInput = {
   hasPreviousFreshStartFundApplication?: boolean;
   specialEligibilities: AnalysisSpecialEligibility[]; // 없으면 []
   additionalNotes?: string;
+  /** 2026-09-11 스펙 추가: 고객·상담사가 진행을 원하는 절차. trackingProcedure와 별개.
+   * PATCH /analysis/:id/input에서 생략하면 값이 초기화되므로 유지하려면 매번 다시 보내야 한다. */
+  desiredProcedure?: AnalysisProcedureType | null;
+  /** 2026-09-11 스펙 추가: 절차별 희망 변제계획 수정안. 대상 절차(개인회생·개인워크아웃·새출발기금)만
+   * 키로 보낼 수 있다 — pickProcedureValue로 조회. 작성중 임시저장(draft)에는 저장되지 않는다.
+   * PATCH /analysis/:id/input에서 생략하면 기존 수정안이 초기화된다(유지하려면 다시 보내야 함).
+   * PATCH /analysis/:id/debts에서 reanalyze:true면 초기화된다. */
+  adjustedRepayment?: AnalysisAdjustedRepaymentMap;
 };
 
 export type CreateAnalysisInput = AnalysisFormInput & {
   projectId: string;
   customerId?: number; // 기존 고객과 바로 매칭
 };
+
+// ── 작성중 임시저장 (2026-09-11 스펙 신규) ───────────────────────
+// POST /analysis/draft, PATCH /analysis/{id}/draft — 기존 POST /analysis(생성 + 즉시 진단)와
+// 별개다. AI 진단은 실행하지 않고 응답 status는 "drafting", analysisResult는 null.
+// 필수 4개(customerName/gender/ageGroup/region) 외 나머지는 전부 선택.
+export type AnalysisDraftFormInput = Pick<
+  AnalysisFormInput,
+  "customerName" | "gender" | "ageGroup" | "region"
+> &
+  Partial<Omit<AnalysisFormInput, "customerName" | "gender" | "ageGroup" | "region">>;
+
+export type CreateAnalysisDraftInput = AnalysisDraftFormInput & {
+  projectId: string;
+  customerId?: number; // 고객 연결 규칙은 분석 생성과 동일 — 한 고객은 프로젝트당 분석 1건
+};
+
+// PATCH는 drafting 상태 건만 가능. customerName/gender/ageGroup/region은 매번 다시 보내야 하고,
+// 나머지는 보낸 필드만 기존 inputData에 덮어쓴다(부분 갱신 — 생략한 필드는 유지됨. 이 점이
+// ReanalyzeAnalysisInput/PATCH .../input과 다르다 — 그쪽은 전체 필수 재전송).
+export type UpdateAnalysisDraftInput = AnalysisDraftFormInput & {
+  projectId: string;
+};
+
+export type CreateAnalysisDraftResponse = ApiSuccess<AnalysisDetail>;
+export type UpdateAnalysisDraftResponse = ApiSuccess<AnalysisDetail>;
 
 export type UpdateAnalysisInput = {
   projectId: string;
@@ -273,6 +311,9 @@ export type SelfProgressAnalysisInput = {
 // PATCH /v1/analysis/{id}/input — 입력값 수정 + AI 재진단. customerId는 없음(고객 매칭은
 // matchCustomer/unmatchCustomer로 별도 처리). 성공 시 status/trackingProcedure/
 // currentProcedureStep이 초기화되고 AI 채팅 이력이 삭제된다 — 호출 전 UI에서 확인 필요.
+// 2026-09-11 스펙: drafting(작성중) 건도 허용된다 — 서버가 작성중 값을 이어서 채워주지 않으므로
+// AnalysisFormInput 필수 입력 전부를 본문에 다시 보내야 한다(성공 시 영업=consulting,
+// 변호사=contract_pending으로 전환).
 export type ReanalyzeAnalysisInput = AnalysisFormInput & {
   projectId: string;
 };
@@ -286,8 +327,9 @@ export type UpdateAnalysisDebtsInput = {
   debts: AnalysisDebtItem[];
   assets: AnalysisAsset[];
   debtCauses: AnalysisDebtCause[];
-  /** true면 저장 후 AI 재진단까지 수행한다 — 상태 초기화 + 채팅 이력 삭제 + 절차 추적 초기화라
-   * 되돌릴 수 없다. 호출 전 확인 모달 필수. false면 채무 값만 갱신되고 나머지는 유지된다. */
+  /** true면 저장 후 AI 재진단까지 수행한다 — 상태 초기화 + 채팅 이력 삭제 + 절차 추적 초기화 +
+   * 희망 변제계획 수정안(adjustedRepayment) 초기화라 되돌릴 수 없다(2026-09-11 스펙 추가).
+   * 호출 전 확인 모달 필수. false면 채무 값만 갱신되고 나머지는 유지된다. */
   reanalyze: boolean;
 };
 
@@ -307,9 +349,13 @@ export type UpdateAnalysisDebtsResponse = ApiSuccess<AnalysisDetail>;
 // 아예 빠질 수 있다. AnalysisFormInput은 "우리가 보내는 값"이라 항상 필수지만, 여기 응답
 // 타입에서는 이 네 필드만 optional로 좁혀 호출부가 컴파일 타임에 폴백(`?? 0`)을 빠뜨리지
 // 않도록 강제한다(services/debtRelief.ts의 fromAnalysisFormInput·getDiagnosisDetail 참고).
+// ⚠️ 2026-09-11 실 OpenAPI 스펙(api-dev.talkgate.im/documentation-json) 확인: desiredProcedure·
+// adjustedRepayment는 inputData 안이 아니라 AnalysisResponseDto 최상위(trackingProcedure와 같은
+// 레벨)에 내려온다 — AnalysisDetail 쪽에 정의하고 여기서는 명시적으로 Omit한다(요청 바디인
+// AnalysisFormInput에는 그대로 남아있어야 하므로 그쪽 타입은 건드리지 않음).
 export type AnalysisInputData = Omit<
   AnalysisFormInput,
-  "monthlyIncome" | "additionalFixedExpense" | "assets" | "debts"
+  "monthlyIncome" | "additionalFixedExpense" | "assets" | "debts" | "desiredProcedure" | "adjustedRepayment"
 > & {
   monthlyIncome?: number;
   additionalFixedExpense?: number;
@@ -329,6 +375,20 @@ export type AnalysisInputData = Omit<
   debtDerivedSignals?: AnalysisDebtDerivedSignals;
   /** 상세모드 전용 — 이자 포함 총채무 (만원) */
   totalDebtWithInterest?: number;
+  // 2026-09-11 실 OpenAPI 스펙 확인 — debts[]에서 서버가 집계한 값 4종. collateralDebt/
+  // creditorCount는 isCollateralLoan·creditorName만 있으면 계산되므로 간편·상세 모드 모두에서
+  // 채워진다. debtIncurredLast*는 debts[].loanDate가 있어야 계산 가능한데, 간편모드는 채무
+  // 항목에 대출일을 받지 않아(상세모드 전용 입력) 항상 0/누락일 가능성이 높다 — debtDerivedSignals와
+  // 같은 "상세모드 전용" 취급.
+  /** 담보부 채무 합계 (만원, 서버 계산). collateralBreakdown.collateralDebt(자산별 청산가치 계산용)와는
+   * 별개의 단순 합계 — 혼동 주의. */
+  collateralDebt?: number;
+  /** 채권자 수 (서버 계산, 같은 채권처는 1명으로 집계) */
+  creditorCount?: number;
+  /** 상세모드 전용(추정) 서버 계산값 — 최근 3/6개월·1년 내 발생 채무액 (만원) */
+  debtIncurredLast3Months?: number;
+  debtIncurredLast6Months?: number;
+  debtIncurredLast1Year?: number;
   collateralBreakdown?: AnalysisCollateralBreakdown;
   /** 구 레코드 읽기 호환 전용. 신규 요청에는 사용하지 않는다. */
   realEstateBreakdown?: AnalysisRealEstateBreakdown;
@@ -415,6 +475,51 @@ export type AnalysisExpectedRepaymentMap = Partial<
   Record<AnalysisProcedureType, AnalysisExpectedRepayment | null>
 >;
 
+// ── 희망 변제계획 수정안 (2026-09-11 스펙 추가) ──────────────────
+// 대상 절차 3종만 존재한다 — 신속채무조정·프리워크아웃·파산은 분할 변제 개념이 없어 대상 밖.
+export type AnalysisAdjustedRepaymentProcedure =
+  | "individual_rehabilitation"
+  | "personal_workout"
+  | "fresh_start_fund";
+
+/** 절차별 허용 기간(개월) 범위. 서버가 이 범위로 유효성 검사한다. */
+export const ANALYSIS_ADJUSTED_REPAYMENT_PERIOD_RANGE: Record<
+  AnalysisAdjustedRepaymentProcedure,
+  { minMonths: number; maxMonths: number }
+> = {
+  individual_rehabilitation: { minMonths: 12, maxMonths: 60 },
+  personal_workout: { minMonths: 12, maxMonths: 120 },
+  fresh_start_fund: { minMonths: 12, maxMonths: 120 },
+};
+
+// 월 변제액·기간만 보내면 totalPayment/expectedExemption은 서버가 계산해 내려준다 — 요청 시엔
+// monthlyPayment/periodMonths만 채우고 나머지는 응답 전용으로 optional.
+export type AnalysisAdjustedRepayment = {
+  monthlyPayment: number;
+  periodMonths: number;
+  totalPayment?: number;
+  expectedExemption?: number;
+};
+
+// scores/expectedRepayment와 동일하게 절차별 동적 맵. 해당 절차의 분석 산출 변제계획이
+// 없으면(자격 게이트 미통과 등) 그 키는 저장되지 않는다.
+export type AnalysisAdjustedRepaymentMap = Partial<
+  Record<AnalysisAdjustedRepaymentProcedure, AnalysisAdjustedRepayment | null>
+>;
+
+/**
+ * PATCH /v1/analysis/{id}/adjusted-repayment
+ * monthlyPayment·periodMonths 둘 다 null이면 해당 절차 수정안을 지우고 분석 산출값으로 되돌린다.
+ */
+export type UpdateAnalysisAdjustedRepaymentInput = {
+  projectId: string;
+  procedure: AnalysisAdjustedRepaymentProcedure;
+  monthlyPayment: number | null;
+  periodMonths: number | null;
+};
+
+export type UpdateAnalysisAdjustedRepaymentResponse = ApiSuccess<AnalysisDetail>;
+
 export type AnalysisConsultingScripts = {
   firstExplanation: string;
   keyExplanation: string;
@@ -477,6 +582,14 @@ export type AnalysisDetail = {
   customerId: number | null; // 매칭된 고객 ID
   status: AnalysisStatus;
   trackingProcedure: AnalysisProcedureType | null;
+  // 2026-09-11 실 OpenAPI 스펙 확인(api-dev.talkgate.im/documentation-json): 이 두 필드는
+  // inputData 안이 아니라 여기 최상위(trackingProcedure와 같은 레벨)에 내려온다.
+  /** 고객·상담사가 진행을 희망하는 절차. 적합도 점수에는 반영 안 됨 — 자격 게이트 통과 시
+   * 추천 절차로 저장된다는 설명이 있음(scores/recommendation과는 별개 개념). */
+  desiredProcedure: AnalysisProcedureType | null;
+  /** 상담사가 수정한 변제계획. 개인회생·개인워크아웃·새출발기금만 키가 있을 수 있다. 해당 절차
+   * 키가 없으면 analysisResult.expectedRepayment(분석 산출값)를 그대로 쓰면 된다. */
+  adjustedRepayment: AnalysisAdjustedRepaymentMap | null;
   currentProcedureStep: number | null;
   inputData: AnalysisInputData;
   collateralBreakdown?: AnalysisCollateralBreakdown;
@@ -504,6 +617,10 @@ export type AnalysisDetail = {
   /** 공유 대상 변호사 프로젝트 ID (재공유 시 동일 프로젝트 제한용) */
   lawyerProjectId?: number | null;
   lawyerProjectName?: string | null;
+  /** 2026-09-11 실 스펙 추가 — 공유 대상 변호사 프로젝트 썸네일(로고) URL */
+  lawyerProjectLogoUrl?: string | null;
+  /** 2026-09-11 실 스펙 추가 — 공유한 시간. 공유 연결이 없으면 null */
+  deliveredAt?: string | null;
   /** 공유 API에 사용하는 파트너 관계 ID(analysis_partner). 재공유 시 partnerId로 사용 */
   partnerId?: number | null;
   /** 공유/반려/수락/수임료 입력·수정 등 액션 메시지 히스토리 (시간순) */
@@ -614,11 +731,15 @@ export type AnalysisListItem = {
   // 2026-08-08 실 응답 확인: totalDebt/disposableIncome 둘 다 타입상 number지만 특정 목록 건에서
   // null/undefined로 내려오는 경우가 있다(원인 미확인) — toDiagnosisListItem에서 반드시 0으로
   // 방어해서 도메인 타입(DiagnosisListItem)으로 넘긴다. 같은 응답의 같은 위치 필드라 동일 위험군.
+  // status가 "drafting"인 건은 같은 이유로 아직 입력 안 된 값이 customerName="", totalDebt/
+  // disposableIncome=0으로 내려온다(2026-09-11 스펙) — 기존 null 방어 로직이 이 경우도 그대로 커버한다.
   totalDebt: number | null;
   disposableIncome: number | null;
   // 백엔드가 trackingProcedure ?? analysisResult.recommendation ?? null 로 계산해 내려주는 단일 필드.
   // "절차진행중이면 현재 추적 절차, 그 이전 단계에서는 AI 추천 절차"를 항상 정확히 반영한다.
   procedure: AnalysisProcedureType | null;
+  /** 2026-09-11 실 스펙 추가 — 고객·상담사가 진행을 희망하는 절차. trackingProcedure/procedure와 별개 */
+  desiredProcedure?: AnalysisProcedureType | null;
   // 계약대기중 이후 입력된 경우에만 존재하는 수임료 결제정보 요약 (설치 회차 배열은 없음 — 상세는 FeePlan 참고)
   feePlan: FeePlanSummary | null;
   currentProcedureStep: number | null;
@@ -635,6 +756,10 @@ export type AnalysisListItem = {
   deliveryStatus?: "delivered" | "revoked" | "rejected" | null;
   lawyerProjectId?: number | null;
   lawyerProjectName?: string | null;
+  /** 2026-09-11 실 스펙 추가 — 공유 대상 변호사 프로젝트 썸네일(로고) URL */
+  lawyerProjectLogoUrl?: string | null;
+  /** 2026-09-11 실 스펙 추가 — 공유한 시간. 공유 연결이 없으면 null */
+  deliveredAt?: string | null;
   partnerId?: number | null;
   createdAt: string;
   // 고객정보 셀 하단(나이·성별) 표시용. 백엔드가 내려주는 경우만 채운다.

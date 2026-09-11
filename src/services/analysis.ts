@@ -7,6 +7,12 @@ import { AuthService } from "@/services/auth";
 import type {
   CreateAnalysisInput,
   CreateAnalysisResponse,
+  CreateAnalysisDraftInput,
+  CreateAnalysisDraftResponse,
+  UpdateAnalysisDraftInput,
+  UpdateAnalysisDraftResponse,
+  UpdateAnalysisAdjustedRepaymentInput,
+  UpdateAnalysisAdjustedRepaymentResponse,
   AnalysisListQuery,
   AnalysisListResponse,
   AnalysisDetailResponse,
@@ -82,6 +88,24 @@ export const AnalysisService = {
     });
   },
 
+  // 작성중 임시저장 생성 (2026-09-11 스펙 신규). 필수 4개(customerName/gender/ageGroup/region)
+  // 외 나머지는 선택. AI 진단은 실행하지 않는다 — create()와 달리 타임아웃 연장 불필요.
+  createDraft(input: CreateAnalysisDraftInput) {
+    const { projectId, ...body } = input;
+    return apiClient.post<CreateAnalysisDraftResponse>(`/v1/analysis/draft`, body, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+
+  // 작성중 임시저장 수정 (drafting 상태 건만 가능). customerName/gender/ageGroup/region은 매번
+  // 다시 보내야 하고, 나머지는 보낸 필드만 기존 inputData에 덮어쓴다(부분 갱신).
+  updateDraft(id: number, input: UpdateAnalysisDraftInput) {
+    const { projectId, ...body } = input;
+    return apiClient.patch<UpdateAnalysisDraftResponse>(`/v1/analysis/${id}/draft`, body, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+
   // 분석 목록 조회
   list(query: AnalysisListQuery) {
     const { projectId, ...qs } = query;
@@ -134,6 +158,17 @@ export const AnalysisService = {
       headers: { "x-project-id": projectId },
       timeoutMs: 120000,
     });
+  },
+
+  // 절차별 희망 변제계획 수정안 저장/삭제 (2026-09-11 스펙 신규). monthlyPayment·periodMonths
+  // 둘 다 null이면 해당 절차 수정안을 지우고 분석 산출값으로 되돌린다.
+  updateAdjustedRepayment(id: number, input: UpdateAnalysisAdjustedRepaymentInput) {
+    const { projectId, ...body } = input;
+    return apiClient.patch<UpdateAnalysisAdjustedRepaymentResponse>(
+      `/v1/analysis/${id}/adjusted-repayment`,
+      body,
+      { headers: { "x-project-id": projectId } }
+    );
   },
 
   // 분석 삭제 (공유받은 분석 건은 삭제 불가)

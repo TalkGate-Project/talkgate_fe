@@ -187,6 +187,16 @@ Statistics / Analysis Partner)와 현재 코드를 대조해 연동 현황을 �
     자연스럽게 맞음. 라이트/다크 양쪽 스크린샷으로 체크 아이콘이 선명하게 보이는 것까지 확인
     (같은 절차진행중 건, id 3). 참고: 라이트모드에서도 기존 검정 원 대신 초록 원으로 바뀌는
     시각적 변화가 있음 — 의도된 부수 효과.
+16. ~~간편모드 "담보부채무·최근 3/6개월/1년 내 채무액" 입력이 없어 AI 진단에 신호가 누락되는
+    것 아니냐는 의심~~ — **오탐으로 확인(2026-09-11, 사용자 확인)**. 간편모드는 애초에 상세모드보다
+    적은 필드만으로 생성되도록 의도된 설계이고, 이 값들 없이도 정상 생성되는 게 맞는 동작이다 —
+    백엔드 확인/작업 불필요. 다만 아래는 여전히 사실이라 낮은 우선순위 정리 후보로 남겨둔다:
+    `DiagnosisFormState.securedDebt`/`recentDebtWithin{3,6,1}Months/Year` 타입·기본값(항상 0)·
+    초과검증 함수(`isRecentAndSecuredDebtOverTotal`)·에러 모달·`overLimitFields` prop이
+    Step3Debts → DebtHistoryCard까지 배선돼 있는데 실제 입력 필드가 없어 항상 0이라 그 검증은
+    절대 발동하지 않는 죽은 코드다 — 기능 결함은 아니지만, 관련 주석("API collateralDebt/
+    debtIncurredLast3Months/debtIncurredLast1Year에 대응")은 낡았으니 실제 정리(코드 삭제 또는
+    주석 수정) 시점에 함께 손볼 것.
 
 ---
 

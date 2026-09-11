@@ -92,6 +92,17 @@ export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[
   return missing;
 }
 
+// 임시저장(작성중) API는 customerName/gender/ageGroup/region 4개만 필수다(FRONTEND_CHANGES5.md
+// 2026-09-11 스펙) — getMissingRequiredFieldLabels(전체 필수)와 분리된 별도 검증.
+export function getMissingDraftRequiredFieldLabels(form: DiagnosisFormState): string[] {
+  const missing: string[] = [];
+  if (!form.customerName.trim()) missing.push("고객명");
+  if (!form.gender) missing.push("성별");
+  if (!form.ageGroup) missing.push("연령대");
+  if (!form.region) missing.push("거주 지역");
+  return missing;
+}
+
 /** 현재 스텝에서 "다음"으로 넘어가기 전에 채워야 하는 필수 항목 (생성 플로우용) */
 export function getMissingRequiredFieldLabelsForStep(
   form: DiagnosisFormState,

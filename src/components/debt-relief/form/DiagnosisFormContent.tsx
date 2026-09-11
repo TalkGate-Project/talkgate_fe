@@ -5,7 +5,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useMyMember } from "@/hooks/useMyMember";
 import { useProjectType } from "@/hooks/useProjectType";
-import { DebtReliefService } from "@/services/debtRelief";
+import { DebtReliefService, getUnsecuredDebtManwon } from "@/services/debtRelief";
 import { AnalysisService } from "@/services/analysis";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { showConfirmModal } from "@/providers/ConfirmModalProvider";
@@ -13,12 +13,15 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import {
   canEditDiagnosisInfo,
   createEmptyDiagnosisForm,
+  isAdjustableRepaymentProcedure,
   type DiagnosisFormState,
+  type RecommendedProcedure,
 } from "@/types/debtRelief";
 import { useDiagnosisForm } from "./useDiagnosisForm";
 import { useAnalysisDraft } from "./useAnalysisDraft";
 import {
   getMissingDebtItemFieldLabels,
+  getMissingDraftRequiredFieldLabels,
   getMissingRequiredFieldLabels,
   getMissingRequiredFieldLabelsForStep,
   isDiagnosisFormComplete,
@@ -40,13 +43,19 @@ import Step4IncomeExpense from "./Step4IncomeExpense";
 import Step5Others from "./Step5Others";
 import AnalysisRequiredFieldsModal from "./AnalysisRequiredFieldsModal";
 import AnalysisDebtSelectionModal from "./AnalysisDebtSelectionModal";
+import AnalysisDesiredProcedureModal from "./AnalysisDesiredProcedureModal";
+import AnalysisAdjustedRepaymentModal from "./AnalysisAdjustedRepaymentModal";
 import AnalysisDraftRestoreModal from "./AnalysisDraftRestoreModal";
 import CustomerLinkModeModal from "@/components/chat/customer-link/CustomerLinkModeModal";
 import CustomerMatchModal from "@/components/debt-relief/result/CustomerMatchModal";
 import CustomerCreateModal from "@/components/customers/CustomerCreateModal";
 import AssignCustomersModal from "@/components/customers/AssignCustomersModal";
 import { CustomersService } from "@/services/customers";
-import type { ConnectableCustomer } from "@/types/analysis";
+import type {
+  AnalysisAdjustedRepaymentProcedure,
+  AnalysisStatus,
+  ConnectableCustomer,
+} from "@/types/analysis";
 import FloatingCustomerDetailModal from "@/components/customers/FloatingCustomerDetailModal";
 
 function AnalyzeSparkleIcon() {
@@ -83,8 +92,25 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   const { isAnalysis, ready: projectTypeReady } = useProjectType();
   const { form, setForm, update, derived } = useDiagnosisForm();
   const [analyzing, setAnalyzing] = useState(false);
+  // 임시저장(작성중, 서버 저장 — localStorage 기반 useAnalysisDraft와는 별개). 신규작성 중 처음
+  // 임시저장하면 여기 생성된 분석 id가 담기고, 이후 "분석하기"는 새로 만들지 않고 이 id를
+  // 재분석(PATCH .../input)해 finalize한다(중복 분석 건 생성 방지).
+  const [draftId, setDraftId] = useState<number | null>(diagnosisId ? Number(diagnosisId) : null);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [draftSavedFlash, setDraftSavedFlash] = useState(false);
+  // 수정 모드 진입 시 로드된 분석의 실제 상태. drafting 건만 임시저장 버튼을 다시 노출한다 —
+  // PATCH /analysis/:id/draft가 drafting 상태 건에서만 허용되기 때문(백엔드 제약).
+  const [loadedAnalysisStatus, setLoadedAnalysisStatus] = useState<AnalysisStatus | null>(null);
   const [requiredFieldsModalOpen, setRequiredFieldsModalOpen] = useState(false);
   const [debtSelectionModalOpen, setDebtSelectionModalOpen] = useState(false);
+  // 채무 현황 선택("다음") → 희망 절차 선택 → (대상 절차면) 희망 변제율 설정 → 분석하기, 순서로
+  // 이어지는 제출 직전 모달 체인. pendingAnalysisForm은 채무 선택이 반영된 폼을 체인 내내 들고
+  // 있다가 각 단계에서 desiredProcedure/adjustedRepayment만 더해 최종 continueAnalyze로 넘긴다.
+  const [desiredProcedureModalOpen, setDesiredProcedureModalOpen] = useState(false);
+  const [adjustedRepaymentModalOpen, setAdjustedRepaymentModalOpen] = useState(false);
+  const [pendingAnalysisForm, setPendingAnalysisForm] = useState<DiagnosisFormState | null>(null);
+  const [pendingAdjustableProcedure, setPendingAdjustableProcedure] =
+    useState<AnalysisAdjustedRepaymentProcedure | null>(null);
   // 분석 API는 진행 신호를 주지 않아 경과시간 기반 추정 진행률을 보여준다.
   // 진행률 상태는 오버레이 안에 가둬 두고 여기서는 완료/중단만 지시한다.
   const analysisProgressRef = useRef<AnalysisProgressHandle | null>(null);
@@ -499,6 +525,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         setForm(data);
         setBaselineForm(data);
         setExistingCustomerId(customerId);
+        setLoadedAnalysisStatus(status);
       })
       .catch((error) => {
         if (cancelled) return;
@@ -517,12 +544,53 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     };
   }, [isEdit, ready, projectTypeReady, isAnalysis, projectId, diagnosisId, setForm, router]);
 
-  // 생성: 필수값 전부 채워졌을 때만. 수정: 원본 대비 변경 + 필수값 유지일 때만.
+  // 생성: 필수값 전부 채워졌을 때만. 수정: 원본 대비 변경 + 필수값 유지일 때만. drafting 건은
+  // 아직 한 번도 분석된 적이 없어(첫 분석) "원본 대비 변경" 요건이 의미가 없다 — 생성과 동일하게
+  // 필수값만 채워지면 바로 분석 가능해야 한다.
   const canAnalyze = useMemo(() => {
     if (!isDiagnosisFormComplete(form)) return false;
-    if (isEdit) return isDiagnosisFormDirty(form, baselineForm);
+    if (isEdit && loadedAnalysisStatus !== "drafting") return isDiagnosisFormDirty(form, baselineForm);
     return true;
-  }, [form, isEdit, baselineForm]);
+  }, [form, isEdit, baselineForm, loadedAnalysisStatus]);
+
+  // 임시저장 버튼 노출 여부. 신규작성은 항상 노출. 수정 모드는 drafting 상태 건일 때만 —
+  // PATCH /analysis/:id/draft가 drafting 건에만 허용되기 때문(백엔드 제약). 오늘 기준으로는
+  // canEditDiagnosisInfo 게이트가 drafting 건의 수정 진입 자체를 막고 있어 도달하지 않지만,
+  // 그 게이트가 나중에 drafting을 허용하도록 바뀌면 별도 수정 없이 자동으로 노출된다.
+  const canShowTempSave = !isEdit || loadedAnalysisStatus === "drafting";
+
+  const missingDraftFields = useMemo(() => getMissingDraftRequiredFieldLabels(form), [form]);
+
+  const handleSaveDraft = async () => {
+    if (savingDraft || analyzing || !projectId) return;
+    if (missingDraftFields.length > 0) {
+      showErrorModal({
+        headline: "필수 항목을 입력해주세요.",
+        description: `${missingDraftFields.join(", ")} 항목을 입력해야 임시저장할 수 있습니다.`,
+      });
+      return;
+    }
+
+    setSavingDraft(true);
+    try {
+      if (draftId == null) {
+        const result = await DebtReliefService.createAnalysisDraft(projectId, form, selectedCustomerId);
+        setDraftId(Number(result.id));
+      } else {
+        await DebtReliefService.updateAnalysisDraft(projectId, draftId, form);
+      }
+      setDraftSavedFlash(true);
+      window.setTimeout(() => setDraftSavedFlash(false), 1500);
+    } catch (error) {
+      console.error("Failed to save analysis draft:", error);
+      showErrorModal({
+        headline: "임시저장에 실패했습니다.",
+        description: "잠시 후 다시 시도해주세요.",
+      });
+    } finally {
+      setSavingDraft(false);
+    }
+  };
 
   const incompleteSteps = useMemo(() => FORM_STEPS.flatMap((formStep, index) => {
     const missingFields = getMissingRequiredFieldLabelsForStep(form, formStep.key);
@@ -535,9 +603,14 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   const isFirst = currentIndex === 0;
   const isLast = currentIndex === FORM_STEPS.length - 1;
 
+  // drafting 건은 analysisResult가 없어 상세페이지가 성립하지 않는다 — 나갈 때 상세 대신 허브
+  // 목록으로 보낸다. 로딩 중(loadedAnalysisStatus 미확정)엔 폼 자체가 렌더되지 않아 도달하지 않는다.
+  const exitTarget =
+    isEdit && loadedAnalysisStatus !== "drafting" ? `/debt-relief/${diagnosisId}` : "/debt-relief";
+
   const goBack = () => {
     if (isFirst) {
-      router.push(isEdit ? `/debt-relief/${diagnosisId}` : "/debt-relief");
+      router.push(exitTarget);
       return;
     }
     goToStep(currentIndex - 1);
@@ -553,7 +626,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   // 모바일 폼 카드 우측 상단 X: 스텝과 무관하게 항상 이전 페이지(허브 또는 상세)로 나간다.
   // goBack의 isFirst 분기와 동일한 목적지를 재사용한다.
   const handleClose = () => {
-    router.push(isEdit ? `/debt-relief/${diagnosisId}` : "/debt-relief");
+    router.push(exitTarget);
   };
 
   const handleAnalyze = async () => {
@@ -642,8 +715,9 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
 
   const continueAnalyze = async (analysisForm: DiagnosisFormState) => {
     // 재분석(수정 모드)은 성공 시 상태/절차/현재단계가 초기화되고 AI 채팅 이력이 삭제되는
-    // 되돌릴 수 없는 부수효과가 있어 채무 선택 후 확인을 한 번 더 받는다.
-    if (isEdit) {
+    // 되돌릴 수 없는 부수효과가 있어 채무 선택 후 확인을 한 번 더 받는다. drafting 건은
+    // 애초에 상태·절차·채팅 이력이 생긴 적이 없어(첫 분석) 이 경고가 해당되지 않는다.
+    if (isEdit && loadedAnalysisStatus !== "drafting") {
       showConfirmModal({
         headline: "다시 분석할까요?",
         message: "다시 분석하면 진행 상태·절차가 1단계로 초기화되고 AI 상담 채팅 이력이 삭제됩니다.",
@@ -669,15 +743,90 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
 
     setForm(analysisForm);
     setDebtSelectionModalOpen(false);
-    void continueAnalyze(analysisForm);
+    setPendingAnalysisForm(analysisForm);
+    setDesiredProcedureModalOpen(true);
+  };
+
+  const handleDesiredProcedureBack = () => {
+    setDesiredProcedureModalOpen(false);
+    setDebtSelectionModalOpen(true);
+  };
+
+  const handleDesiredProcedureSkip = () => {
+    if (!pendingAnalysisForm) return;
+    const nextForm: DiagnosisFormState = { ...pendingAnalysisForm, desiredProcedure: null, adjustedRepayment: {} };
+    setForm(nextForm);
+    setDesiredProcedureModalOpen(false);
+    void continueAnalyze(nextForm);
+  };
+
+  const handleDesiredProcedureSubmit = (procedure: RecommendedProcedure) => {
+    if (!pendingAnalysisForm) return;
+
+    if (isAdjustableRepaymentProcedure(procedure)) {
+      const nextForm: DiagnosisFormState = { ...pendingAnalysisForm, desiredProcedure: procedure };
+      setForm(nextForm);
+      setPendingAnalysisForm(nextForm);
+      setPendingAdjustableProcedure(procedure);
+      setDesiredProcedureModalOpen(false);
+      setAdjustedRepaymentModalOpen(true);
+      return;
+    }
+
+    // 변제계획 조정 대상이 아닌 절차를 선택하면 이전에 설정해둔 수정안은 의미가 없어져 함께 지운다.
+    const nextForm: DiagnosisFormState = { ...pendingAnalysisForm, desiredProcedure: procedure, adjustedRepayment: {} };
+    setForm(nextForm);
+    setDesiredProcedureModalOpen(false);
+    void continueAnalyze(nextForm);
+  };
+
+  const handleAdjustedRepaymentBack = () => {
+    setAdjustedRepaymentModalOpen(false);
+    setDesiredProcedureModalOpen(true);
+  };
+
+  const handleAdjustedRepaymentSkip = () => {
+    if (!pendingAnalysisForm || !pendingAdjustableProcedure) return;
+    const { [pendingAdjustableProcedure]: _removed, ...restAdjustedRepayment } = pendingAnalysisForm.adjustedRepayment;
+    const nextForm: DiagnosisFormState = { ...pendingAnalysisForm, adjustedRepayment: restAdjustedRepayment };
+    setForm(nextForm);
+    setAdjustedRepaymentModalOpen(false);
+    void continueAnalyze(nextForm);
+  };
+
+  const handleAdjustedRepaymentConfirm = (value: { monthlyPayment: number; periodMonths: number }) => {
+    if (!pendingAnalysisForm || !pendingAdjustableProcedure) return;
+    const nextForm: DiagnosisFormState = {
+      ...pendingAnalysisForm,
+      adjustedRepayment: { ...pendingAnalysisForm.adjustedRepayment, [pendingAdjustableProcedure]: value },
+    };
+    setForm(nextForm);
+    setAdjustedRepaymentModalOpen(false);
+    void continueAnalyze(nextForm);
   };
 
   const submitAnalyze = async (analysisForm: DiagnosisFormState = form) => {
     setAnalyzing(true);
     try {
-      const result = isEdit
-        ? await DebtReliefService.updateDiagnosis(projectId ?? "", diagnosisId!, analysisForm)
+      // 신규작성 중 임시저장으로 이미 drafting 건이 만들어져 있으면(draftId) 새로 만들지 않고
+      // 그 건을 재분석(PATCH .../input)해 finalize한다 — 그대로 create를 또 부르면 임시저장한
+      // drafting 건은 고아로 남고 완전히 별개인 분석 건이 하나 더 생기는 중복 생성 버그가 된다.
+      const finalizeTargetId = isEdit ? diagnosisId! : draftId != null ? String(draftId) : null;
+      const result = finalizeTargetId
+        ? await DebtReliefService.updateDiagnosis(projectId ?? "", finalizeTargetId, analysisForm)
         : await DebtReliefService.createDiagnosis(projectId ?? "", analysisForm, selectedCustomerId);
+      // updateDiagnosis(재분석)는 customerId를 받지 않는다(고객 매칭은 별도 API) — 임시저장 단계
+      // 이후에 고객을 연결/변경했다면 여기서 한 번 더 반영해 finalize 시점 기준으로 맞춘다.
+      if (!isEdit && draftId != null && selectedCustomerId) {
+        try {
+          await AnalysisService.matchCustomer(draftId, {
+            projectId: projectId ?? "",
+            customerId: selectedCustomerId,
+          });
+        } catch (matchError) {
+          console.error("Failed to sync customer match when finalizing draft:", matchError);
+        }
+      }
       // API 성공 직후 저장을 영구 중단하고 초안을 지운다. settle 대기나 라우트 unmount 중
       // cleanup이 방금 지운 폼을 다시 저장하지 못하도록 finalizeDraft 내부 ref가 함께 잠긴다.
       if (!isEdit) finalizeDraft();
@@ -759,6 +908,10 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         onAnalyze={handleAnalyze}
         analyzing={analyzing}
         analyzeDisabled={!canAnalyze || incompleteSteps.length > 0}
+        onSaveDraft={handleSaveDraft}
+        saveDraftDisabled={!canShowTempSave}
+        savingDraft={savingDraft}
+        draftSavedFlash={draftSavedFlash}
         isCustomerConnected={isCustomerConnected}
         linkedCustomerName={linkedCustomerSummary?.name}
         linkedCustomerContact={linkedCustomerSummary?.contact}
@@ -844,7 +997,16 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
               <FormStepNavButton direction="prev" disabled={isFirst} onClick={goBack} />
               <FormStepNavButton direction="next" disabled={isLast} onClick={goNext} />
             </div>
-            <div className="flex-1 flex justify-end">
+            <div className="flex-1 flex justify-end items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSaveDraft}
+                disabled={!canShowTempSave || savingDraft || analyzing}
+                aria-label={savingDraft ? "임시저장 중" : "임시저장"}
+                className="inline-flex items-center justify-center h-[34px] px-3 rounded-[5px] border border-neutral-30 bg-card text-[14px] leading-[17px] tracking-[-0.02em] font-semibold text-neutral-70 whitespace-nowrap cursor-pointer hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {savingDraft ? "저장 중" : draftSavedFlash ? "저장됨" : "임시저장"}
+              </button>
               <button
                   type="button"
                   onClick={handleAnalyze}
@@ -872,7 +1034,12 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
       <AnalysisRequiredFieldsModal
         open={requiredFieldsModalOpen}
         steps={incompleteSteps}
-        unchanged={isEdit && incompleteSteps.length === 0 && !isDiagnosisFormDirty(form, baselineForm)}
+        unchanged={
+          isEdit &&
+          loadedAnalysisStatus !== "drafting" &&
+          incompleteSteps.length === 0 &&
+          !isDiagnosisFormDirty(form, baselineForm)
+        }
         onClose={() => setRequiredFieldsModalOpen(false)}
         onSelectStep={(index) => {
           setRequiredFieldsModalOpen(false);
@@ -884,6 +1051,29 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         debts={form.debts}
         onClose={() => setDebtSelectionModalOpen(false)}
         onConfirm={handleDebtSelectionConfirm}
+      />
+      <AnalysisDesiredProcedureModal
+        open={desiredProcedureModalOpen}
+        initialProcedure={pendingAnalysisForm?.desiredProcedure ?? null}
+        onClose={() => setDesiredProcedureModalOpen(false)}
+        onBack={handleDesiredProcedureBack}
+        onSkip={handleDesiredProcedureSkip}
+        onSubmit={handleDesiredProcedureSubmit}
+      />
+      <AnalysisAdjustedRepaymentModal
+        open={adjustedRepaymentModalOpen}
+        procedure={pendingAdjustableProcedure}
+        unsecuredDebtManwon={pendingAnalysisForm ? getUnsecuredDebtManwon(pendingAnalysisForm) : 0}
+        disposableIncomeManwon={derived.monthlyAvailableIncomeManwon}
+        initialValue={
+          pendingAdjustableProcedure
+            ? pendingAnalysisForm?.adjustedRepayment[pendingAdjustableProcedure] ?? null
+            : null
+        }
+        onClose={() => setAdjustedRepaymentModalOpen(false)}
+        onBack={handleAdjustedRepaymentBack}
+        onSkip={handleAdjustedRepaymentSkip}
+        onConfirm={handleAdjustedRepaymentConfirm}
       />
       <FloatingCustomerDetailModal
         open={customerDetailOpen}

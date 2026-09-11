@@ -1,6 +1,8 @@
 // 회생·파산 진단 도메인 타입
 
 import type {
+  AnalysisAdjustedRepaymentMap,
+  AnalysisAdjustedRepaymentProcedure,
   AnalysisBusinessOperationStatus,
   AnalysisAsset,
   AnalysisAssetCategory,
@@ -14,12 +16,16 @@ import type {
   AnalysisRepaymentMethod,
   AnalysisStatus,
 } from "@/types/analysis";
+import { ANALYSIS_ADJUSTED_REPAYMENT_PERIOD_RANGE } from "@/types/analysis";
 import type { FeePlan, FeePlanSummary } from "@/types/analysisFeePlan";
 
 // ── 상태값 ───────────────────────────────────────────────────
 // 상태 코드는 절차 코드(RecommendedProcedure)와 달리 API와 UI 값이 동일해 별도 매핑 없이
 // AnalysisStatus를 그대로 재사용한다.
 export const DIAGNOSIS_STATUS_LABEL: Record<AnalysisStatus, string> = {
+  // 2026-09-11 스펙 추가: 작성중 임시저장. 목록 기본 조회엔 포함되지만 요약 통계(상태 분포)에서는
+  // 제외된다 — DiagnosisHubSummary.statusDistribution 타입 참고.
+  drafting: "작성중",
   consulting: "상담중",
   reviewing: "검토중",
   rejected: "반려됨",
@@ -53,6 +59,8 @@ export const DIAGNOSIS_PROCEDURE_STEP_UNLOCKED_STATUSES: readonly AnalysisStatus
 // - 영업점 자체 건: 상담중/반려만 (기존 정책).
 // - 변호사 자체 생성건: 상담중을 거치지 않고 바로 계약대기중으로 생성되므로, 상담중/반려에
 //   더해 계약대기중(contract_pending)에서도 수정 가능해야 한다.
+// - 작성중(drafting) 건: 아직 분석 결과가 없어 애초에 공유될 수 없는 상태라 자체 소유 건과
+//   동일하게 허용(2026-09-11 스펙 — 허브 목록에서 drafting 행을 누르면 이 폼으로 바로 진입한다).
 export function canEditDiagnosisInfo(params: {
   status: AnalysisStatus;
   isReceivedShare: boolean;
@@ -61,6 +69,7 @@ export function canEditDiagnosisInfo(params: {
   if (params.isReceivedShare) return false;
   if (params.deliveryStatus === "delivered") return false;
   return (
+    params.status === "drafting" ||
     params.status === "consulting" ||
     params.status === "rejected" ||
     params.status === "contract_pending"
@@ -103,6 +112,16 @@ export const RECOMMENDED_PROCEDURE_ORDER: RecommendedProcedure[] = [
   "pre_workout",
   "personal_workout",
 ];
+
+// ── 희망 절차 · 희망 변제계획 수정안 (2026-09-11 스펙 신규) ──────────
+// "희망 절차 선택" 모달에서 고른 절차가 이 3개 중 하나면 "분석하기" 대신 "다음"으로 바뀌어
+// "희망 변제율 설정" 모달(월 변제액·기간 조정)로 이어진다. PATCH /analysis/:id/adjusted-repayment
+// 및 ANALYSIS_ADJUSTED_REPAYMENT_PERIOD_RANGE(types/analysis.ts)와 동일 기준.
+export function isAdjustableRepaymentProcedure(
+  procedure: RecommendedProcedure
+): procedure is AnalysisAdjustedRepaymentProcedure {
+  return procedure in ANALYSIS_ADJUSTED_REPAYMENT_PERIOD_RANGE;
+}
 
 // ── 목록 아이템 ──────────────────────────────────────────────
 export type CustomerGender = "male" | "female";
@@ -217,14 +236,17 @@ export type DiagnosisHubSummary = {
     paidAmount: number; // 이번 달 납부 완료 금액
     paidCount: number; // 이번 달 납부 완료 건수
   };
-  statusDistribution: Record<AnalysisStatus, number>;
+  // GET /v1/analysis/summary는 drafting(작성중)을 상태 분포에서 제외한다(2026-09-11 스펙) — 이
+  // 상태는 서버가 절대 내려주지 않으므로 Exclude로 좁혀 호출부가 빠짐없이 6개 상태를 채우게 한다.
+  statusDistribution: Record<Exclude<AnalysisStatus, "drafting">, number>;
   // 절차별 진행단계 현황 (진행단계 카드에서 셀렉트로 전환해 표시).
   // 서버가 집계 데이터가 있는 절차만 내려주므로 없는 절차는 키 자체가 없다.
   progressStepsByProcedure: Partial<Record<RecommendedProcedure, DiagnosisProgressStepItem[]>>;
 };
 
-// "상태 분포" 카드 표시 순서 — 반려(rejected)도 포함해 전체 상태 분포를 보여준다.
-export const DIAGNOSIS_STATUS_DISTRIBUTION_ORDER: AnalysisStatus[] = [
+// "상태 분포" 카드 표시 순서 — 반려(rejected)도 포함해 전체 상태 분포를 보여준다. drafting은
+// 요약 통계 자체에서 제외되는 상태라(statusDistribution 타입 참고) 애초에 포함하지 않는다.
+export const DIAGNOSIS_STATUS_DISTRIBUTION_ORDER: Exclude<AnalysisStatus, "drafting">[] = [
   "in_progress",
   "consulting",
   "reviewing",
@@ -633,6 +655,13 @@ export type DiagnosisFormState = {
   // 중복선택 가능(만 29세 이하/만 65세 이상은 상호배타).
   specialEligibility: SpecialEligibilityType[];
   counselorMemo: string;
+
+  // "희망 절차 선택" / "희망 변제율 설정" 모달(분석하기 직전) — trackingProcedure와 별개.
+  // null=미선택("건너뛰기"). API 요청/응답에서는 inputData가 아니라 최상위 필드다
+  // (types/analysis.ts의 AnalysisDetail 참고).
+  desiredProcedure: RecommendedProcedure | null;
+  /** 대상 절차(개인회생·개인워크아웃·새출발기금)만 키가 있을 수 있다. 없으면 {} */
+  adjustedRepayment: AnalysisAdjustedRepaymentMap;
 };
 
 export function createEmptyDiagnosisForm(): DiagnosisFormState {
@@ -682,6 +711,8 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     litigationDetail: "",
     specialEligibility: [],
     counselorMemo: "",
+    desiredProcedure: null,
+    adjustedRepayment: {},
   };
 }
 
