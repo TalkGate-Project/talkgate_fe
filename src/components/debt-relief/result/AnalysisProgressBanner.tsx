@@ -79,7 +79,7 @@ function ProgressSteps({ currentStep, compact = false }: { currentStep: number; 
                 isComplete
                   ? "text-success"
                   : isCurrent
-                    ? "bg-neutral-90 text-neutral-20"
+                    ? "analysis-progress-current bg-neutral-90 text-neutral-20"
                     : "bg-neutral-20 text-neutral-70"
               }`}
               aria-current={isCurrent ? "step" : undefined}
