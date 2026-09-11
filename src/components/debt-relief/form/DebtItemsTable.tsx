@@ -286,29 +286,65 @@ function CalculatedDebtField({ label, value, suffix }: { label: string; value: s
 // "만기일"과 시각적으로 이어붙는 입력칸. 값을 고치면 오늘 기준 n개월 뒤 날짜를 만기일로
 // 역산해 넘기고(onChangeMonths), 만기일 쪽이 바뀌면 calculateDebtItemAmortization이 이 값을
 // 다시 계산해 채운다 — 두 필드가 서로를 갱신하는 순환 구조.
+//
+// 화면에 보이는 문자열(draft)을 debt.remainingMonths와 분리된 로컬 상태로 따로 들고 간다.
+// 그냥 value prop을 그대로 입력값으로 쓰면, 전부 지워서(빈 문자열) onChangeMonths를 호출하지
+// 않는 순간 이 행과 무관한 다른 입력 때문에 테이블 전체가 리렌더될 때 React가 컨트롤드
+// input을 마지막으로 커밋된 숫자로 되돌려버려 "15 → 1까지는 지워지는데 그 다음 백스페이스가
+// 먹통"이 된다. 포커스 중엔 draft만 갱신하고, 포커스를 벗어나거나 외부에서 만기일이 바뀌어
+// value가 달라졌을 때만 draft를 value와 다시 맞춘다.
 function RemainingMonthsInput({
   value,
   onChangeMonths,
+  onClear,
   disabled = false,
+  invalid = false,
 }: {
   value?: number;
   onChangeMonths: (months: number) => void;
+  onClear: () => void;
   disabled?: boolean;
+  invalid?: boolean;
 }) {
+  const [draft, setDraft] = useState(() => (value ? String(value) : ""));
+  const focusedRef = useRef(false);
+
+  useEffect(() => {
+    if (focusedRef.current) return;
+    setDraft(value ? String(value) : "");
+  }, [value]);
+
   return (
     <div className="relative -ml-px flex-1 min-w-0">
       <input
         type="text"
         inputMode="numeric"
         disabled={disabled}
-        value={!disabled && value ? String(value) : ""}
+        value={disabled ? "" : draft}
+        onFocus={() => {
+          focusedRef.current = true;
+        }}
+        onBlur={() => {
+          focusedRef.current = false;
+          // 유효한 값(1 이상)으로 이어지지 못한 채 남은 입력(빈 문자열, "0" 등)은 버리고
+          // 실제 커밋된 값으로 되돌린다 — 화면에 한 번도 반영된 적 없는 숫자가 남지 않도록.
+          setDraft(value ? String(value) : "");
+        }}
         onChange={(event) => {
-          const digits = event.target.value.replace(/[^0-9]/g, "").slice(0, 3);
-          if (!digits) return;
-          onChangeMonths(Math.max(1, parseInt(digits, 10)));
+          const digits = event.target.value
+            .replace(/[^0-9]/g, "")
+            .replace(/^0+(?=\d)/, "")
+            .slice(0, 3);
+          setDraft(digits);
+          if (!digits) {
+            onClear();
+            return;
+          }
+          const months = parseInt(digits, 10);
+          if (months >= 1) onChangeMonths(months);
         }}
         placeholder="-"
-        className="h-[34px] w-full rounded-l-none rounded-r-[5px] border border-neutral-30 bg-card pl-3 pr-9 text-right text-[14px] font-medium tracking-[-0.02em] text-foreground placeholder:text-neutral-50 focus:outline-none disabled:!bg-neutral-20 disabled:!text-neutral-50 disabled:cursor-not-allowed"
+        className={`h-[34px] w-full rounded-l-none rounded-r-[5px] border border-neutral-30 bg-card pl-3 pr-9 text-right text-[14px] font-medium tracking-[-0.02em] text-foreground placeholder:text-neutral-50 focus:outline-none disabled:!bg-neutral-20 disabled:!text-neutral-50 disabled:cursor-not-allowed ${invalid ? "!border-danger-40 dark:!border-danger-40" : ""}`}
       />
       <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-neutral-60">개월</span>
     </div>
@@ -912,12 +948,14 @@ export default function DebtItemsTable({
                       <RemainingMonthsInput
                         value={debt.remainingMonths}
                         disabled={debt.debtType === "credit_card"}
+                        invalid={isFieldInvalid("maturityDate")}
                         onChangeMonths={(months) => {
                           const nextMaturityDate = addMonthsClamped(new Date(), months);
                           updateItem(debt.id, {
                             maturityDate: formatDateOnly(nextMaturityDate > maxMaturityDate ? maxMaturityDate : nextMaturityDate),
                           });
                         }}
+                        onClear={() => updateItem(debt.id, { maturityDate: "" })}
                       />
                     </fieldset>
                   </div>
