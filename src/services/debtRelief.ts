@@ -1,3 +1,4 @@
+import { normalizeCreditCardDebt } from "@/types/analysis";
 import type {
   ConditionItem,
   CreateDiagnosisResult,
@@ -57,6 +58,7 @@ import type {
   AnalysisSpecialEligibility,
   AnalysisStatus,
   AnalysisDraftFormInput,
+  AnalysisAdjustedRepaymentProcedure,
   CreateAnalysisInput,
   CreateAnalysisDraftInput,
   UpdateAnalysisDraftInput,
@@ -184,6 +186,7 @@ const DEBT_ITEM_TYPE_TO_BREAKDOWN_KEY: Record<
 > = {
   bank_loan: "bankLoan",
   card_debt: "cardDebt",
+  credit_card: "cardDebt",
   capital_loan: "capitalLoan",
   private_debt: "privateDebt",
   personal_borrowing: "personalBorrowing",
@@ -351,7 +354,7 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
     // 상세모드에서는 debts가 원본이고 debtBreakdown/overdueMonths는 서버가 자동 집계한다.
     // 굳이 같이 보내면 두 값이 어긋났을 때 어느 쪽이 진실인지 모호해지므로 보내지 않는다.
     debtInputMode: form.debtInputMode,
-    debts: form.debts.map((debt) => isDetailed ? {
+    debts: form.debts.map((debt) => debt.debtType === "credit_card" ? normalizeCreditCardDebt(debt) : isDetailed ? {
       ...debt,
       isCollateralLoan: isDebtCollateralLoan(debt),
       ...calculateDebtItemAmortization(debt),
@@ -427,7 +430,7 @@ function toAnalysisDraftFormInput(form: DiagnosisFormState): AnalysisDraftFormIn
     ...(form.housingType ? { housingType: form.housingType } : {}),
     additionalFixedExpense: form.additionalFixedExpense,
     debtInputMode: form.debtInputMode,
-    debts: form.debts.map((debt) => isDetailed ? {
+    debts: form.debts.map((debt) => debt.debtType === "credit_card" ? normalizeCreditCardDebt(debt) : isDetailed ? {
       ...debt,
       isCollateralLoan: isDebtCollateralLoan(debt),
       ...calculateDebtItemAmortization(debt),
@@ -510,6 +513,7 @@ export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormSt
 
   const debtInputMode = input.debtInputMode ?? "simple";
   const debts = (input.debts ?? []).map((debt) => {
+    if (debt.debtType === "credit_card") return normalizeCreditCardDebt(debt);
     const normalizedDebt = {
       ...debt,
       isCollateralLoan: isDebtCollateralLoan(debt),
@@ -970,6 +974,22 @@ export const DebtReliefService = {
       recommendedProcedure
     );
     const totalDebt = inputData.totalDebt;
+    const unsecuredDebt = analysis.collateralBreakdown?.unsecuredDebt ?? totalDebt;
+    for (const [procedure, adjustment] of Object.entries(analysis.adjustedRepayment ?? {})) {
+      if (!adjustment) continue;
+      const typedProcedure = procedure as AnalysisAdjustedRepaymentProcedure;
+      const totalPayment = adjustment.totalPayment ?? adjustment.monthlyPayment * adjustment.periodMonths;
+      repaymentPlanByProcedure[typedProcedure] = {
+        monthlyPaymentManwon: adjustment.monthlyPayment,
+        months: adjustment.periodMonths,
+        years: Math.round((adjustment.periodMonths / 12) * 10) / 10,
+        totalPaymentManwon: totalPayment,
+        exemptedDebtManwon:
+          adjustment.expectedExemption ?? Math.max(0, unsecuredDebt - totalPayment),
+        // 조정 API는 원금 기준 면책액만 계산한다. 기존 분석의 이자 포함 값을 섞지 않는다.
+        exemptedDebtWithInterestManwon: undefined,
+      };
+    }
     // 공유(납품)받은 건 판별 — source(원본 출처) 필드로만 판단한다. deliveryStatus는 공유 연결의
     // "양쪽"(보낸 영업점 + 받은 변호사) 모두에 남아, 영업점이 자기가 공유했다 반려당한 "자기 데이터"를
     // 봐도 rejected가 찍혀 오판된다. sourceProjectName/sourceMemberName은 "받은 경우"에만 채워져
@@ -1046,6 +1066,7 @@ export const DebtReliefService = {
       collateralBreakdown: analysis.collateralBreakdown,
       debtAdjustmentComparison: analysis.analysisResult?.debtAdjustmentComparison ?? null,
       repaymentPlanByProcedure,
+      adjustedRepayment: analysis.adjustedRepayment ?? {},
       repaymentNotes: analysis.analysisResult?.precautions ?? [],
       counselMents: analysis.analysisResult
         ? [
@@ -1095,6 +1116,19 @@ export const DebtReliefService = {
       projectId,
       trackingProcedure: input.trackingProcedure,
       currentProcedureStep: input.currentProcedureStep,
+    });
+  },
+
+  async updateAdjustedRepayment(
+    projectId: string,
+    id: string,
+    procedure: AnalysisAdjustedRepaymentProcedure,
+    value: { monthlyPayment: number | null; periodMonths: number | null }
+  ): Promise<void> {
+    await AnalysisService.updateAdjustedRepayment(Number(id), {
+      projectId,
+      procedure,
+      ...value,
     });
   },
 

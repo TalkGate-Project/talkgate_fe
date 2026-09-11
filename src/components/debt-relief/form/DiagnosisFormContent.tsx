@@ -780,12 +780,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     void continueAnalyze(nextForm);
   };
 
-  const handleAdjustedRepaymentBack = () => {
-    setAdjustedRepaymentModalOpen(false);
-    setDesiredProcedureModalOpen(true);
-  };
-
-  const handleAdjustedRepaymentSkip = () => {
+  const handleAdjustedRepaymentReset = () => {
     if (!pendingAnalysisForm || !pendingAdjustableProcedure) return;
     const { [pendingAdjustableProcedure]: _removed, ...restAdjustedRepayment } = pendingAnalysisForm.adjustedRepayment;
     const nextForm: DiagnosisFormState = { ...pendingAnalysisForm, adjustedRepayment: restAdjustedRepayment };
@@ -1071,8 +1066,12 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
             : null
         }
         onClose={() => setAdjustedRepaymentModalOpen(false)}
-        onBack={handleAdjustedRepaymentBack}
-        onSkip={handleAdjustedRepaymentSkip}
+        onReset={
+          pendingAdjustableProcedure &&
+          pendingAnalysisForm?.adjustedRepayment[pendingAdjustableProcedure]
+            ? handleAdjustedRepaymentReset
+            : undefined
+        }
         onConfirm={handleAdjustedRepaymentConfirm}
       />
       <FloatingCustomerDetailModal

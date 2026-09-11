@@ -113,10 +113,11 @@ export type AnalysisDebtBreakdown = {
 // detailed: debts(채무 건별 상세) 배열을 보내고 debtBreakdown은 서버가 자동 집계한다.
 export type AnalysisDebtInputMode = "simple" | "detailed";
 
-// debtBreakdown의 5개 슬롯과 1:1 대응한다(저축은행 전용 슬롯은 없음 — capital_loan에 통합).
+// 레거시 debtBreakdown에서는 카드론·신용카드를 cardDebt에 함께 집계한다.
 export type AnalysisDebtItemType =
   | "bank_loan"
   | "card_debt"
+  | "credit_card"
   | "capital_loan"
   | "private_debt"
   | "personal_borrowing";
@@ -153,6 +154,22 @@ export type AnalysisDebtItem = {
   /** true면 채무는 저장하되 총채무·청산가치·면책액·AI 진단 계산에서 제외한다. */
   isExcludedFromAnalysis?: boolean;
 };
+
+/** 신용카드는 대출 상세값과 담보 연결 없이 기본 채무 정보만 저장한다. */
+export function normalizeCreditCardDebt(debt: AnalysisDebtItem): AnalysisDebtItem {
+  if (debt.debtType !== "credit_card") return debt;
+  return {
+    id: debt.id,
+    debtType: debt.debtType,
+    creditorName: debt.creditorName,
+    overdueMonths: debt.overdueMonths,
+    currentBalanceWon: debt.currentBalanceWon,
+    isCollateralLoan: false,
+    ...(debt.isExcludedFromAnalysis !== undefined
+      ? { isExcludedFromAnalysis: debt.isExcludedFromAnalysis }
+      : {}),
+  };
+}
 
 export function isDebtCollateralLoan(
   debt: Pick<AnalysisDebtItem, "isCollateralLoan" | "collateralAssetId">

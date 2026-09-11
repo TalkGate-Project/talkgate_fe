@@ -22,6 +22,7 @@ function isValidDateOnly(value: string | undefined): value is string {
  * 연체(개월)는 0이 "연체 없음"이라는 유효한 기본값이라 여기서 검사하지 않는다.
  */
 export function getMissingDebtItemFields(debt: DebtItemFormState): MissingDebtItemField[] {
+  if (debt.debtType === "credit_card") return debt.currentBalanceWon ? [] : ["currentBalanceWon"];
   const missing: MissingDebtItemField[] = [];
   const today = new Date();
   const todayText = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;

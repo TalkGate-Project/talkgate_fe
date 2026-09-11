@@ -435,6 +435,7 @@ export const REPAYMENT_METHOD_OPTIONS: PillOption<AnalysisRepaymentMethod>[] = [
 export const DEBT_ITEM_TYPE_OPTIONS: PillOption<AnalysisDebtItemType>[] = [
   { value: "bank_loan", label: "은행대출" },
   { value: "card_debt", label: "카드론" },
+  { value: "credit_card", label: "신용카드" },
   { value: "capital_loan", label: "캐피탈/저축은행" },
   { value: "private_debt", label: "대부업체" },
   { value: "personal_borrowing", label: "개인차용" },
@@ -904,6 +905,8 @@ export type DiagnosisDetail = {
   // 조회한다. 신속채무조정·프리워크아웃은 백엔드가 항상 null로 내려주는 절차라 애초에 키가 없다
   // (게이트 미통과와 별개 — 이 두 절차는 분할 변제라는 개념 자체가 없어서다).
   repaymentPlanByProcedure: Partial<Record<RecommendedProcedure, RepaymentPlan>>;
+  /** 상세 화면에서 별도로 저장한 변제계획 조정안. 키가 있으면 해당 절차에 조정안이 적용된 상태다. */
+  adjustedRepayment: AnalysisAdjustedRepaymentMap;
   // 변제 계획 섹션의 주의사항 — 절차와 무관하게 공통 표시(analysisResult.precautions).
   repaymentNotes: string[];
   counselMents: CounselMent[];

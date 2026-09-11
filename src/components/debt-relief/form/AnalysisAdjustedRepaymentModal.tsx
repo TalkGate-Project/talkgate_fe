@@ -1,27 +1,27 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import { RECOMMENDED_PROCEDURE_LABEL } from "@/types/debtRelief";
-import { ANALYSIS_ADJUSTED_REPAYMENT_PERIOD_RANGE, type AnalysisAdjustedRepaymentProcedure } from "@/types/analysis";
+import {
+  ANALYSIS_ADJUSTED_REPAYMENT_PERIOD_RANGE,
+  type AnalysisAdjustedRepaymentProcedure,
+} from "@/types/analysis";
 
-type RepaymentValue = { monthlyPayment: number; periodMonths: number };
+export type AdjustedRepaymentValue = { monthlyPayment: number; periodMonths: number };
 
 type Props = {
   open: boolean;
   procedure: AnalysisAdjustedRepaymentProcedure | null;
-  /** 무담보 채무 합계 (만원) — 변제/면책 금액 계산 기준 */
   unsecuredDebtManwon: number;
-  /** 가용소득 (만원, 음수 가능) — 월 변제액과 비교해 초과 경고에 사용 */
   disposableIncomeManwon: number;
-  /** 이전에 설정한 값이 있으면(재진입 등) 그 값으로 슬라이더를 초기화한다 */
-  initialValue?: RepaymentValue | null;
+  initialValue?: AdjustedRepaymentValue | null;
+  /** 상세 화면처럼 초기값은 있지만 아직 조정안을 저장하지 않은 경우를 구분한다. */
+  adjustmentApplied?: boolean;
+  submitting?: boolean;
   onClose: () => void;
-  /** "이전" — 희망 절차 선택 모달로 돌아간다 */
-  onBack: () => void;
-  /** "건너뛰기" — 이 절차의 변제계획 수정안 없이(분석 산출값 그대로) 제출한다 */
-  onSkip: () => void;
-  onConfirm: (value: RepaymentValue) => void;
+  onReset?: () => void;
+  onConfirm: (value: AdjustedRepaymentValue) => void;
 };
 
 const DEFAULT_RATE_PERCENT = 30;
@@ -34,9 +34,31 @@ function CloseIcon() {
   );
 }
 
+function RefreshIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path
+        d="M15.9 6.67A6.67 6.67 0 1 0 16.48 12M15.9 6.67V2.5m0 4.17h-4.17"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function formatManwon(value: number) {
   return `${Math.round(value).toLocaleString("ko-KR")}만원`;
 }
+
+function buildRangeStyle(value: number, min: number, max: number): CSSProperties {
+  const percentage = max === min ? 0 : ((value - min) / (max - min)) * 100;
+  return { "--adjusted-repayment-progress": `${percentage}%` } as CSSProperties;
+}
+
+const RANGE_CLASS_NAME =
+  "adjusted-repayment-range h-4 w-full cursor-pointer appearance-none bg-transparent outline-none";
 
 export default function AnalysisAdjustedRepaymentModal({
   open,
@@ -44,9 +66,10 @@ export default function AnalysisAdjustedRepaymentModal({
   unsecuredDebtManwon,
   disposableIncomeManwon,
   initialValue,
+  adjustmentApplied,
+  submitting = false,
   onClose,
-  onBack,
-  onSkip,
+  onReset,
   onConfirm,
 }: Props) {
   const range = procedure ? ANALYSIS_ADJUSTED_REPAYMENT_PERIOD_RANGE[procedure] : null;
@@ -63,22 +86,21 @@ export default function AnalysisAdjustedRepaymentModal({
       const rate = Math.min(100, Math.max(0, Math.round((repaymentAmount / unsecuredDebtManwon) * 1000) / 10));
       setRatePercent(rate);
       setPeriodYears(Math.min(range.maxMonths, Math.max(range.minMonths, initialValue.periodMonths)) / 12);
-    } else {
-      setRatePercent(DEFAULT_RATE_PERCENT);
-      setPeriodYears(range.maxMonths / 12);
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, procedure]);
+    setRatePercent(DEFAULT_RATE_PERCENT);
+    setPeriodYears(range.maxMonths / 12);
+  }, [initialValue, open, range, unsecuredDebtManwon]);
 
   const derived = useMemo(() => {
     if (!range) return null;
     const repaymentAmountManwon = Math.round((unsecuredDebtManwon * ratePercent) / 100);
-    const exemptAmountManwon = unsecuredDebtManwon - repaymentAmountManwon;
+    const exemptAmountManwon = Math.max(0, unsecuredDebtManwon - repaymentAmountManwon);
     const periodMonths = periodYears * 12;
-    const monthlyPaymentManwon = periodMonths > 0 ? Math.round(repaymentAmountManwon / periodMonths) : 0;
-    const monthlyPaymentAtMinPeriod = Math.round(repaymentAmountManwon / range.minMonths);
-    const monthlyPaymentAtMaxPeriod = Math.round(repaymentAmountManwon / range.maxMonths);
-    const disposableAfterPayment = disposableIncomeManwon - monthlyPaymentManwon;
+    const monthlyPaymentManwon = periodMonths > 0 ? Math.round((repaymentAmountManwon / periodMonths) * 10) / 10 : 0;
+    const monthlyPaymentAtMinPeriod = Math.round((repaymentAmountManwon / range.minMonths) * 10) / 10;
+    const monthlyPaymentAtMaxPeriod = Math.round((repaymentAmountManwon / range.maxMonths) * 10) / 10;
+    const excessIncomeManwon = Math.max(0, monthlyPaymentManwon - disposableIncomeManwon);
     return {
       repaymentAmountManwon,
       exemptAmountManwon,
@@ -86,54 +108,73 @@ export default function AnalysisAdjustedRepaymentModal({
       monthlyPaymentManwon,
       monthlyPaymentAtMinPeriod,
       monthlyPaymentAtMaxPeriod,
-      disposableAfterPayment,
+      excessIncomeManwon,
     };
   }, [range, unsecuredDebtManwon, ratePercent, periodYears, disposableIncomeManwon]);
 
   if (!open || !procedure || !range || !derived) return null;
 
-  const yearTicks = Array.from({ length: maxYears - minYears + 1 }, (_, i) => minYears + i);
+  const yearTicks = Array.from({ length: maxYears - minYears + 1 }, (_, index) => minYears + index);
+  const hasSavedAdjustment = adjustmentApplied ?? (initialValue != null);
 
   return (
     <BaseModal
       onClose={onClose}
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
-      containerClassName="w-[calc(100vw-2rem)] max-w-[400px] overflow-hidden rounded-[14px] bg-card shadow-[0_13px_61px_rgba(169,169,169,0.366)] drop-shadow-[0_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none dark:drop-shadow-none"
-      ariaLabel="희망 변제율 설정"
+      containerClassName="w-[calc(100vw-2rem)] max-w-[440px] max-h-[calc(100vh-2rem)] overflow-y-auto rounded-[14px] bg-card shadow-[0_13px_61px_rgba(169,169,169,0.366)] drop-shadow-[0_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none dark:drop-shadow-none"
+      ariaLabel="변제 계획 조정"
       disableAutoContainerSizing
+      closeOnOverlayClick={!submitting}
     >
-      <div className="relative px-6 pb-4 pt-6">
-        <h2 className="text-[16px] font-semibold leading-[19px] text-foreground">희망 변제율 설정</h2>
-        <p className="mt-2 pr-8 text-[13px] font-medium leading-5 text-neutral-60">
+      <div className="relative px-7 pb-[26px] pt-6">
+        <h2 className="text-[18px] font-semibold leading-[21px] text-foreground">변제 계획 조정</h2>
+        <p className="mt-1 text-[13px] font-medium leading-4 text-neutral-60">
           {RECOMMENDED_PROCEDURE_LABEL[procedure]} · {formatManwon(unsecuredDebtManwon)} (무담보 채무 기준)
         </p>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="닫기"
-          className="absolute right-6 top-6 grid h-6 w-6 cursor-pointer place-items-center text-neutral-50 hover:text-neutral-70"
-        >
-          <CloseIcon />
-        </button>
+        <div className="absolute right-7 top-5 flex items-center gap-2">
+          {hasSavedAdjustment && onReset ? (
+            <button
+              type="button"
+              onClick={onReset}
+              disabled={submitting}
+              className="flex h-[34px] cursor-pointer items-center gap-1 rounded-[5px] px-3 text-[14px] font-semibold tracking-[-0.02em] text-neutral-60 hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <RefreshIcon />
+              되돌리기
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={submitting}
+            aria-label="닫기"
+            className="grid h-6 w-6 cursor-pointer place-items-center text-neutral-50 hover:text-neutral-70 disabled:cursor-not-allowed"
+          >
+            <CloseIcon />
+          </button>
+        </div>
       </div>
 
-      <div className="flex flex-col gap-6 px-6 pb-6">
-        {/* 변제율 슬라이더 */}
+      <div className="relative mx-7 h-[317px] rounded-[12px] bg-neutral-10 px-6 py-5">
         <div>
-          <div className="flex items-baseline justify-between">
+          <div className="flex items-start justify-between">
             <div>
-              <span className="block text-[12px] font-medium text-neutral-60">변제</span>
-              <span className="text-[18px] font-bold leading-6 text-foreground">
+              <span className="block text-[14px] font-medium leading-[17px] text-neutral-60">변제</span>
+              <span className="mt-3 block w-fit border-b border-dashed border-neutral-40 font-montserrat text-[20px] font-bold leading-7 tracking-[-0.03em] text-neutral-90">
                 {formatManwon(derived.repaymentAmountManwon)}
               </span>
-              <span className="ml-1 text-[12px] font-medium text-neutral-60">{ratePercent.toFixed(1)}%</span>
+              <span className="mt-1 block w-fit border-b border-dashed border-neutral-40 text-[14px] font-medium leading-[17px] text-neutral-60">
+                {ratePercent.toFixed(1)}%
+              </span>
             </div>
             <div className="text-right">
-              <span className="block text-[12px] font-medium text-neutral-60">면책</span>
-              <span className="text-[18px] font-bold leading-6 text-foreground">
+              <span className="block text-[14px] font-medium leading-[17px] text-neutral-60">면책</span>
+              <span className="mt-3 block font-montserrat text-[20px] font-bold leading-7 tracking-[-0.03em] text-neutral-90">
                 {formatManwon(derived.exemptAmountManwon)}
               </span>
-              <span className="ml-1 text-[12px] font-medium text-neutral-60">{(100 - ratePercent).toFixed(1)}%</span>
+              <span className="mt-1 block text-[14px] font-medium leading-[17px] text-neutral-60">
+                {(100 - ratePercent).toFixed(1)}%
+              </span>
             </div>
           </div>
           <input
@@ -142,30 +183,35 @@ export default function AnalysisAdjustedRepaymentModal({
             max={100}
             step={1}
             value={ratePercent}
-            onChange={(e) => setRatePercent(Number(e.target.value))}
-            className="mt-2 w-full accent-primary-60"
+            onChange={(event) => setRatePercent(Number(event.target.value))}
+            className={`mt-0.5 ${RANGE_CLASS_NAME}`}
+            style={buildRangeStyle(ratePercent, 0, 100)}
             aria-label="변제율"
           />
         </div>
 
-        {/* 월 변제액 / 기간 슬라이더 */}
+        <div className="my-4 h-px bg-neutral-30" aria-hidden />
+
         <div>
-          <div className="flex items-baseline justify-between">
+          <div className="flex items-start justify-between">
             <div>
-              <span className="block text-[12px] font-medium text-neutral-60">월 변제액</span>
-              <span className="text-[20px] font-bold leading-6 text-primary-60">
-                {derived.monthlyPaymentManwon.toLocaleString("ko-KR")}
-                <span className="ml-1 text-[13px] font-medium text-neutral-60">만원</span>
+              <span className="block text-[14px] font-medium leading-[17px] text-neutral-60">월 변제액</span>
+              <span className="mt-3 block font-montserrat text-[20px] font-bold leading-7 tracking-[-0.03em] text-danger-60">
+                {formatManwon(derived.monthlyPaymentManwon)}
+              </span>
+              <span className="mt-1 block text-[12px] font-medium leading-[14px] text-neutral-60">
+                월 {derived.monthlyPaymentAtMinPeriod.toLocaleString("ko-KR")}만
               </span>
             </div>
             <div className="text-right">
-              <span className="block text-[12px] font-medium text-neutral-60">기간</span>
-              <span className="text-[18px] font-bold leading-6 text-foreground">{periodYears}년</span>
+              <span className="block text-[14px] font-medium leading-[17px] text-neutral-60">기간</span>
+              <span className="mt-3 block font-montserrat text-[20px] font-bold leading-7 tracking-[-0.03em] text-neutral-90">
+                {periodYears}년
+              </span>
+              <span className="mt-1 block text-[12px] font-medium leading-[14px] text-neutral-60">
+                월 {derived.monthlyPaymentAtMaxPeriod.toLocaleString("ko-KR")}만
+              </span>
             </div>
-          </div>
-          <div className="mt-2 flex items-center justify-between text-[11px] font-medium text-neutral-50">
-            <span>월 {derived.monthlyPaymentAtMinPeriod.toLocaleString("ko-KR")}만</span>
-            <span>월 {derived.monthlyPaymentAtMaxPeriod.toLocaleString("ko-KR")}만</span>
           </div>
           <input
             type="range"
@@ -173,50 +219,43 @@ export default function AnalysisAdjustedRepaymentModal({
             max={maxYears}
             step={1}
             value={periodYears}
-            onChange={(e) => setPeriodYears(Number(e.target.value))}
-            className="mt-1 w-full accent-primary-60"
+            onChange={(event) => setPeriodYears(Number(event.target.value))}
+            className={`mt-[9px] ${RANGE_CLASS_NAME}`}
+            style={buildRangeStyle(periodYears, minYears, maxYears)}
             aria-label="변제 기간(년)"
           />
-          <div className="mt-1 flex justify-between text-[11px] font-medium text-neutral-50">
-            {yearTicks.map((year) => (
-              <span key={year}>{year}</span>
-            ))}
+          <div className="mt-1 flex justify-between px-2 text-[10px] font-medium leading-3 text-neutral-60">
+            {yearTicks.map((year) => <span key={year} className="inline-flex w-0 justify-center">{year}</span>)}
           </div>
         </div>
 
-        {derived.disposableAfterPayment < 0 && (
-          <p className="text-[13px] font-semibold text-danger-40">
-            가용소득 {derived.disposableAfterPayment.toLocaleString("ko-KR")}만원 초과
-          </p>
-        )}
+        <p
+          aria-hidden={derived.excessIncomeManwon <= 0}
+          className={`absolute bottom-3 left-6 text-[14px] font-semibold leading-[17px] tracking-[0.2px] text-danger-60 ${
+            derived.excessIncomeManwon > 0 ? "visible" : "invisible"
+          }`}
+        >
+          가용소득 {derived.excessIncomeManwon.toLocaleString("ko-KR")}만원 초과
+        </p>
       </div>
 
-      <div className="flex h-[60px] items-center justify-between border-t border-neutral-30 px-6">
+      <div className="mt-[30px] flex h-[60px] items-center justify-end gap-3 border-t border-neutral-30 px-7">
         <button
           type="button"
-          onClick={onSkip}
-          className="cursor-pointer text-[14px] font-medium text-neutral-50 hover:text-neutral-70"
+          onClick={onClose}
+          disabled={submitting}
+          className="h-[34px] cursor-pointer rounded-[5px] border border-neutral-30 px-3 text-[14px] font-semibold tracking-[-0.02em] text-foreground hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          건너뛰기
+          취소
         </button>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onBack}
-            className="h-[34px] cursor-pointer rounded-[5px] border border-neutral-30 px-3 text-[14px] font-semibold tracking-[-0.02em] text-foreground hover:bg-neutral-10"
-          >
-            이전
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              onConfirm({ monthlyPayment: derived.monthlyPaymentManwon, periodMonths: derived.periodMonths })
-            }
-            className="h-[34px] cursor-pointer rounded-[5px] bg-neutral-90 px-3 text-[14px] font-semibold tracking-[-0.02em] text-neutral-20 hover:opacity-90"
-          >
-            분석하기
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => onConfirm({ monthlyPayment: derived.monthlyPaymentManwon, periodMonths: derived.periodMonths })}
+          disabled={submitting}
+          className="h-[34px] cursor-pointer rounded-[5px] bg-neutral-90 px-3 text-[14px] font-semibold tracking-[-0.02em] text-neutral-20 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          적용
+        </button>
       </div>
     </BaseModal>
   );

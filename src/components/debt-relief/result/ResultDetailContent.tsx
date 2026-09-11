@@ -13,6 +13,7 @@ import {
   DIAGNOSIS_PROCEDURE_GUIDE_UNLOCKED_STATUSES,
   DIAGNOSIS_PROCEDURE_STEP_UNLOCKED_STATUSES,
   RECOMMENDED_PROCEDURE_LABEL,
+  isAdjustableRepaymentProcedure,
   type ProcedureStep,
   type RecommendedProcedure,
 } from "@/types/debtRelief";
@@ -32,6 +33,7 @@ import DeliveryMessagesPopup from "./DeliveryMessagesPopup";
 import SectionProcedureScores from "./SectionProcedureScores";
 import SectionDebtAdjustmentComparison from "./SectionDebtAdjustmentComparison";
 import SectionDebtStatus from "./SectionDebtStatus";
+import SectionAssetStatus from "./SectionAssetStatus";
 import SectionRepaymentPlan from "./SectionRepaymentPlan";
 import SectionCounselMents from "./SectionCounselMents";
 import SectionProcedureGuide from "./SectionProcedureGuide";
@@ -39,12 +41,14 @@ import SectionSmsSend from "./SectionSmsSend";
 import ResultDeleteButton from "./ResultDeleteButton";
 import AnalysisPrintDocument from "./AnalysisPrintDocument";
 import MobilePdfDownloadModal from "./MobilePdfDownloadModal";
+import AnalysisAdjustedRepaymentModal from "../form/AnalysisAdjustedRepaymentModal";
 import { useDebtReliefChatHistory } from "./useDebtReliefAiChat";
 import { getBodyZoom } from "@/utils/zoom";
 import { formatContactForDisplay } from "@/utils/format";
 import { isMobileDeviceNavigator } from "@/lib/device";
+import { isDebtCollateralLoan } from "@/types/analysis";
 
-const ALL_SECTION_IDS = ["overview", "scores", "debt", "repayment", "ments", "guide", "sms"];
+const ALL_SECTION_IDS = ["overview", "scores", "debt", "assets", "repayment", "ments", "guide", "sms"];
 
 export default function ResultDetailContent({ diagnosisId }: { diagnosisId: string }) {
   const { detail, loading, refetch } = useDiagnosisDetail(diagnosisId);
@@ -71,6 +75,8 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   const [selfProceedProcedureSubmitting, setSelfProceedProcedureSubmitting] = useState(false);
   const [guideTitleArrivalKey, setGuideTitleArrivalKey] = useState(0);
   const [mobilePdfOpen, setMobilePdfOpen] = useState(false);
+  const [adjustedRepaymentModalOpen, setAdjustedRepaymentModalOpen] = useState(false);
+  const [adjustedRepaymentSubmitting, setAdjustedRepaymentSubmitting] = useState(false);
   // 상담 포인트(SectionCounselMents)와 인쇄용 숨김 문서(AnalysisPrintDocument)가 둘 다 AI 채팅
   // 히스토리를 필요로 해서, 각자 조회하면 GET /v1/analysis/{id}/chat이 중복 호출된다. 여기서 한 번만
   // 조회해 두 곳에 내려준다.
@@ -197,6 +203,53 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
 
   // 사용자가 아직 카드를 클릭하지 않았으면 추적 중인 절차를 기본값으로 보여준다.
   const activeProcedure = selectedProcedure ?? detail.trackingProcedure;
+  const adjustableProcedure = isAdjustableRepaymentProcedure(activeProcedure)
+    ? activeProcedure
+    : null;
+  const unsecuredDebtManwon =
+    detail.collateralBreakdown?.unsecuredDebt ??
+    detail.inputData.debts
+      .filter((debt) => !debt.isExcludedFromAnalysis && !isDebtCollateralLoan(debt))
+      .reduce((sum, debt) => sum + debt.currentBalanceWon / 10_000, 0);
+  const activeAdjustment = adjustableProcedure
+    ? detail.adjustedRepayment[adjustableProcedure] ?? null
+    : null;
+  const activeRepaymentPlan = adjustableProcedure
+    ? detail.repaymentPlanByProcedure[adjustableProcedure]
+    : null;
+  const adjustedRepaymentInitialValue =
+    activeAdjustment ??
+    (activeRepaymentPlan
+      ? {
+          monthlyPayment: activeRepaymentPlan.monthlyPaymentManwon,
+          periodMonths: activeRepaymentPlan.months,
+        }
+      : null);
+
+  const saveAdjustedRepayment = async (
+    value: { monthlyPayment: number | null; periodMonths: number | null }
+  ) => {
+    if (!projectId || !adjustableProcedure || adjustedRepaymentSubmitting) return;
+    setAdjustedRepaymentSubmitting(true);
+    try {
+      await DebtReliefService.updateAdjustedRepayment(
+        projectId,
+        diagnosisId,
+        adjustableProcedure,
+        value
+      );
+      setAdjustedRepaymentModalOpen(false);
+      refetch();
+    } catch (error) {
+      console.error("Failed to update adjusted repayment:", error);
+      showErrorModal({
+        headline: "변제 계획을 저장하지 못했습니다.",
+        description: "잠시 후 다시 시도해주세요.",
+      });
+    } finally {
+      setAdjustedRepaymentSubmitting(false);
+    }
+  };
 
   const handleDownload = () => {
     if (!isMobileDeviceNavigator(window.navigator)) {
@@ -313,6 +366,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     { id: "overview", label: RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure] },
     { id: "scores", label: "절차별 성공 가능성" },
     { id: "debt", label: "채무현황" },
+    { id: "assets", label: "자산현황" },
     { id: "repayment", label: "예상 변제 계획" },
     ...(hideCounselMents ? [] : [{ id: "ments", label: "상담 포인트" }]),
     { id: "guide", label: "절차 안내" },
@@ -449,8 +503,16 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           <SectionDebtStatus detail={detail} projectId={projectId} onDebtApplied={refetch} />
         </SectionCard>
 
+        <SectionCard id="assets" compactTop>
+          <SectionAssetStatus detail={detail} />
+        </SectionCard>
+
         <SectionCard id="repayment" compactTop>
-          <SectionRepaymentPlan detail={detail} selectedProcedure={activeProcedure} />
+          <SectionRepaymentPlan
+            detail={detail}
+            selectedProcedure={activeProcedure}
+            onAdjust={adjustableProcedure ? () => setAdjustedRepaymentModalOpen(true) : undefined}
+          />
         </SectionCard>
 
         {!hideCounselMents && (
@@ -515,6 +577,20 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         detail={detail}
         selectedProcedure={activeProcedure}
         chatMessages={chatHistory.messages}
+      />
+      <AnalysisAdjustedRepaymentModal
+        open={adjustedRepaymentModalOpen}
+        procedure={adjustableProcedure}
+        unsecuredDebtManwon={unsecuredDebtManwon}
+        disposableIncomeManwon={detail.debtStatus.monthlyAvailableIncomeManwon}
+        initialValue={adjustedRepaymentInitialValue}
+        adjustmentApplied={activeAdjustment != null}
+        submitting={adjustedRepaymentSubmitting}
+        onClose={() => {
+          if (!adjustedRepaymentSubmitting) setAdjustedRepaymentModalOpen(false);
+        }}
+        onReset={() => void saveAdjustedRepayment({ monthlyPayment: null, periodMonths: null })}
+        onConfirm={(value) => void saveAdjustedRepayment(value)}
       />
       <AnalysisProgressChoiceModal
         open={progressChoiceOpen}
