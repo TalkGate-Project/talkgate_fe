@@ -105,9 +105,11 @@ export default function AnalysisAdjustedRepaymentModal({
 
   const [repaymentAmountManwon, setRepaymentAmountManwon] = useState(0);
   const [periodYears, setPeriodYears] = useState(maxYears);
+  const [rateInputValue, setRateInputValue] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open || !range) return;
+    setRateInputValue(null);
     if (initialMonthlyPayment != null && initialPeriodMonths != null && unsecuredDebtManwon > 0) {
       const repaymentAmount = Math.round(initialMonthlyPayment * initialPeriodMonths);
       setRepaymentAmountManwon(clamp(repaymentAmount, 0, unsecuredDebtManwon));
@@ -201,6 +203,7 @@ export default function AnalysisAdjustedRepaymentModal({
                   disabled={submitting}
                   onChange={(event) => {
                     const digits = event.target.value.replace(/\D/g, "");
+                    setRateInputValue(null);
                     setRepaymentAmountManwon(clamp(Number(digits || 0), 0, unsecuredDebtManwon));
                   }}
                   className="w-[82px] bg-transparent text-left outline-none"
@@ -209,19 +212,27 @@ export default function AnalysisAdjustedRepaymentModal({
               </label>
               <label className="mt-1 flex w-fit items-center border-b border-dashed border-neutral-40 text-[14px] font-medium leading-[17px] text-neutral-60">
                 <input
-                  type="number"
+                  type="text"
                   inputMode="decimal"
-                  min={0}
-                  max={100}
-                  step={0.1}
                   aria-label="변제율 입력"
-                  value={Number(derived.ratePercent.toFixed(1))}
+                  value={rateInputValue ?? Number(derived.ratePercent.toFixed(1))}
                   disabled={submitting}
                   onChange={(event) => {
-                    const nextRatePercent = Number(event.target.value);
+                    const rawValue = event.target.value;
+                    if (!/^\d*\.?\d*$/.test(rawValue)) return;
+                    const normalizedValue = rawValue.startsWith(".")
+                      ? `0${rawValue}`
+                      : rawValue.replace(/^0+(?=\d)/, "");
+                    setRateInputValue(normalizedValue);
+                    if (normalizedValue === "" || normalizedValue === "0.") {
+                      setRepaymentAmountManwon(0);
+                      return;
+                    }
+                    const nextRatePercent = Number(normalizedValue);
                     if (Number.isNaN(nextRatePercent)) return;
                     setRepaymentAmountManwon(calculateRepaymentAmount(unsecuredDebtManwon, nextRatePercent));
                   }}
+                  onBlur={() => setRateInputValue(null)}
                   className="w-[36px] bg-transparent text-left outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
                 <span>%</span>
@@ -245,6 +256,7 @@ export default function AnalysisAdjustedRepaymentModal({
             value={derived.ratePercent}
             disabled={submitting}
             onChange={(event) => {
+              setRateInputValue(null);
               setRepaymentAmountManwon(calculateRepaymentAmount(unsecuredDebtManwon, Number(event.target.value)));
             }}
             className={`mt-0.5 ${RANGE_CLASS_NAME}`}
