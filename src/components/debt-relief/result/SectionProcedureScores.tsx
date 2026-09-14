@@ -440,11 +440,11 @@ export default function SectionProcedureScores({
 
   return (
     <div className="flex flex-col gap-6 md:gap-8">
-      {/* 절차별 성공 가능성 타이틀 */}
+      {/* 절차별 분석 점수 타이틀 */}
       <div>
         <div className="flex items-center gap-1">
           <h2 className="inline-flex h-6 items-center text-[16px] font-semibold leading-none tracking-[0.2px] text-foreground">
-            절차별 성공 가능성
+            절차별 분석 점수
           </h2>
           <DisclaimerInfoTooltip label="절차별 성공 가능성 안내">
             성공 가능성 점수는 입력 정보 기준{" "}

@@ -265,19 +265,35 @@ function DetailedScrollbarArrowIcon({ direction }: { direction: "left" | "right"
   );
 }
 
-function CalculatedDebtField({ label, value, suffix }: { label: string; value: string; suffix?: string }) {
+type EditableCalculationField = "monthlyPaymentWon" | "remainingInterestWon" | "totalRepaymentWon";
+
+function CalculatedDebtField({
+  label,
+  value,
+  disabled,
+  overridden,
+  onChange,
+  onReset,
+}: {
+  label: string;
+  value: number;
+  disabled: boolean;
+  overridden: boolean;
+  onChange: (value: number) => void;
+  onReset: () => void;
+}) {
   return (
     <label className="flex min-w-0 flex-col gap-2">
       <span className="text-[13px] font-medium leading-4 text-neutral-60">{label}</span>
       <div className="relative">
-        <input readOnly value={value} className="h-[34px] w-full rounded-[5px] border border-neutral-30 bg-card pl-3 pr-9 text-right text-[14px] font-medium text-foreground focus:outline-none" />
-        {suffix ? (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-neutral-60">{suffix}</span>
-        ) : (
-          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-50">
+        <fieldset disabled={disabled} className="disabled:opacity-50">
+          <WonInput value={value} onChange={onChange} className="pr-9 disabled:cursor-not-allowed disabled:!bg-neutral-20" />
+        </fieldset>
+        <button type="button" disabled={disabled || !overridden} onClick={onReset} aria-label={`${label} 계산값으로 되돌리기`} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-50 enabled:cursor-pointer enabled:hover:text-neutral-70 disabled:text-neutral-30">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M13.5 7A5.5 5.5 0 0 0 3 5L1.5 7M1.5 7V3M1.5 7H5.5M2.5 9A5.5 5.5 0 0 0 13 11L14.5 9M14.5 9V13M14.5 9H10.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        )}
+        </button>
       </div>
     </label>
   );
@@ -701,9 +717,35 @@ export default function DebtItemsTable({
         if (debt.id !== id) return debt;
         const merged = { ...debt, ...patch };
         if (merged.debtType === "credit_card") return normalizeCreditCardDebt(merged);
-        return { ...merged, ...calculateDebtItemAmortization(merged) };
+        const calculated = calculateDebtItemAmortization(merged);
+        const overrides = merged.manualCalculationOverrides ?? [];
+        return {
+          ...merged,
+          ...calculated,
+          ...Object.fromEntries(overrides.map((field) => [field, merged[field] ?? 0])),
+        };
       })
     );
+  };
+
+  const updateCalculatedItem = (id: string, field: EditableCalculationField, value: number) => {
+    onChange(debts.map((debt) => debt.id === id ? {
+      ...debt,
+      [field]: value,
+      manualCalculationOverrides: Array.from(new Set([...(debt.manualCalculationOverrides ?? []), field])),
+    } : debt));
+  };
+
+  const resetCalculatedItem = (id: string, field: EditableCalculationField) => {
+    onChange(debts.map((debt) => {
+      if (debt.id !== id) return debt;
+      const calculated = calculateDebtItemAmortization(debt);
+      return {
+        ...debt,
+        [field]: calculated[field],
+        manualCalculationOverrides: (debt.manualCalculationOverrides ?? []).filter((item) => item !== field),
+      };
+    }));
   };
 
   const addRow = () => {
@@ -876,7 +918,7 @@ export default function DebtItemsTable({
   }
 
 
-  if (detailedLayout === "cards" && mode === "detailed" && !assetCollateralOnly) {
+  if (detailedLayout === "cards" && mode === "detailed") {
       return (<div data-debt-items-table className="flex min-w-0 flex-col gap-5">
           <div className="rounded-lg bg-neutral-10 p-5">
             <div id={scrollContainerId} ref={containerRef} {...dragScrollHandlers} onScroll={updateHorizontalScrollState} className={`table-horizontal-scroll overflow-x-auto ${customScrollbarEnabled ? "scrollbar-hide" : ""}`}>
@@ -889,7 +931,7 @@ export default function DebtItemsTable({
               const isCreditCard = debt.debtType === "credit_card";
               return (<div key={debt.id} className={`relative flex flex-col gap-3 rounded-lg p-4 pt-4 pb-5 shadow-[0_1px_2px_rgba(9,30,66,0.12)] bg-card`}>
                       {!locked && <button type="button" onClick={() => removeRow(debt.id)} aria-label="행 삭제" className="absolute right-3 top-2 cursor-pointer text-neutral-50 hover:text-neutral-70"><RemoveRowIcon /></button>}
-                      <div className="grid grid-cols-[114px_100px_136px_82px_minmax(140px,1fr)_80px_100px] gap-2.5">
+                      <div className={`grid gap-2.5 ${assetCollateralOnly ? "grid-cols-[114px_156px_92px_minmax(160px,1fr)_90px_110px]" : "grid-cols-[114px_100px_136px_82px_minmax(140px,1fr)_80px_100px]"}`}>
                         <div className="min-w-0 flex flex-col gap-2"><span className="text-[13px] font-medium leading-4 text-neutral-60">채무종류</span>
                     <SelectField className="h-[34px] text-[13px]" value={debt.debtType} onChange={(e) => updateItem(debt.id, { debtType: e.target.value as DebtItemFormState["debtType"] })}>
                       {DEBT_ITEM_TYPE_OPTIONS.map((option) => (<option key={option.value} value={option.value}>
@@ -897,9 +939,9 @@ export default function DebtItemsTable({
                         </option>))}
                     </SelectField>
                   </div>
-                        <div className="min-w-0 flex flex-col gap-2"><span className="text-[13px] font-medium leading-4 text-neutral-60">담보</span>
+                        {!assetCollateralOnly && <div className="min-w-0 flex flex-col gap-2"><span className="text-[13px] font-medium leading-4 text-neutral-60">담보</span>
                     <CollateralSelect debt={debt} asset={collateralAsset} locked={locked} className="text-[13px]" onChange={(isCollateralLoan) => updateItem(debt.id, { isCollateralLoan, collateralAssetId: undefined })}/>
-                  </div>
+                  </div>}
                         <div className="min-w-0 flex flex-col gap-2"><span className="text-[13px] font-medium leading-4 text-neutral-60">채권처</span>
                     <TextInput value={debt.creditorName} onChange={(value) => updateItem(debt.id, { creditorName: value })} placeholder="채권처"/>
                   </div>
@@ -959,13 +1001,13 @@ export default function DebtItemsTable({
                       />
                     </fieldset>
                   </div>
-                        <CalculatedDebtField label="월불입" value={!isCreditCard && debt.monthlyPaymentWon ? debt.monthlyPaymentWon.toLocaleString("ko-KR") : "-"}/>
-                        <CalculatedDebtField label="잔여이자" value={!isCreditCard && debt.remainingInterestWon != null ? debt.remainingInterestWon.toLocaleString("ko-KR") : "-"}/>
-                        <CalculatedDebtField label="잔여상환액" value={!isCreditCard && debt.totalRepaymentWon != null ? debt.totalRepaymentWon.toLocaleString("ko-KR") : "-"}/>
+                        <CalculatedDebtField label="월불입" value={debt.monthlyPaymentWon ?? 0} disabled={isCreditCard} overridden={debt.manualCalculationOverrides?.includes("monthlyPaymentWon") ?? false} onChange={(value) => updateCalculatedItem(debt.id, "monthlyPaymentWon", value)} onReset={() => resetCalculatedItem(debt.id, "monthlyPaymentWon")}/>
+                        <CalculatedDebtField label="잔여이자" value={debt.remainingInterestWon ?? 0} disabled={isCreditCard} overridden={debt.manualCalculationOverrides?.includes("remainingInterestWon") ?? false} onChange={(value) => updateCalculatedItem(debt.id, "remainingInterestWon", value)} onReset={() => resetCalculatedItem(debt.id, "remainingInterestWon")}/>
+                        <CalculatedDebtField label="잔여상환액" value={debt.totalRepaymentWon ?? 0} disabled={isCreditCard} overridden={debt.manualCalculationOverrides?.includes("totalRepaymentWon") ?? false} onChange={(value) => updateCalculatedItem(debt.id, "totalRepaymentWon", value)} onReset={() => resetCalculatedItem(debt.id, "totalRepaymentWon")}/>
                       </div>
                     </div>);
           })}
-                <button data-debt-add-row type="button" onClick={addRow} className="inline-flex h-10 w-full cursor-pointer items-center gap-1 rounded-lg border border-neutral-30 bg-card px-3 text-[14px] font-medium text-neutral-60 hover:border-neutral-50"><PlusIcon />행 추가</button>
+                <button data-debt-add-row type="button" onClick={addRow} className="inline-flex h-10 w-full cursor-pointer items-center gap-1 rounded-lg border border-neutral-30 bg-card px-3 text-[14px] font-medium text-neutral-60 hover:border-neutral-50"><PlusIcon />{assetCollateralOnly ? "담보 대출 추가" : "행 추가"}</button>
               </div>
             </div>
             {customScrollbarEnabled && customScrollbar}

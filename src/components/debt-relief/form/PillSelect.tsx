@@ -37,7 +37,7 @@ export function PillSelect<T extends string>({
 }: {
   options: PillOption<T>[];
   value: T | null;
-  /** 이미 선택된 항목을 다시 누르면 null로 넘어온다 — 미선택 상태로 되돌릴 수 있어야 함 */
+  /** 단일 선택은 선택된 항목을 다시 눌러도 유지한다. 미선택은 초기 상태에서만 사용한다. */
   onChange: (value: T | null) => void;
   /** 기본 flex-wrap 레이아웃에 추가로 얹을 클래스 — 옵션이 많은 필드(거주지역 등)에서 md 이상
    * 한 줄 최대 개수를 grid로 제한하고 싶을 때 사용 */
@@ -50,7 +50,7 @@ export function PillSelect<T extends string>({
           key={option.value}
           label={option.label}
           selected={value === option.value}
-          onClick={() => onChange(value === option.value ? null : option.value)}
+          onClick={() => onChange(option.value)}
         />
       ))}
     </div>
