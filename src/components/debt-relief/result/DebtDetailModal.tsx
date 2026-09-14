@@ -229,6 +229,7 @@ export default function DebtDetailModal({
               showDebtItemFieldErrors={showDebtItemFieldErrors}
               scrollFadeColorClassName="[--debt-scroll-fade:#FFFFFF] dark:[--debt-scroll-fade:#111111]"
               customScrollbarMode="all"
+              detailedLayout="cards"
             />
           </div>
         </div>

@@ -90,7 +90,7 @@ export default function SuccessDonut({
         </p>
         <div className="flex items-baseline gap-0.5">
           <span
-            className={`font-montserrat font-bold tracking-[1px] text-neutral-90 ${
+            className={`font-montserrat font-extrabold tracking-[1px] text-neutral-90 ${
               density === "compact"
                 ? "text-[20px] leading-5"
                 : density === "medium"

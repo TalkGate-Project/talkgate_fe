@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { DebtStatusSummary, DiagnosisDetail } from "@/types/debtRelief";
 import { formatManwonComma } from "@/components/debt-relief/format";
 import DebtDetailModal from "./DebtDetailModal";
+import { isDebtCollateralLoan } from "@/types/analysis";
 
 // "자세히 보기" 버튼의 돋보기 아이콘.
 function DebtDetailSearchIcon() {
@@ -32,7 +33,7 @@ function Metric({
     <div className="flex flex-col gap-2 md:gap-[12px] min-w-0">
       <p className="text-[13px] md:text-[14px] font-medium leading-[17px] text-neutral-60">{label}</p>
       <div className="flex items-baseline gap-1">
-        <span className="font-montserrat font-bold text-[24px] md:text-[28px] leading-7 tracking-[-0.03em] text-neutral-90">
+        <span className="font-montserrat font-extrabold text-[24px] md:text-[28px] leading-7 tracking-[-0.03em] text-neutral-90">
           {value}
         </span>
         <span className="text-[13px] md:text-[14px] font-semibold leading-[17px] text-neutral-60">{unit}</span>
@@ -54,6 +55,14 @@ export default function SectionDebtStatus({
   // 상세입력 모드 건에만 이자 포함 총채무가 내려온다 — 간편모드면 "총 상환 예정" 칸 자체를 숨긴다.
   const hasInterest = debt.totalDebtWithInterestManwon != null;
   const [debtDetailOpen, setDebtDetailOpen] = useState(false);
+  const securedDebtManwon =
+    detail.collateralBreakdown?.collateralDebt ??
+    detail.inputData.debts
+      .filter((item) => !item.isExcludedFromAnalysis && isDebtCollateralLoan(item))
+      .reduce((sum, item) => sum + item.currentBalanceWon / 10_000, 0);
+  const unsecuredDebtManwon =
+    detail.collateralBreakdown?.unsecuredDebt ??
+    Math.max(0, debt.totalDebtManwon - securedDebtManwon);
 
   return (
     <div className="flex flex-col gap-5">
@@ -77,9 +86,9 @@ export default function SectionDebtStatus({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10">
         {/* 좌: 지표
             상세모드 — 3열: 총채무(원금) / 총상환예정(이자포함) / 연체기간
-                         총자산 / 월가용소득
+                         담보 / 무담보
             간편모드 — 2열: 총채무 / 연체기간
-                         총자산 / 월가용소득 */}
+                         담보 / 무담보 */}
         <div
           className={`grid gap-x-5 md:gap-x-[48px] gap-y-5 md:gap-y-6 min-w-0 md:pl-3 ${
             hasInterest ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2"
@@ -99,13 +108,13 @@ export default function SectionDebtStatus({
           )}
           <Metric label="연체 기간" value={String(debt.overdueMonths)} unit="개월" />
           <Metric
-            label="총 자산"
-            value={debt.totalAssetManwon.toLocaleString("ko-KR")}
+            label="담보"
+            value={securedDebtManwon.toLocaleString("ko-KR")}
             unit="만원"
           />
           <Metric
-            label="월 가용 소득"
-            value={debt.monthlyAvailableIncomeManwon.toLocaleString("ko-KR")}
+            label="무담보"
+            value={unsecuredDebtManwon.toLocaleString("ko-KR")}
             unit="만원"
           />
         </div>

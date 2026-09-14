@@ -22,6 +22,7 @@ function isValidDateOnly(value: string | undefined): value is string {
  * 연체(개월)는 0이 "연체 없음"이라는 유효한 기본값이라 여기서 검사하지 않는다.
  */
 export function getMissingDebtItemFields(debt: DebtItemFormState): MissingDebtItemField[] {
+  if (debt.debtType === "credit_card") return debt.currentBalanceWon ? [] : ["currentBalanceWon"];
   const missing: MissingDebtItemField[] = [];
   const today = new Date();
   const todayText = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
@@ -89,6 +90,17 @@ export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[
   if (form.hasRecentAssetDisposal === null) missing.push("최근 2년 내 재산 처분 이력");
   missing.push(...getMissingDebtFieldLabels(form));
   if (form.debtCauses.length === 0) missing.push("채무발생 원인");
+  return missing;
+}
+
+// 임시저장(작성중) API는 customerName/gender/ageGroup/region 4개만 필수다(FRONTEND_CHANGES5.md
+// 2026-09-11 스펙) — getMissingRequiredFieldLabels(전체 필수)와 분리된 별도 검증.
+export function getMissingDraftRequiredFieldLabels(form: DiagnosisFormState): string[] {
+  const missing: string[] = [];
+  if (!form.customerName.trim()) missing.push("고객명");
+  if (!form.gender) missing.push("성별");
+  if (!form.ageGroup) missing.push("연령대");
+  if (!form.region) missing.push("거주 지역");
   return missing;
 }
 

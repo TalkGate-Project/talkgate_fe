@@ -33,6 +33,22 @@ function MobileAnalyzeSparkleIcon() {
   );
 }
 
+/** 임시저장 아이콘 버튼용 — 플로피디스크 형태, currentColor로 톤 상속 */
+function SaveIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path
+        d="M4 3.5h9.17a1.5 1.5 0 0 1 1.06.44l1.83 1.83c.28.28.44.66.44 1.06V16.5A1.5 1.5 0 0 1 15 18H4a1.5 1.5 0 0 1-1.5-1.5v-11A1.5 1.5 0 0 1 4 3.5Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path d="M6.25 3.5v4h6v-4" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M6.25 18v-5.5h6.5V18" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function ChevronIcon({ expanded }: { expanded: boolean }) {
   return (
     <svg
@@ -58,6 +74,12 @@ type Props = {
   analyzing: boolean;
   /** 필수값 미충족(생성) / 변경 없음(수정)이면 true — 버튼은 유지하고 활성 효과만 숨김 */
   analyzeDisabled?: boolean;
+  onSaveDraft: () => void;
+  /** true면 버튼은 유지하고 비활성화만 한다 — 수정 모드에서 drafting 건이 아닐 때 */
+  saveDraftDisabled?: boolean;
+  savingDraft?: boolean;
+  /** 저장 성공 직후 잠깐 체크 아이콘으로 바뀌는 상태 */
+  draftSavedFlash?: boolean;
   /** 실제 고객 레코드와 연동된 데이터면 이름 옆에 연동 아이콘을 붙인다. */
   isCustomerConnected?: boolean;
   linkedCustomerName?: string;
@@ -81,6 +103,10 @@ export default function MobileFormSummaryDrawer({
   onAnalyze,
   analyzing,
   analyzeDisabled = false,
+  onSaveDraft,
+  saveDraftDisabled = false,
+  savingDraft = false,
+  draftSavedFlash = false,
   isCustomerConnected = false,
   linkedCustomerName,
   linkedCustomerContact,
@@ -115,6 +141,22 @@ export default function MobileFormSummaryDrawer({
           <h2 className="flex-1 min-w-0 truncate text-[16px] font-bold leading-[19px] text-foreground">
             {step.label}
           </h2>
+          {/* 임시저장 — 좁은 헤더라 아이콘 전용 원형 버튼으로, 분석하기 바로 왼쪽에 배치 */}
+          <button
+            type="button"
+            onClick={onSaveDraft}
+            disabled={saveDraftDisabled || savingDraft || analyzing}
+            aria-label={savingDraft ? "임시저장 중" : "임시저장"}
+            className="shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full border border-neutral-30 text-neutral-70 hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {draftSavedFlash ? (
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
+                <path d="M4.5 10.5l3.5 3.5 7.5-7.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ) : (
+              <SaveIcon />
+            )}
+          </button>
           {/* Figma: 92×34, radius 5, drop-shadow, 사이드바와 동일 analyze-button */}
           <button
               type="button"

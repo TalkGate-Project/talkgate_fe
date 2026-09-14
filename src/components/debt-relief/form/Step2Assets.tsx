@@ -83,7 +83,7 @@ export default function Step2Assets({ form, update }: Props) {
                 <FormToggle checked={collateralDebts.length > 0} onChange={setCollateralEnabled} ariaLabel={`${category?.label} 담보대출 여부`} />
               </div>
             </div>
-            {collateralDebts.length > 0 && <div className="border-t border-neutral-30 px-5 py-4 lg:px-6">
+            {collateralDebts.length > 0 && <div className="px-5 pb-4 lg:px-6">
               <DebtItemsTable
                 debts={collateralDebts}
                 assets={[asset]}

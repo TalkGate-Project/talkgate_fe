@@ -26,7 +26,7 @@ import {
 import { getMissingDebtItemFields } from "./validateDiagnosisForm";
 import { PercentInput, TextInput, WonInput } from "./FormControls";
 import { AssetIcon } from "./assetIcons";
-import { isDebtCollateralLoan } from "@/types/analysis";
+import { isDebtCollateralLoan, normalizeCreditCardDebt } from "@/types/analysis";
 
 type Props = {
   debts: DebtItemFormState[];
@@ -45,7 +45,7 @@ type Props = {
   showSummaryCards?: boolean;
   /** 자산 현황용 축약 표: 채무종류·채권처·연체·현재 잔액만 표시한다. */
   assetCollateralOnly?: boolean;
-  /** 채무 현황에서 삭제할 수 없고 회색 배경으로 구분할 행 ID. */
+  /** 채무 현황에서 삭제할 수 없고 담보 선택을 비활성화할 행 ID. */
   lockedDebtIds?: readonly string[];
   /** 넘김 버튼 뒤 그라데이션이 맞닿는 컨테이너 색. 호출 화면의 실제 배경색에 맞춰 오버라이드한다. */
   scrollFadeColorClassName?: string;
@@ -53,6 +53,7 @@ type Props = {
   desktopLayoutBreakpoint?: "tablet" | "desktop";
   /** Figma 규격의 전용 가로 스크롤바를 상세 모드에만 또는 모든 모드에 사용한다. */
   customScrollbarMode?: "detailed" | "all";
+  detailedLayout?: "table" | "cards";
 };
 
 // "YYYY-MM-DD" ↔ 로컬 Date. new Date(isoString)은 UTC로 해석돼 시간대에 따라 하루 밀릴 수
@@ -76,6 +77,18 @@ function formatWon(value: number): string {
   return `${value.toLocaleString("ko-KR")}원`;
 }
 
+// 오늘부터 n개월 뒤 날짜. 목표 월에 오늘과 같은 일(day)이 없으면(예: 1/31 + 1개월) 그 달의
+// 마지막 날로 내려 고정한다 — 그래야 결과 날짜를 다시 remainingMonthsUntil로 계산해도 n이
+// 그대로 나오는 왕복 일관성이 보장된다(일자가 시작일보다 크면 +1개월 취급하는 반대 방향 규칙과 대칭).
+function addMonthsClamped(start: Date, months: number): Date {
+  const totalMonthIndex = start.getMonth() + months;
+  const year = start.getFullYear() + Math.floor(totalMonthIndex / 12);
+  const month = ((totalMonthIndex % 12) + 12) % 12;
+  const daysInTargetMonth = new Date(year, month + 1, 0).getDate();
+  const day = Math.min(start.getDate(), daysInTargetMonth);
+  return new Date(year, month, day);
+}
+
 const OVERDUE_MAX_DIGITS = 3;
 
 // Figma 상세 테이블: 셀 안 입력요소는 기본 테두리 없이 배경에 묻어가고, 행 사이 구분선
@@ -94,9 +107,11 @@ function cellInputClassName(invalid: boolean): string {
 function OverdueMonthsInput({
   value,
   onChange,
+  className = "",
 }: {
   value: number;
   onChange: (value: number) => void;
+  className?: string;
 }) {
   return (
     <input
@@ -107,7 +122,7 @@ function OverdueMonthsInput({
         onChange(digits ? parseInt(digits, 10) : 0);
       }}
       placeholder="0"
-      className={`w-full h-[34px] px-3 py-2 rounded-[5px] border border-transparent focus:border-neutral-30 bg-card text-[14px] font-medium tracking-[-0.02em] text-foreground text-right placeholder:text-neutral-50 focus:outline-none`}
+      className={`w-full h-[34px] px-3 py-2 rounded-[5px] border border-transparent focus:border-neutral-30 bg-card text-[14px] font-medium tracking-[-0.02em] text-foreground text-right placeholder:text-neutral-50 focus:outline-none ${className}`}
     />
   );
 }
@@ -145,7 +160,7 @@ function PlusIcon({ className = "" }: { className?: string }) {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={className} aria-hidden>
       <path
         d="M8 3.33333V12.6667M3.33333 8H12.6667"
-        stroke="#B0B0B0"
+        stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -194,6 +209,41 @@ function ScrollEdgeArrowIcon({ pointsToStart }: { pointsToStart: boolean }) {
   );
 }
 
+function CollateralSelect({
+  debt,
+  asset,
+  locked,
+  className = "",
+  onChange,
+}: {
+  debt: DebtItemFormState;
+  asset?: AssetItemFormState;
+  locked: boolean;
+  className?: string;
+  onChange: (isCollateralLoan: boolean) => void;
+}) {
+  const disabled = locked || debt.debtType === "credit_card";
+
+  return (
+    <div className="relative">
+      {locked && asset && (
+        <span className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-neutral-50">
+          <AssetIcon category={asset.category} />
+        </span>
+      )}
+      <SelectField
+        className={`h-[34px] disabled:!bg-neutral-20 disabled:!text-neutral-50 disabled:cursor-not-allowed ${locked && asset ? "!pl-9" : ""} ${className}`}
+        disabled={disabled}
+        value={isDebtCollateralLoan(debt) ? "secured" : "unsecured"}
+        onChange={(event) => onChange(event.target.value === "secured")}
+      >
+        <option value="secured">담보</option>
+        <option value="unsecured">무담보</option>
+      </SelectField>
+    </div>
+  );
+}
+
 function DetailedScrollbarArrowIcon({ direction }: { direction: "left" | "right" }) {
   return (
     <svg
@@ -212,6 +262,92 @@ function DetailedScrollbarArrowIcon({ direction }: { direction: "left" | "right"
         strokeLinejoin="round"
       />
     </svg>
+  );
+}
+
+function CalculatedDebtField({ label, value, suffix }: { label: string; value: string; suffix?: string }) {
+  return (
+    <label className="flex min-w-0 flex-col gap-2">
+      <span className="text-[13px] font-medium leading-4 text-neutral-60">{label}</span>
+      <div className="relative">
+        <input readOnly value={value} className="h-[34px] w-full rounded-[5px] border border-neutral-30 bg-card pl-3 pr-9 text-right text-[14px] font-medium text-foreground focus:outline-none" />
+        {suffix ? (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-neutral-60">{suffix}</span>
+        ) : (
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-50">
+            <path d="M13.5 7A5.5 5.5 0 0 0 3 5L1.5 7M1.5 7V3M1.5 7H5.5M2.5 9A5.5 5.5 0 0 0 13 11L14.5 9M14.5 9V13M14.5 9H10.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </div>
+    </label>
+  );
+}
+
+// "만기일"과 시각적으로 이어붙는 입력칸. 값을 고치면 오늘 기준 n개월 뒤 날짜를 만기일로
+// 역산해 넘기고(onChangeMonths), 만기일 쪽이 바뀌면 calculateDebtItemAmortization이 이 값을
+// 다시 계산해 채운다 — 두 필드가 서로를 갱신하는 순환 구조.
+//
+// 화면에 보이는 문자열(draft)을 debt.remainingMonths와 분리된 로컬 상태로 따로 들고 간다.
+// 그냥 value prop을 그대로 입력값으로 쓰면, 전부 지워서(빈 문자열) onChangeMonths를 호출하지
+// 않는 순간 이 행과 무관한 다른 입력 때문에 테이블 전체가 리렌더될 때 React가 컨트롤드
+// input을 마지막으로 커밋된 숫자로 되돌려버려 "15 → 1까지는 지워지는데 그 다음 백스페이스가
+// 먹통"이 된다. 포커스 중엔 draft만 갱신하고, 포커스를 벗어나거나 외부에서 만기일이 바뀌어
+// value가 달라졌을 때만 draft를 value와 다시 맞춘다.
+function RemainingMonthsInput({
+  value,
+  onChangeMonths,
+  onClear,
+  disabled = false,
+  invalid = false,
+}: {
+  value?: number;
+  onChangeMonths: (months: number) => void;
+  onClear: () => void;
+  disabled?: boolean;
+  invalid?: boolean;
+}) {
+  const [draft, setDraft] = useState(() => (value ? String(value) : ""));
+  const focusedRef = useRef(false);
+
+  useEffect(() => {
+    if (focusedRef.current) return;
+    setDraft(value ? String(value) : "");
+  }, [value]);
+
+  return (
+    <div className="relative -ml-px flex-1 min-w-0">
+      <input
+        type="text"
+        inputMode="numeric"
+        disabled={disabled}
+        value={disabled ? "" : draft}
+        onFocus={() => {
+          focusedRef.current = true;
+        }}
+        onBlur={() => {
+          focusedRef.current = false;
+          // 유효한 값(1 이상)으로 이어지지 못한 채 남은 입력(빈 문자열, "0" 등)은 버리고
+          // 실제 커밋된 값으로 되돌린다 — 화면에 한 번도 반영된 적 없는 숫자가 남지 않도록.
+          setDraft(value ? String(value) : "");
+        }}
+        onChange={(event) => {
+          const digits = event.target.value
+            .replace(/[^0-9]/g, "")
+            .replace(/^0+(?=\d)/, "")
+            .slice(0, 3);
+          setDraft(digits);
+          if (!digits) {
+            onClear();
+            return;
+          }
+          const months = parseInt(digits, 10);
+          if (months >= 1) onChangeMonths(months);
+        }}
+        placeholder="-"
+        className={`h-[34px] w-full rounded-l-none rounded-r-[5px] border border-neutral-30 bg-card pl-3 pr-9 text-right text-[14px] font-medium tracking-[-0.02em] text-foreground placeholder:text-neutral-50 focus:outline-none disabled:!bg-neutral-20 disabled:!text-neutral-50 disabled:cursor-not-allowed ${invalid ? "!border-danger-40 dark:!border-danger-40" : ""}`}
+      />
+      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-neutral-60">개월</span>
+    </div>
   );
 }
 
@@ -276,6 +412,33 @@ function DebtSumCard({
   );
 }
 
+function SimpleDebtSumCard({
+  label,
+  amount,
+  highlight = false,
+  backgroundClassName = "bg-neutral-10",
+}: {
+  label: string;
+  amount: number;
+  highlight?: boolean;
+  backgroundClassName?: string;
+}) {
+  return (
+    <div
+      data-debt-summary-card
+      data-highlight={highlight}
+      className={`flex min-h-[76px] flex-col justify-center gap-2 rounded-xl px-5 py-4 ${highlight ? "bg-neutral-100" : backgroundClassName}`}
+    >
+      <span className={`text-[14px] font-medium tracking-[0.2px] ${highlight ? "text-neutral-50" : "text-neutral-60"}`}>
+        {label}
+      </span>
+      <strong className={`text-[16px] font-bold tracking-[-0.04em] ${highlight ? "text-neutral-0" : "text-foreground"}`}>
+        {formatWon(amount)}
+      </strong>
+    </div>
+  );
+}
+
 export default function DebtItemsTable({
   debts,
   assets,
@@ -290,6 +453,7 @@ export default function DebtItemsTable({
   scrollFadeColorClassName = "[--debt-scroll-fade:#FFFFFF] dark:[--debt-scroll-fade:#111111]",
   desktopLayoutBreakpoint = "tablet",
   customScrollbarMode,
+  detailedLayout = "table",
 }: Props) {
   const { containerRef, dragScrollHandlers } = useHorizontalDragScroll<HTMLDivElement>();
   const customScrollbarEnabled =
@@ -536,6 +700,7 @@ export default function DebtItemsTable({
       debts.map((debt) => {
         if (debt.id !== id) return debt;
         const merged = { ...debt, ...patch };
+        if (merged.debtType === "credit_card") return normalizeCreditCardDebt(merged);
         return { ...merged, ...calculateDebtItemAmortization(merged) };
       })
     );
@@ -571,111 +736,246 @@ export default function DebtItemsTable({
   ) : null;
 
   if (assetCollateralOnly && mode === "simple") {
-    const assetColumnWidths = [180, 220, 150, 220, 48];
-    const assetTableWidth = assetColumnWidths.reduce((sum, width) => sum + width, 0);
     return (
-      <div data-debt-items-table className="rounded-t-[10px] overflow-hidden">
-        <div className="relative">
-          <div
-            id={scrollContainerId}
-            className={`table-horizontal-scroll overflow-x-auto ${customScrollbarEnabled ? "scrollbar-hide" : ""}`}
-            style={{ scrollbarWidth: customScrollbarEnabled ? "none" : undefined }}
-            ref={containerRef}
-            {...dragScrollHandlers}
-            onScroll={updateHorizontalScrollState}
-          >
-            <table className="border-collapse table-fixed" style={{ width: assetTableWidth, minWidth: "100%" }} aria-label="자산 담보대출 내역">
-            <colgroup>{assetColumnWidths.map((width, index) => <col key={index} style={{ width }} />)}</colgroup>
-            <thead><tr>
-              <th className={HEADER_CELL}>채무종류</th>
-              <th className={HEADER_CELL}>채권처</th>
-              <th className={`${HEADER_CELL} text-right`}>연체(개월)</th>
-              <th className={`${HEADER_CELL} text-right`}>현재 잔액 (원)</th>
-              <th className={HEADER_CELL} aria-label="삭제" />
-            </tr></thead>
-            <tbody>{debts.map((debt) => <tr key={debt.id} className="border-b-[0.4px] border-neutral-30 last:border-b-0">
-              <td className={BODY_CELL}><SelectField className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`} value={debt.debtType} onChange={(event) => updateItem(debt.id, { debtType: event.target.value as DebtItemFormState["debtType"] })}>{DEBT_ITEM_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</SelectField></td>
-              <td className={BODY_CELL}><TextInput value={debt.creditorName} onChange={(creditorName) => updateItem(debt.id, { creditorName })} placeholder="채권처" className={CELL_INPUT_BORDERLESS} /></td>
-              <td className={BODY_CELL}><OverdueMonthsInput value={debt.overdueMonths} onChange={(overdueMonths) => updateItem(debt.id, { overdueMonths })} /></td>
-              <td className={BODY_CELL}><WonInput value={debt.currentBalanceWon} onChange={(currentBalanceWon) => updateItem(debt.id, { currentBalanceWon })} className={CELL_INPUT_BORDERLESS} /></td>
-              <td className={`${BODY_CELL} text-center`}><button type="button" onClick={() => removeRow(debt.id)} aria-label="행 삭제" className="cursor-pointer inline-flex h-6 w-6 items-center justify-center hover:opacity-70"><RemoveRowIcon /></button></td>
-            </tr>)}</tbody>
-            <tfoot><tr className={addRowDividerClassName}><td colSpan={5} className="py-2"><button data-debt-add-row type="button" onClick={addRow} className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}><PlusIcon />담보 대출 추가</button></td></tr></tfoot>
-            </table>
+      <div data-debt-items-table className="rounded-lg bg-neutral-10 px-5 pt-5 pb-4">
+        <div
+          id={scrollContainerId}
+          className="table-horizontal-scroll overflow-x-auto"
+          ref={containerRef}
+          {...dragScrollHandlers}
+          onScroll={updateHorizontalScrollState}
+        >
+          <div className="flex min-w-[854px] flex-col gap-4">
+            {debts.map((debt) => (
+              <div
+                key={debt.id}
+                className="relative grid h-[90px] grid-cols-[112px_266px_120px_minmax(220px,1fr)] gap-2.5 rounded-lg bg-card px-5 py-[15px] shadow-[0_1px_2px_rgba(9,30,66,0.12)]"
+              >
+                <label className="flex min-w-0 flex-col gap-2 text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">
+                  <span>채무종류</span>
+                  <SelectField
+                    className="h-[34px] !border-neutral-30 px-3 text-[14px] font-medium tracking-[-0.02em]"
+                    value={debt.debtType}
+                    onChange={(event) => updateItem(debt.id, { debtType: event.target.value as DebtItemFormState["debtType"] })}
+                  >
+                    {DEBT_ITEM_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </SelectField>
+                </label>
+                <label className="flex min-w-0 flex-col gap-2 text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">
+                  <span>채권처</span>
+                  <TextInput value={debt.creditorName} onChange={(creditorName) => updateItem(debt.id, { creditorName })} placeholder="채권처" />
+                </label>
+                <label className="flex min-w-0 flex-col gap-2 text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">
+                  <span>연체(개월)</span>
+                  <OverdueMonthsInput value={debt.overdueMonths} onChange={(overdueMonths) => updateItem(debt.id, { overdueMonths })} className="!border-neutral-30" />
+                </label>
+                <label className="flex min-w-0 flex-col gap-2 text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">
+                  <span>현재 잔액(원)</span>
+                  <WonInput value={debt.currentBalanceWon} onChange={(currentBalanceWon) => updateItem(debt.id, { currentBalanceWon })} />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => removeRow(debt.id)}
+                  aria-label="행 삭제"
+                  className="absolute right-5 top-3 inline-flex h-5 w-5 cursor-pointer items-center justify-center text-neutral-50 hover:text-neutral-60"
+                >
+                  <RemoveRowIcon />
+                </button>
+              </div>
+            ))}
+            <button
+              data-debt-add-row
+              type="button"
+              onClick={addRow}
+              className="inline-flex h-10 w-full cursor-pointer items-center gap-1 px-3 text-[14px] font-medium tracking-[0.2px] text-neutral-60 rounded-lg border border-neutral-30 bg-card hover:border-neutral-50"
+            >
+              <PlusIcon />담보 대출 추가
+            </button>
           </div>
-          {scrollEdgeControls}
         </div>
-        {customScrollbarEnabled && customScrollbar}
       </div>
     );
   }
 
   if (mode === "simple") {
-    const simpleColumnWidths = [150, 100, 200, 140, 210, 48];
-    const simpleTableWidth = simpleColumnWidths.reduce((sum, width) => sum + width, 0);
     return (
-      <div data-debt-items-table className="rounded-t-[10px] overflow-hidden">
-        <div className="relative">
+      <div data-debt-items-table className="flex min-w-0 flex-col gap-5">
+        <div className="rounded-lg bg-neutral-10 px-5 pt-5 pb-4">
           <div
             id={scrollContainerId}
-            className={`table-horizontal-scroll overflow-x-auto ${customScrollbarEnabled ? "scrollbar-hide" : ""}`}
-            style={{ scrollbarWidth: customScrollbarEnabled ? "none" : undefined }}
+            className="table-horizontal-scroll overflow-x-auto"
             ref={containerRef}
             {...dragScrollHandlers}
             onScroll={updateHorizontalScrollState}
           >
-            <table className="border-collapse table-fixed" style={{ width: simpleTableWidth, minWidth: "100%" }} aria-label="채무 간편 내역">
-            <colgroup>{simpleColumnWidths.map((width, index) => <col key={index} style={{ width }} />)}</colgroup>
-            <thead><tr>
-              <th className={HEADER_CELL}>채무종류</th>
-              <th className={HEADER_CELL}>담보</th>
-              <th className={HEADER_CELL}>채권처</th>
-              <th className={`${HEADER_CELL} text-right`}>연체(개월)</th>
-              <th className={`${HEADER_CELL} text-right`}>현재 잔액 (원)</th>
-              <th className={HEADER_CELL} aria-label="삭제" />
-            </tr></thead>
-            <tbody>{debts.map((debt) => {
-              const locked = lockedDebtIds.includes(debt.id);
-              const collateralAsset = debt.collateralAssetId
-                ? assets.find((asset) => asset.id === debt.collateralAssetId)
-                : undefined;
-              return <tr key={debt.id} className={`border-b-[0.4px] border-neutral-30 last:border-b-0 ${locked ? "bg-neutral-10 [&_input]:!bg-neutral-10 [&_select]:!bg-neutral-10" : ""}`}>
-                <td className={BODY_CELL}><SelectField className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`} value={debt.debtType} onChange={(event) => updateItem(debt.id, { debtType: event.target.value as DebtItemFormState["debtType"] })}>{DEBT_ITEM_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</SelectField></td>
-                <td className={`${BODY_CELL} text-[14px] font-medium text-neutral-90/80`}>
-                  {locked ? (
-                    <span className="flex h-[34px] items-center gap-2 px-3 whitespace-nowrap">
-                      {collateralAsset && <AssetIcon category={collateralAsset.category} />}
-                      담보
-                    </span>
-                  ) : (
-                    <SelectField
-                      className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`}
-                      value={isDebtCollateralLoan(debt) ? "secured" : "unsecured"}
-                      onChange={(event) => updateItem(debt.id, {
-                        isCollateralLoan: event.target.value === "secured",
-                        collateralAssetId: undefined,
-                      })}
-                    >
-                      <option value="secured">담보</option>
-                      <option value="unsecured">무담보</option>
-                    </SelectField>
-                  )}
-                </td>
-                <td className={BODY_CELL}><TextInput value={debt.creditorName} onChange={(creditorName) => updateItem(debt.id, { creditorName })} placeholder="채권처" className={CELL_INPUT_BORDERLESS} /></td>
-                <td className={BODY_CELL}><OverdueMonthsInput value={debt.overdueMonths} onChange={(overdueMonths) => updateItem(debt.id, { overdueMonths })} /></td>
-                <td className={BODY_CELL}><WonInput value={debt.currentBalanceWon} onChange={(currentBalanceWon) => updateItem(debt.id, { currentBalanceWon })} className={CELL_INPUT_BORDERLESS} /></td>
-                <td className={`${BODY_CELL} text-center`}>{!locked && <button type="button" onClick={() => removeRow(debt.id)} aria-label="행 삭제" className="cursor-pointer inline-flex h-6 w-6 items-center justify-center hover:opacity-70"><RemoveRowIcon /></button>}</td>
-              </tr>;
-            })}</tbody>
-            <tfoot><tr className={addRowDividerClassName}><td colSpan={6} className="py-2"><button data-debt-add-row type="button" onClick={addRow} className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}><PlusIcon />행 추가</button></td></tr></tfoot>
-            </table>
+            <div className="flex min-w-[854px] flex-col gap-4">
+              {debts.map((debt) => {
+                const locked = lockedDebtIds.includes(debt.id);
+                const collateralAsset = assets.find((asset) => asset.id === debt.collateralAssetId);
+                return (
+                  <div
+                    key={debt.id}
+                    className="relative grid h-[90px] grid-cols-[114px_120px_136px_122px_minmax(220px,1fr)] gap-2.5 rounded-lg bg-card px-5 py-[15px] shadow-[0_1px_2px_rgba(9,30,66,0.12)]"
+                  >
+                    <label className="flex min-w-0 flex-col gap-2 text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">
+                      <span>채무종류</span>
+                      <SelectField className="h-[34px] !border-neutral-30 px-3 text-[14px] font-medium tracking-[-0.02em]" value={debt.debtType} onChange={(event) => updateItem(debt.id, { debtType: event.target.value as DebtItemFormState["debtType"] })}>{DEBT_ITEM_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</SelectField>
+                    </label>
+                    <div className="flex min-w-0 flex-col gap-2 text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">
+                      <span>담보</span>
+                      <CollateralSelect
+                        debt={debt}
+                        asset={collateralAsset}
+                        locked={locked}
+                        className="!border-neutral-30 px-3 text-[14px] font-medium tracking-[-0.02em]"
+                        onChange={(isCollateralLoan) => updateItem(debt.id, { isCollateralLoan, collateralAssetId: undefined })}
+                      />
+                    </div>
+                    <label className="flex min-w-0 flex-col gap-2 text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">
+                      <span>채권처</span>
+                      <TextInput value={debt.creditorName} onChange={(creditorName) => updateItem(debt.id, { creditorName })} placeholder="채권처" />
+                    </label>
+                    <label className="flex min-w-0 flex-col gap-2 text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">
+                      <span>연체(개월)</span>
+                      <OverdueMonthsInput value={debt.overdueMonths} onChange={(overdueMonths) => updateItem(debt.id, { overdueMonths })} className="!border-neutral-30" />
+                    </label>
+                    <label className="flex min-w-0 flex-col gap-2 text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">
+                      <span className="inline-flex items-center gap-1">
+                        현재 잔액(원)
+                        <Tooltip content="오늘 기준으로 남은 원금을 적어주세요." position="bottom" delay={0.1} gap={10}>
+                          <button type="button" aria-label="현재 잔액 입력 안내" className="inline-flex h-4 w-4 cursor-help items-center justify-center text-neutral-50 hover:text-neutral-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-40">
+                            <InfoCircleIcon size={14} />
+                          </button>
+                        </Tooltip>
+                      </span>
+                      <WonInput value={debt.currentBalanceWon} onChange={(currentBalanceWon) => updateItem(debt.id, { currentBalanceWon })} />
+                    </label>
+                    {!locked && (
+                      <button type="button" onClick={() => removeRow(debt.id)} aria-label="행 삭제" className="absolute right-5 top-3 inline-flex h-5 w-5 cursor-pointer items-center justify-center text-neutral-50 hover:text-neutral-60">
+                        <RemoveRowIcon />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+              <button data-debt-add-row type="button" onClick={addRow} className="inline-flex h-10 w-full cursor-pointer items-center gap-1 rounded-lg border border-neutral-30 bg-card px-3 text-[14px] font-medium tracking-[0.2px] text-neutral-60 hover:border-neutral-50">
+                <PlusIcon />행 추가
+              </button>
+            </div>
           </div>
-          {scrollEdgeControls}
         </div>
-        {customScrollbarEnabled && customScrollbar}
-        {summaryCards}
+        {showSummaryCards && (
+          <div className={`grid grid-cols-1 gap-5 ${summaryGridColumnsClassName}`}>
+            <SimpleDebtSumCard label="담보대출 합산" amount={collateralTotals.currentBalanceWon} backgroundClassName={sumCardBackgroundClassName} />
+            <SimpleDebtSumCard label="무담보대출 합산" amount={unsecuredTotals.currentBalanceWon} backgroundClassName={sumCardBackgroundClassName} />
+            <SimpleDebtSumCard label="총 합산" amount={totals.currentBalanceWon} highlight />
+          </div>
+        )}
       </div>
     );
+  }
+
+
+  if (detailedLayout === "cards" && mode === "detailed" && !assetCollateralOnly) {
+      return (<div data-debt-items-table className="flex min-w-0 flex-col gap-5">
+          <div className="rounded-lg bg-neutral-10 p-5">
+            <div id={scrollContainerId} ref={containerRef} {...dragScrollHandlers} onScroll={updateHorizontalScrollState} className={`table-horizontal-scroll overflow-x-auto ${customScrollbarEnabled ? "scrollbar-hide" : ""}`}>
+              <div className="flex min-w-[854px] flex-col gap-4" aria-label="채무 상세 내역">
+                {debts.map((debt) => {
+              const missingFields = showFieldErrors ? getMissingDebtItemFields(debt) : [];
+              const isFieldInvalid = (field: "loanDate" | "maturityDate" | "currentBalanceWon" | "interestRate") => missingFields.includes(field);
+              const locked = lockedDebtIds.includes(debt.id);
+              const collateralAsset = assets.find((asset) => asset.id === debt.collateralAssetId);
+              const isCreditCard = debt.debtType === "credit_card";
+              return (<div key={debt.id} className={`relative flex flex-col gap-3 rounded-lg p-4 pt-4 pb-5 shadow-[0_1px_2px_rgba(9,30,66,0.12)] bg-card`}>
+                      {!locked && <button type="button" onClick={() => removeRow(debt.id)} aria-label="행 삭제" className="absolute right-3 top-2 cursor-pointer text-neutral-50 hover:text-neutral-70"><RemoveRowIcon /></button>}
+                      <div className="grid grid-cols-[114px_100px_136px_82px_minmax(140px,1fr)_80px_100px] gap-2.5">
+                        <div className="min-w-0 flex flex-col gap-2"><span className="text-[13px] font-medium leading-4 text-neutral-60">채무종류</span>
+                    <SelectField className="h-[34px] text-[13px]" value={debt.debtType} onChange={(e) => updateItem(debt.id, { debtType: e.target.value as DebtItemFormState["debtType"] })}>
+                      {DEBT_ITEM_TYPE_OPTIONS.map((option) => (<option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>))}
+                    </SelectField>
+                  </div>
+                        <div className="min-w-0 flex flex-col gap-2"><span className="text-[13px] font-medium leading-4 text-neutral-60">담보</span>
+                    <CollateralSelect debt={debt} asset={collateralAsset} locked={locked} className="text-[13px]" onChange={(isCollateralLoan) => updateItem(debt.id, { isCollateralLoan, collateralAssetId: undefined })}/>
+                  </div>
+                        <div className="min-w-0 flex flex-col gap-2"><span className="text-[13px] font-medium leading-4 text-neutral-60">채권처</span>
+                    <TextInput value={debt.creditorName} onChange={(value) => updateItem(debt.id, { creditorName: value })} placeholder="채권처"/>
+                  </div>
+                        <div className="min-w-0 flex flex-col gap-2"><span className="text-[13px] font-medium leading-4 text-neutral-60">연체(개월)</span>
+                    <OverdueMonthsInput className="!border-neutral-30" value={debt.overdueMonths} onChange={(value) => updateItem(debt.id, { overdueMonths: value })}/>
+                  </div>
+                        <div className="min-w-0 flex flex-col gap-2"><span className="text-[13px] font-medium leading-4 text-neutral-60">현재 잔액(원) <Tooltip content="오늘 기준으로 남은 원금을 적어주세요." position="bottom"><span className="inline-flex align-middle" tabIndex={0} aria-label="현재 잔액 입력 안내"><InfoCircleIcon size={14}/></span></Tooltip></span>
+                    <WonInput value={debt.currentBalanceWon} onChange={(value) => updateItem(debt.id, { currentBalanceWon: value })} invalid={isFieldInvalid("currentBalanceWon")}/>
+                  </div>
+                        <div className="min-w-0 flex flex-col gap-2"><span className="text-[13px] font-medium leading-4 text-neutral-60">금리(%)</span>
+                    <fieldset disabled={debt.debtType === "credit_card"} className="min-w-0 disabled:opacity-50 [&:disabled_input]:cursor-not-allowed [&:disabled_select]:cursor-not-allowed">
+                      <PercentInput value={debt.interestRate} onChange={(value) => updateItem(debt.id, { interestRate: value ?? undefined })} invalid={isFieldInvalid("interestRate")}/>
+                    </fieldset>
+                  </div>
+                        <div className="min-w-0 flex flex-col gap-2"><span className="text-[13px] font-medium leading-4 text-neutral-60">상환방식</span>
+                    <fieldset disabled={debt.debtType === "credit_card"} className="min-w-0 disabled:opacity-50 [&:disabled_input]:cursor-not-allowed [&:disabled_select]:cursor-not-allowed">
+                      <SelectField className="h-[34px] text-[13px]" value={debt.repaymentMethod ?? "equal_principal_and_interest"} onChange={(e) => updateItem(debt.id, {
+                      repaymentMethod: e.target.value as DebtItemFormState["repaymentMethod"],
+                  })}>
+                        {REPAYMENT_METHOD_OPTIONS.map((option) => (<option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>))}
+                      </SelectField>
+                    </fieldset>
+                  </div>
+                      </div>
+                      <div className="grid grid-cols-[132px_222px_minmax(136px,1fr)_minmax(136px,1fr)_minmax(148px,1fr)] gap-2.5">
+                        <div className="min-w-0 flex flex-col gap-2"><span className="text-[13px] font-medium leading-4 text-neutral-60">대출일</span>
+                    <fieldset disabled={debt.debtType === "credit_card"} className="min-w-0 disabled:opacity-50 [&:disabled_input]:cursor-not-allowed [&:disabled_select]:cursor-not-allowed">
+                      <div className="relative">
+                        <DatePicker disabled={debt.debtType === "credit_card"} value={parseDateOnly(debt.loanDate)} onChange={(date) => updateItem(debt.id, { loanDate: formatDateOnly(date) })} allowTextInput invalid={isFieldInvalid("loanDate")} className="pr-8"/>
+                        <CalendarInlineIcon className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"/>
+                      </div>
+                    </fieldset>
+                  </div>
+                        <div className="min-w-0 flex flex-col gap-2">
+                    <div className="flex">
+                      <span className="w-[144px] shrink-0 text-[13px] font-medium leading-4 text-neutral-60">만기일</span>
+                      <span className="text-[13px] font-medium leading-4 text-neutral-60">남은기간</span>
+                    </div>
+                    <fieldset disabled={debt.debtType === "credit_card"} className="min-w-0 flex disabled:opacity-50 [&:disabled_input]:cursor-not-allowed [&:disabled_select]:cursor-not-allowed">
+                      <div className="relative w-[144px] shrink-0">
+                        <DatePicker disabled={debt.debtType === "credit_card"} value={parseDateOnly(debt.maturityDate)} onChange={(date) => updateItem(debt.id, { maturityDate: formatDateOnly(date) })} allowTextInput maxDate={maxMaturityDate} invalid={isFieldInvalid("maturityDate")} className="pr-8 !rounded-r-none"/>
+                        <CalendarInlineIcon className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"/>
+                      </div>
+                      <RemainingMonthsInput
+                        value={debt.remainingMonths}
+                        disabled={debt.debtType === "credit_card"}
+                        invalid={isFieldInvalid("maturityDate")}
+                        onChangeMonths={(months) => {
+                          const nextMaturityDate = addMonthsClamped(new Date(), months);
+                          updateItem(debt.id, {
+                            maturityDate: formatDateOnly(nextMaturityDate > maxMaturityDate ? maxMaturityDate : nextMaturityDate),
+                          });
+                        }}
+                        onClear={() => updateItem(debt.id, { maturityDate: "" })}
+                      />
+                    </fieldset>
+                  </div>
+                        <CalculatedDebtField label="월불입" value={!isCreditCard && debt.monthlyPaymentWon ? debt.monthlyPaymentWon.toLocaleString("ko-KR") : "-"}/>
+                        <CalculatedDebtField label="잔여이자" value={!isCreditCard && debt.remainingInterestWon != null ? debt.remainingInterestWon.toLocaleString("ko-KR") : "-"}/>
+                        <CalculatedDebtField label="잔여상환액" value={!isCreditCard && debt.totalRepaymentWon != null ? debt.totalRepaymentWon.toLocaleString("ko-KR") : "-"}/>
+                      </div>
+                    </div>);
+          })}
+                <button data-debt-add-row type="button" onClick={addRow} className="inline-flex h-10 w-full cursor-pointer items-center gap-1 rounded-lg border border-neutral-30 bg-card px-3 text-[14px] font-medium text-neutral-60 hover:border-neutral-50"><PlusIcon />행 추가</button>
+              </div>
+            </div>
+            {customScrollbarEnabled && customScrollbar}
+          </div>
+          {showSummaryCards && <div className={`grid grid-cols-1 ${summaryGridColumnsClassName} gap-5`}>
+            <DebtSumCard label="담보대출 합산" sums={collateralTotals} backgroundClassName={sumCardBackgroundClassName}/>
+            <DebtSumCard label="무담보대출 합산" sums={unsecuredTotals} backgroundClassName={sumCardBackgroundClassName}/>
+            <DebtSumCard label="총 합산" sums={totals} highlight/>
+          </div>}
+        </div>);
   }
 
   const hideCollateralAssetColumn = assetCollateralOnly && Boolean(defaultCollateralAssetId);
@@ -747,11 +1047,9 @@ export default function DebtItemsTable({
               const isFieldInvalid = (field: "loanDate" | "maturityDate" | "currentBalanceWon" | "interestRate") =>
                 missingFields.includes(field);
               const locked = lockedDebtIds.includes(debt.id);
-              const collateralAsset = debt.collateralAssetId
-                ? assets.find((asset) => asset.id === debt.collateralAssetId)
-                : undefined;
+              const collateralAsset = assets.find((asset) => asset.id === debt.collateralAssetId);
               return (
-              <tr key={debt.id} className={`border-b-[0.4px] border-neutral-30 last:border-b-0 ${locked ? "bg-neutral-10 [&_input]:!bg-neutral-10 [&_select]:!bg-neutral-10" : ""}`}>
+              <tr key={debt.id} className={`border-b-[0.4px] border-neutral-30 last:border-b-0 bg-card`}>
                 <td className={BODY_CELL}>
                   <SelectField
                     className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`}
@@ -768,24 +1066,13 @@ export default function DebtItemsTable({
                   </SelectField>
                 </td>
                 {!hideCollateralAssetColumn && <td className={BODY_CELL}>
-                  {locked ? (
-                    <span className="inline-flex h-[34px] items-center gap-2 px-3 text-[13px] font-medium text-neutral-90/80 whitespace-nowrap">
-                      {collateralAsset && <AssetIcon category={collateralAsset.category} />}
-                      담보
-                    </span>
-                  ) : (
-                    <SelectField
-                      className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`}
-                      value={isDebtCollateralLoan(debt) ? "secured" : "unsecured"}
-                      onChange={(event) => updateItem(debt.id, {
-                        isCollateralLoan: event.target.value === "secured",
-                        collateralAssetId: undefined,
-                      })}
-                    >
-                      <option value="secured">담보</option>
-                      <option value="unsecured">무담보</option>
-                    </SelectField>
-                  )}
+                  <CollateralSelect
+                    debt={debt}
+                    asset={collateralAsset}
+                    locked={locked}
+                    className={`text-[13px] ${CELL_INPUT_BORDERLESS}`}
+                    onChange={(isCollateralLoan) => updateItem(debt.id, { isCollateralLoan, collateralAssetId: undefined })}
+                  />
                 </td>}
                 <td className={BODY_CELL}>
                   <TextInput
@@ -796,21 +1083,23 @@ export default function DebtItemsTable({
                   />
                 </td>
                 <td className={BODY_CELL}>
-                  <SelectField
-                    className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`}
-                    value={debt.repaymentMethod ?? "equal_principal_and_interest"}
-                    onChange={(e) =>
-                      updateItem(debt.id, {
-                        repaymentMethod: e.target.value as DebtItemFormState["repaymentMethod"],
-                      })
-                    }
-                  >
-                    {REPAYMENT_METHOD_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </SelectField>
+                  <fieldset disabled={debt.debtType === "credit_card"} className="min-w-0 disabled:opacity-50 [&:disabled_input]:cursor-not-allowed [&:disabled_select]:cursor-not-allowed">
+                    <SelectField
+                      className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`}
+                      value={debt.repaymentMethod ?? "equal_principal_and_interest"}
+                      onChange={(e) =>
+                        updateItem(debt.id, {
+                          repaymentMethod: e.target.value as DebtItemFormState["repaymentMethod"],
+                        })
+                      }
+                    >
+                      {REPAYMENT_METHOD_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </SelectField>
+                  </fieldset>
                 </td>
                 <td className={BODY_CELL}>
                   <OverdueMonthsInput
@@ -819,29 +1108,35 @@ export default function DebtItemsTable({
                   />
                 </td>
                 <td className={BODY_CELL}>
-                  <div className="relative">
-                    <DatePicker
-                      value={parseDateOnly(debt.loanDate)}
-                      onChange={(date) => updateItem(debt.id, { loanDate: formatDateOnly(date) })}
-                      allowTextInput
-                      invalid={isFieldInvalid("loanDate")}
-                      className={`pr-8 ${cellInputClassName(isFieldInvalid("loanDate"))}`}
-                    />
-                    <CalendarInlineIcon className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
-                  </div>
+                  <fieldset disabled={debt.debtType === "credit_card"} className="min-w-0 disabled:opacity-50 [&:disabled_input]:cursor-not-allowed [&:disabled_select]:cursor-not-allowed">
+                    <div className="relative">
+                      <DatePicker
+                        disabled={debt.debtType === "credit_card"}
+                        value={parseDateOnly(debt.loanDate)}
+                        onChange={(date) => updateItem(debt.id, { loanDate: formatDateOnly(date) })}
+                        allowTextInput
+                        invalid={isFieldInvalid("loanDate")}
+                        className={`pr-8 ${cellInputClassName(isFieldInvalid("loanDate"))}`}
+                      />
+                      <CalendarInlineIcon className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
+                    </div>
+                  </fieldset>
                 </td>
                 <td className={BODY_CELL}>
-                  <div className="relative">
-                    <DatePicker
-                      value={parseDateOnly(debt.maturityDate)}
-                      onChange={(date) => updateItem(debt.id, { maturityDate: formatDateOnly(date) })}
-                      allowTextInput
-                      maxDate={maxMaturityDate}
-                      invalid={isFieldInvalid("maturityDate")}
-                      className={`pr-8 ${cellInputClassName(isFieldInvalid("maturityDate"))}`}
-                    />
-                    <CalendarInlineIcon className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
-                  </div>
+                  <fieldset disabled={debt.debtType === "credit_card"} className="min-w-0 disabled:opacity-50 [&:disabled_input]:cursor-not-allowed [&:disabled_select]:cursor-not-allowed">
+                    <div className="relative">
+                      <DatePicker
+                        disabled={debt.debtType === "credit_card"}
+                        value={parseDateOnly(debt.maturityDate)}
+                        onChange={(date) => updateItem(debt.id, { maturityDate: formatDateOnly(date) })}
+                        allowTextInput
+                        maxDate={maxMaturityDate}
+                        invalid={isFieldInvalid("maturityDate")}
+                        className={`pr-8 ${cellInputClassName(isFieldInvalid("maturityDate"))}`}
+                      />
+                      <CalendarInlineIcon className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
+                    </div>
+                  </fieldset>
                 </td>
                 <td className={BODY_CELL}>
                   <WonInput
@@ -852,17 +1147,19 @@ export default function DebtItemsTable({
                   />
                 </td>
                 <td className={BODY_CELL}>
-                  <PercentInput
-                    value={debt.interestRate}
-                    onChange={(value) => updateItem(debt.id, { interestRate: value ?? undefined })}
-                    invalid={isFieldInvalid("interestRate")}
-                    className={cellInputClassName(isFieldInvalid("interestRate"))}
-                  />
+                  <fieldset disabled={debt.debtType === "credit_card"} className="min-w-0 disabled:opacity-50 [&:disabled_input]:cursor-not-allowed [&:disabled_select]:cursor-not-allowed">
+                    <PercentInput
+                      value={debt.interestRate}
+                      onChange={(value) => updateItem(debt.id, { interestRate: value ?? undefined })}
+                      invalid={isFieldInvalid("interestRate")}
+                      className={cellInputClassName(isFieldInvalid("interestRate"))}
+                    />
+                  </fieldset>
                 </td>
-                <td className={READONLY_CELL}>{debt.remainingMonths ? `${debt.remainingMonths}개월` : "-"}</td>
-                <td className={READONLY_CELL}>{formatWon(debt.monthlyPaymentWon ?? 0)}</td>
-                <td className={READONLY_CELL}>{formatWon(debt.remainingInterestWon ?? 0)}</td>
-                <td className={READONLY_CELL}>{formatWon(debt.totalRepaymentWon ?? debt.currentBalanceWon)}</td>
+                <td className={READONLY_CELL}>{debt.debtType === "credit_card" ? "-" : debt.remainingMonths ? `${debt.remainingMonths}개월` : "-"}</td>
+                <td className={READONLY_CELL}>{debt.debtType === "credit_card" ? "-" : formatWon(debt.monthlyPaymentWon ?? 0)}</td>
+                <td className={READONLY_CELL}>{debt.debtType === "credit_card" ? "-" : formatWon(debt.remainingInterestWon ?? 0)}</td>
+                <td className={READONLY_CELL}>{debt.debtType === "credit_card" ? "-" : formatWon(debt.totalRepaymentWon ?? debt.currentBalanceWon)}</td>
                 <td className={`${BODY_CELL} text-center`}>
                   {!lockedDebtIds.includes(debt.id) && <button type="button" onClick={() => removeRow(debt.id)} aria-label="행 삭제" className="cursor-pointer inline-flex items-center justify-center w-6 h-6 hover:opacity-70"><RemoveRowIcon /></button>}
                 </td>

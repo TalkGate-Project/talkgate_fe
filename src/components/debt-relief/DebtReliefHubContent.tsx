@@ -189,7 +189,14 @@ export default function DebtReliefHubContent() {
     });
   };
 
+  // 작성중(drafting) 건은 아직 분석 결과가 없어 상세페이지 UI가 성립하지 않는다 — 상세 대신
+  // 이어서 작성할 수 있도록 수정(폼) 페이지로 바로 진입시킨다.
   const handleOpenResult = (id: string) => {
+    const item = items.find((entry) => entry.id === id);
+    if (item?.status === "drafting") {
+      router.push(`/debt-relief/${id}/edit`);
+      return;
+    }
     router.push(`/debt-relief/${id}`);
   };
 

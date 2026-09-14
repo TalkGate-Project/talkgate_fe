@@ -16,6 +16,9 @@ import Tooltip from "@/components/common/Tooltip";
 // 다크모드: 기존 "chip Dark" 공식(배경 bg-*-10/90, 텍스트 *-80)을 따르되, Cyan·Indigo는 다크 스펙이
 // 없어 같은 공식(배경 90% 불투명, 텍스트를 더 진한 톤으로)으로 추론한 값 — 피그마 다크 스펙 나오면 교체.
 export const STATUS_BADGE_STYLE: Record<AnalysisStatus, string> = {
+  // 2026-09-11 스펙 추가: 작성중. 피그마 색상 미정 — PROCEDURE_NEUTRAL_BADGE_STYLE과 동일한
+  // 무채색 폴백으로 우선 표시하고, 디자인 확정되면 교체한다.
+  drafting: "bg-neutral-20 text-neutral-70 dark:bg-neutral-20/90 dark:text-neutral-90",
   consulting: "bg-[#E1F7FF] text-[#2585EB] dark:bg-[#E1F7FF]/90 dark:text-[#0A5A8C]",
   reviewing: "bg-warning-10 text-warning-60 dark:bg-warning-10/90 dark:text-warning-80",
   rejected: "bg-danger-10 text-danger-40 dark:bg-danger-10/90 dark:text-danger-80",

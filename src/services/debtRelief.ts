@@ -1,3 +1,4 @@
+import { normalizeCreditCardDebt } from "@/types/analysis";
 import type {
   ConditionItem,
   CreateDiagnosisResult,
@@ -56,7 +57,11 @@ import type {
   AnalysisSortType,
   AnalysisSpecialEligibility,
   AnalysisStatus,
+  AnalysisDraftFormInput,
+  AnalysisAdjustedRepaymentProcedure,
   CreateAnalysisInput,
+  CreateAnalysisDraftInput,
+  UpdateAnalysisDraftInput,
 } from "@/types/analysis";
 import {
   isDebtCollateralLoan,
@@ -121,6 +126,16 @@ export function resolveHouseholdSize(dependents: DependentCount | null): number 
   return (dependents ? DEPENDENTS_TO_ANALYSIS[dependents] : 0) + 1;
 }
 
+/** "희망 변제율 설정" 모달의 기준 금액(무담보 채무 합계, 만원). 채무현황선택 모달에서 제외
+ * 체크한 건과 담보부 채무는 빼고 계산한다 — 담보부는 담보 처분으로 별도 정리되는 채무라
+ * 변제율/면책 개념(무담보 채무 대상)에 포함되지 않는다. */
+export function getUnsecuredDebtManwon(form: DiagnosisFormState): number {
+  const includedWon = form.debts
+    .filter((debt) => !debt.isExcludedFromAnalysis && !isDebtCollateralLoan(debt))
+    .reduce((sum, debt) => sum + (debt.currentBalanceWon || 0), 0);
+  return wonToManwon(includedWon);
+}
+
 const DEBT_CAUSE_TO_ANALYSIS: Record<DebtCause, AnalysisDebtCause> = {
   business_failure: "business_failure",
   living_expenses: "living_expenses",
@@ -171,6 +186,7 @@ const DEBT_ITEM_TYPE_TO_BREAKDOWN_KEY: Record<
 > = {
   bank_loan: "bankLoan",
   card_debt: "cardDebt",
+  credit_card: "cardDebt",
   capital_loan: "capitalLoan",
   private_debt: "privateDebt",
   personal_borrowing: "personalBorrowing",
@@ -319,6 +335,16 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
     gender: form.gender!,
     ageGroup: optionLabel(AGE_GROUP_OPTIONS, form.ageGroup!),
     region: optionLabel(REGION_OPTIONS, form.region!),
+    // 희망 절차 선택 모달에서 건너뛰면 null — 이 경우 필드 자체를 생략한다. desiredProcedure를
+    // 생략해도(재분석 시) 기존 값이 유지되는지는 스펙에 명시가 없어, 명시적으로 지우고 싶을 때는
+    // null을 보내야 할 수 있다 — 실제로 문제가 확인되면 이 부분을 재검토할 것.
+    ...(form.desiredProcedure ? { desiredProcedure: form.desiredProcedure } : {}),
+    // 대상 절차(개인회생·개인워크아웃·새출발기금)만 담긴 맵. 생략하면(재분석 시) 기존 수정안이
+    // 초기화된다는 스펙이 있어(analysis.ts AnalysisFormInput.adjustedRepayment 주석 참고),
+    // 빈 객체({})라도 값이 있으면 그대로 보낸다.
+    ...(Object.keys(form.adjustedRepayment).length > 0
+      ? { adjustedRepayment: form.adjustedRepayment }
+      : {}),
     employmentType: optionLabel(EMPLOYMENT_TYPE_OPTIONS, form.employmentType!),
     dependents: DEPENDENTS_TO_ANALYSIS[form.dependents!],
     hasSpouseIncome: Boolean(form.spouseIncome),
@@ -328,7 +354,7 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
     // 상세모드에서는 debts가 원본이고 debtBreakdown/overdueMonths는 서버가 자동 집계한다.
     // 굳이 같이 보내면 두 값이 어긋났을 때 어느 쪽이 진실인지 모호해지므로 보내지 않는다.
     debtInputMode: form.debtInputMode,
-    debts: form.debts.map((debt) => isDetailed ? {
+    debts: form.debts.map((debt) => debt.debtType === "credit_card" ? normalizeCreditCardDebt(debt) : isDetailed ? {
       ...debt,
       isCollateralLoan: isDebtCollateralLoan(debt),
       ...calculateDebtItemAmortization(debt),
@@ -381,6 +407,85 @@ function toCreateAnalysisInput(
   return { projectId, customerId, ...toAnalysisFormInput(form) };
 }
 
+// 임시저장(draft) 전용 매핑 — toAnalysisFormInput과 달리 필수 4개(customerName/gender/ageGroup/
+// region) 외 나머지는 아직 미입력(null)일 수 있다. toAnalysisFormInput은 canAnalyze로 폼
+// 완전성이 보장된 뒤에만 호출되는 전제라 employmentType/dependents/housingType에 non-null
+// 단언(`!`)을 쓰지만, 여기서는 그 세 필드만 값이 있을 때만 보내고 없으면 필드 자체를 생략한다.
+// 나머지 필드(assets/debts/debtCauses 등)는 폼 기본값 자체가 "아직 없음"을 뜻하는 유효한 값
+// (빈 배열·false·0)이라 그대로 보내도 무방하다.
+function toAnalysisDraftFormInput(form: DiagnosisFormState): AnalysisDraftFormInput {
+  const isDetailed = form.debtInputMode === "detailed";
+
+  return {
+    customerName: form.customerName.trim(),
+    gender: form.gender!,
+    ageGroup: optionLabel(AGE_GROUP_OPTIONS, form.ageGroup!),
+    region: optionLabel(REGION_OPTIONS, form.region!),
+    ...(form.employmentType
+      ? { employmentType: optionLabel(EMPLOYMENT_TYPE_OPTIONS, form.employmentType) }
+      : {}),
+    ...(form.dependents ? { dependents: DEPENDENTS_TO_ANALYSIS[form.dependents] } : {}),
+    hasSpouseIncome: Boolean(form.spouseIncome),
+    monthlyIncome: form.monthlyIncome ?? 0,
+    ...(form.housingType ? { housingType: form.housingType } : {}),
+    additionalFixedExpense: form.additionalFixedExpense,
+    debtInputMode: form.debtInputMode,
+    debts: form.debts.map((debt) => debt.debtType === "credit_card" ? normalizeCreditCardDebt(debt) : isDetailed ? {
+      ...debt,
+      isCollateralLoan: isDebtCollateralLoan(debt),
+      ...calculateDebtItemAmortization(debt),
+    } : {
+      id: debt.id,
+      debtType: debt.debtType,
+      creditorName: debt.creditorName,
+      overdueMonths: debt.overdueMonths,
+      currentBalanceWon: debt.currentBalanceWon,
+      isCollateralLoan: isDebtCollateralLoan(debt),
+      ...(debt.isExcludedFromAnalysis ? { isExcludedFromAnalysis: true } : {}),
+      ...(debt.collateralAssetId ? { collateralAssetId: debt.collateralAssetId } : {}),
+      ...(debt.loanDate ? { loanDate: debt.loanDate } : {}),
+      ...(debt.maturityDate ? { maturityDate: debt.maturityDate } : {}),
+    }),
+    debtCauses: form.debtCauses.map((cause) => DEBT_CAUSE_TO_ANALYSIS[cause]),
+    assets: form.assets,
+    hasPreviousBankruptcy: form.hasPreviousApplication,
+    previousBankruptcyNote: form.previousApplicationDetail || undefined,
+    hasGuarantorRelation: form.hasGuarantor,
+    guarantorNote: form.guarantorDetail || undefined,
+    hasActiveLawsuit: form.hasOngoingLitigation,
+    lawsuitNote: form.litigationDetail || undefined,
+    hasTaxArrears: form.hasTaxArrears,
+    hasRecentAssetDisposal: Boolean(form.hasRecentAssetDisposal),
+    spouseHousingAssetValue: form.hasSpouseHousingAsset ? form.spouseHousingAssetValue : 0,
+    isOperatingBusiness: form.isOperatingBusiness,
+    ...(form.isOperatingBusiness
+      ? {
+          businessOperationStatus: form.businessOperationStatus ?? undefined,
+          freshStartFundInsolvencyReasons: form.freshStartFundInsolvencyReasons,
+          isExcludedIndustryForFreshStartFund: form.isExcludedIndustryForFreshStartFund,
+          hasPreviousFreshStartFundApplication: form.hasPreviousFreshStartFundApplication,
+        }
+      : {}),
+    specialEligibilities: form.specialEligibility.map((item) => SPECIAL_ELIGIBILITY_TO_ANALYSIS[item]),
+    additionalNotes: form.counselorMemo || undefined,
+  };
+}
+
+function toCreateAnalysisDraftInput(
+  projectId: string,
+  form: DiagnosisFormState,
+  customerId?: number
+): CreateAnalysisDraftInput {
+  return { projectId, customerId, ...toAnalysisDraftFormInput(form) };
+}
+
+function toUpdateAnalysisDraftInput(
+  projectId: string,
+  form: DiagnosisFormState
+): UpdateAnalysisDraftInput {
+  return { projectId, ...toAnalysisDraftFormInput(form) };
+}
+
 // toAnalysisFormInput의 역함수. 편집 진입 시 GET /v1/analysis/{id}의 inputData를 폼 상태로 되돌린다.
 // ageGroup/region/employmentType은 실 API에 라벨 문자열로 저장되어 있어 옵션 라벨 역조회로 복원한다.
 // 결과 화면 채무 상세 모달에서도 동일 변환을 쓰므로 export한다.
@@ -408,6 +513,7 @@ export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormSt
 
   const debtInputMode = input.debtInputMode ?? "simple";
   const debts = (input.debts ?? []).map((debt) => {
+    if (debt.debtType === "credit_card") return normalizeCreditCardDebt(debt);
     const normalizedDebt = {
       ...debt,
       isCollateralLoan: isDebtCollateralLoan(debt),
@@ -470,6 +576,11 @@ export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormSt
       (item) => SPECIAL_ELIGIBILITY_FROM_ANALYSIS[item]
     ),
     counselorMemo: input.additionalNotes ?? "",
+    // desiredProcedure/adjustedRepayment는 inputData가 아니라 AnalysisDetail 최상위 필드라 이
+    // 함수(inputData 전용) 인자로는 안 들어온다 — 기본값만 채우고, getDiagnosisForm이 호출 뒤에
+    // detail.desiredProcedure/detail.adjustedRepayment로 덮어쓴다.
+    desiredProcedure: null,
+    adjustedRepayment: {},
   };
 }
 
@@ -703,7 +814,7 @@ export const DebtReliefService = {
     const response = await AnalysisService.summary(projectId);
     const data = response.data.data;
 
-    const statusDistribution: Record<AnalysisStatus, number> = {
+    const statusDistribution: Record<Exclude<AnalysisStatus, "drafting">, number> = {
       consulting: 0,
       reviewing: 0,
       rejected: 0,
@@ -712,6 +823,8 @@ export const DebtReliefService = {
       suspended: 0,
     };
     for (const item of data.statusDistribution ?? []) {
+      // 명세상 서버가 drafting을 절대 내려주지 않지만, 방어적으로 걸러 타입도 함께 좁힌다.
+      if (item.status === "drafting") continue;
       statusDistribution[item.status] = item.count;
     }
 
@@ -783,6 +896,24 @@ export const DebtReliefService = {
     return { id: String(response.data.data.id) };
   },
 
+  // 임시저장(작성중) 생성. AI 진단을 실행하지 않고 status="drafting"인 분석 건을 만든다 —
+  // 호출 전 UI에서 getMissingDraftRequiredFieldLabels(고객명/성별/연령대/거주지역)만 검증하면 된다.
+  async createAnalysisDraft(
+    projectId: string,
+    form: DiagnosisFormState,
+    customerId?: number
+  ): Promise<CreateDiagnosisResult> {
+    const response = await AnalysisService.createDraft(
+      toCreateAnalysisDraftInput(projectId, form, customerId)
+    );
+    return { id: String(response.data.data.id) };
+  },
+
+  // 임시저장(작성중) 수정. drafting 상태 건에만 호출 가능(백엔드 제약) — 호출부가 상태를 보장해야 한다.
+  async updateAnalysisDraft(projectId: string, id: number, form: DiagnosisFormState): Promise<void> {
+    await AnalysisService.updateDraft(id, toUpdateAnalysisDraftInput(projectId, form));
+  },
+
   // 진단 결과 상세 (읽기 전용 섹션). AI 채팅/문자 실발송/고객 매칭은 아직 미연동(다음 phase).
   async getDiagnosisDetail(projectId: string, id: string): Promise<DiagnosisDetail> {
     const response = await AnalysisService.detail(Number(id), projectId);
@@ -843,6 +974,22 @@ export const DebtReliefService = {
       recommendedProcedure
     );
     const totalDebt = inputData.totalDebt;
+    const unsecuredDebt = analysis.collateralBreakdown?.unsecuredDebt ?? totalDebt;
+    for (const [procedure, adjustment] of Object.entries(analysis.adjustedRepayment ?? {})) {
+      if (!adjustment) continue;
+      const typedProcedure = procedure as AnalysisAdjustedRepaymentProcedure;
+      const totalPayment = adjustment.totalPayment ?? adjustment.monthlyPayment * adjustment.periodMonths;
+      repaymentPlanByProcedure[typedProcedure] = {
+        monthlyPaymentManwon: adjustment.monthlyPayment,
+        months: adjustment.periodMonths,
+        years: Math.round((adjustment.periodMonths / 12) * 10) / 10,
+        totalPaymentManwon: totalPayment,
+        exemptedDebtManwon:
+          adjustment.expectedExemption ?? Math.max(0, unsecuredDebt - totalPayment),
+        // 조정 API는 원금 기준 면책액만 계산한다. 기존 분석의 이자 포함 값을 섞지 않는다.
+        exemptedDebtWithInterestManwon: undefined,
+      };
+    }
     // 공유(납품)받은 건 판별 — source(원본 출처) 필드로만 판단한다. deliveryStatus는 공유 연결의
     // "양쪽"(보낸 영업점 + 받은 변호사) 모두에 남아, 영업점이 자기가 공유했다 반려당한 "자기 데이터"를
     // 봐도 rejected가 찍혀 오판된다. sourceProjectName/sourceMemberName은 "받은 경우"에만 채워져
@@ -919,6 +1066,7 @@ export const DebtReliefService = {
       collateralBreakdown: analysis.collateralBreakdown,
       debtAdjustmentComparison: analysis.analysisResult?.debtAdjustmentComparison ?? null,
       repaymentPlanByProcedure,
+      adjustedRepayment: analysis.adjustedRepayment ?? {},
       repaymentNotes: analysis.analysisResult?.precautions ?? [],
       counselMents: analysis.analysisResult
         ? [
@@ -971,6 +1119,19 @@ export const DebtReliefService = {
     });
   },
 
+  async updateAdjustedRepayment(
+    projectId: string,
+    id: string,
+    procedure: AnalysisAdjustedRepaymentProcedure,
+    value: { monthlyPayment: number | null; periodMonths: number | null }
+  ): Promise<void> {
+    await AnalysisService.updateAdjustedRepayment(Number(id), {
+      projectId,
+      procedure,
+      ...value,
+    });
+  },
+
   // 공유받은 분석 건 수락 (변호사 프로젝트). 검토중 상태의 건만 가능 — 성공 시 계약대기중으로 전환.
   async acceptSharedAnalysis(projectId: string, id: string, message?: string): Promise<void> {
     await AnalysisService.accept(Number(id), { projectId, ...(message ? { message } : {}) });
@@ -1003,8 +1164,14 @@ export const DebtReliefService = {
   }> {
     const response = await AnalysisService.detail(Number(id), projectId);
     const detail = response.data.data;
+    const form = fromAnalysisFormInput(detail.inputData);
+    // desiredProcedure/adjustedRepayment는 inputData가 아니라 여기(AnalysisDetail) 최상위에
+    // 있다 — 복원하지 않으면 재분석 제출 시 toAnalysisFormInput이 빈 값으로 보내 기존 값이
+    // 조용히 초기화된다(analysis.ts의 필드 주석 참고).
+    form.desiredProcedure = detail.desiredProcedure;
+    form.adjustedRepayment = detail.adjustedRepayment ?? {};
     return {
-      form: fromAnalysisFormInput(detail.inputData),
+      form,
       customerId: detail.customerId,
       status: detail.status,
       deliveryStatus: detail.deliveryStatus ?? null,

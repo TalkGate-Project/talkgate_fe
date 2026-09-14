@@ -142,6 +142,9 @@ export default function AnalysisProgressBanner({
 }: Props) {
   const currentStep = resolveCurrentStep(status);
   const description: Record<AnalysisStatus, string> = {
+    // 작성중(drafting) 건은 analysisResult가 없어 이 결과 화면 자체에 진입할 수 없다 — 타입
+    // 완전성을 위한 값일 뿐 실제로 렌더링되지 않는다.
+    drafting: "",
     consulting: "분석 결과를 공유하여 검토를 요청하거나 자체 진행을 선택할 수 있어요.",
     // 수락/거절 액션은 변호사(법무법인) 프로젝트에서만 가능(AnalysisReviewBanner). 영업점
     // 쪽에는 자기가 할 수 없는 액션을 안내하지 않도록 검토 중이라는 사실만 전달한다.

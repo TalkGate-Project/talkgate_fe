@@ -50,6 +50,7 @@ export default function Step3Debts({
         overLimitFields={overLimitFields}
         desktopLayoutBreakpoint="desktop"
         customScrollbarMode="detailed"
+        detailedLayout="cards"
       />
 
       {/* 카드 바깥 공통 영역 — 채무 종류별 잔액과 무관하게 입력 방식 상관없이 항상 필요한 항목.
