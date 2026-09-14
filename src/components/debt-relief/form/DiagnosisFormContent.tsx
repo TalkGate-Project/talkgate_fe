@@ -655,8 +655,8 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
       return;
     }
 
-    // canAnalyze(=isDiagnosisFormComplete)에는 일부러 포함하지 않은 검사 — 새 채무 행은
-    // 항상 이 4개가 비어있는 상태로 시작해서, 포함시키면 버튼이 계속 비활성 상태에 갇혀
+    // canAnalyze(=isDiagnosisFormComplete)에는 일부러 포함하지 않은 항목 단위 검사 — 새 채무 행은
+    // 현재 잔액이 비어있는 상태로 시작해서, 포함시키면 버튼이 계속 비활성 상태에 갇혀
     // 클릭 자체가 막힌다. validateDiagnosisForm.ts의 getMissingDebtFieldLabels 주석 참고.
     const missingDebtItemFields = getMissingDebtItemFieldLabels(form);
     if (missingDebtItemFields.length > 0) {

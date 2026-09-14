@@ -589,7 +589,7 @@ export default function SectionRepaymentPlan({
             <button
               type="button"
               onClick={onAdjust}
-              className={`ml-2 flex h-7 cursor-pointer items-center justify-center gap-1 rounded-[5px] border bg-card px-2 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10 ${
+              className={`relative ml-2 flex h-7 cursor-pointer items-center justify-center gap-1 rounded-[5px] border bg-card px-2 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10 ${
                 adjustmentApplied
                   ? "border-secondary-60 text-secondary-60"
                   : "border-secondary-20 text-secondary-20"
@@ -597,6 +597,12 @@ export default function SectionRepaymentPlan({
             >
               <AdjustmentsIcon />
               <span className="text-foreground">변제 계획 조정</span>
+              {adjustmentApplied ? (
+                <span
+                  className="absolute -right-1 -top-1 size-2 rounded-full bg-secondary-60"
+                  aria-hidden
+                />
+              ) : null}
             </button>
           ) : null}
         </div>
