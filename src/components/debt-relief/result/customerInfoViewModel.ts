@@ -414,6 +414,7 @@ export function buildCustomerInfoViewModel(
     .filter((debt) => !isDebtCollateralLoan(debt))
     .reduce((sum, debt) => sum + debt.currentBalanceWon, 0);
   const hasDetailedDebtAmounts = debts.length > 0;
+  const totalDebtWon = collateralDebtWon + unsecuredDebtWon;
 
   const debtTotalRows: DisplayRow[] = [
     {
@@ -434,7 +435,9 @@ export function buildCustomerInfoViewModel(
     },
     {
       label: "총 합산",
-      value: formatManwonAsWon(input.totalDebt),
+      // 상세 채무는 원 단위인데 서버의 totalDebt는 만원 단위라 반올림 오차가 생길 수 있다.
+      // 상세 내역이 있으면 위 두 합계와 같은 원본으로 계산하고, 간편·레거시 데이터만 totalDebt를 쓴다.
+      value: hasDetailedDebtAmounts ? formatWon(totalDebtWon) : formatManwonAsWon(input.totalDebt),
       emphasize: true,
     },
   ];
