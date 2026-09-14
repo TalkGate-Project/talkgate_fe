@@ -17,6 +17,33 @@ function formatWon(value: number) {
   return `${Math.max(0, value).toLocaleString("ko-KR")}원`;
 }
 
+function formatManwonUnits(value: number) {
+  const placeValues = [1000, 100, 10, 1] as const;
+  const placeLabels = ["천", "백", "십", ""] as const;
+  let remaining = value;
+
+  return placeValues.map((placeValue, index) => {
+    const digit = Math.floor(remaining / placeValue);
+    remaining %= placeValue;
+    return digit > 0 ? `${digit}${placeLabels[index]}` : "";
+  }).join("");
+}
+
+function formatCompactKoreanWon(value: number) {
+  const amountWon = Math.max(0, Math.floor(value));
+  if (amountWon < 10_000) return formatWon(amountWon);
+
+  const eok = Math.floor(amountWon / 100_000_000);
+  const amountBelowEok = amountWon % 100_000_000;
+  const manwon = Math.floor(amountBelowEok / 10_000);
+  const won = amountBelowEok % 10_000;
+
+  const eokText = eok > 0 ? `${eok.toLocaleString("ko-KR")}억` : "";
+  const manwonText = manwon > 0 ? `${formatManwonUnits(manwon)}만` : "";
+  const wonText = won > 0 ? won.toLocaleString("ko-KR") : "";
+  return `${eokText}${manwonText}${wonText}원`;
+}
+
 export default function AnalysisDebtSelectionModal({ open, debts, onClose, onConfirm }: Props) {
   const [selectedDebtIds, setSelectedDebtIds] = useState<string[]>([]);
   useEffect(() => {
@@ -63,10 +90,13 @@ export default function AnalysisDebtSelectionModal({ open, debts, onClose, onCon
             return (
               <label key={debt.id} className="flex h-16 cursor-pointer items-center rounded-[12px] bg-neutral-10 px-5 max-[366px]:h-auto max-[366px]:min-h-[84px] max-[366px]:py-3 lg:h-[71px] lg:px-6">
                 <Checkbox checked={selectedDebtIdSet.has(debt.id)} onChange={(checked) => toggleDebt(debt.id, checked)} size={24} className="shrink-0" ariaLabel={`${creditorLabel} 선택`} />
-                <span className="ml-3 grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2 lg:ml-[17px] lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-x-4">
-                  <span className="col-span-2 block min-w-0 truncate text-[14px] font-semibold leading-[17px] tracking-[0.2px] text-foreground lg:col-span-1 lg:col-start-1 lg:row-start-1 lg:text-[16px] lg:leading-[19px]">{creditorLabel} ({typeLabel})</span>
+                <span className="ml-3 grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 lg:ml-[17px] lg:gap-x-4">
+                  <span className="col-start-1 row-start-1 block min-w-0 truncate text-[14px] font-semibold leading-[17px] tracking-[0.2px] text-foreground lg:text-[16px] lg:leading-[19px]">{creditorLabel} ({typeLabel})</span>
                   <span className="col-start-1 row-start-2 mt-1 whitespace-nowrap text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">{isDebtCollateralLoan(debt) ? "담보부" : "무담보"}<span className="ml-4">{debt.overdueMonths === 0 ? "연체 없음" : `연체 ${debt.overdueMonths}개월`}</span></span>
-                  <span className="col-start-2 row-start-2 mt-1 min-w-0 truncate text-right text-[14px] font-bold leading-[17px] tracking-[0.2px] text-foreground max-[366px]:col-span-2 max-[366px]:col-start-1 max-[366px]:row-start-3 max-[366px]:whitespace-nowrap lg:row-span-2 lg:row-start-1 lg:mt-0 lg:whitespace-nowrap lg:text-[16px] lg:leading-[19px]">{formatWon(debt.currentBalanceWon)}</span>
+                  <span className="col-start-2 row-span-2 row-start-1 min-w-0 truncate whitespace-nowrap text-right text-[14px] font-bold leading-[17px] tracking-[0.2px] text-foreground lg:text-[16px] lg:leading-[19px]">
+                    <span className="lg:hidden">{formatCompactKoreanWon(debt.currentBalanceWon)}</span>
+                    <span className="hidden lg:inline">{formatWon(debt.currentBalanceWon)}</span>
+                  </span>
                 </span>
               </label>
             );
@@ -78,9 +108,9 @@ export default function AnalysisDebtSelectionModal({ open, debts, onClose, onCon
         <span className="text-[13px] font-medium text-neutral-60">
           분석 대상 {selectedDebtIds.length}건 · {formatWon(selectedTotalWon)}
         </span>
-        <div className="flex items-center gap-3">
-          <button type="button" onClick={onClose} className="h-[34px] cursor-pointer rounded-[5px] border border-neutral-30 px-3 text-[14px] font-semibold tracking-[-0.02em] text-foreground hover:bg-neutral-10">취소</button>
-          <button type="button" disabled={selectedDebtIds.length === 0} onClick={() => onConfirm(selectedDebtIds)} className="h-[34px] cursor-pointer rounded-[5px] bg-neutral-90 px-3 text-[14px] font-semibold tracking-[-0.02em] text-neutral-20 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40">다음</button>
+        <div className="flex shrink-0 items-center gap-3">
+          <button type="button" onClick={onClose} className="inline-flex h-[34px] min-w-[48px] shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-[5px] border border-neutral-30 px-3 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground hover:bg-neutral-10">닫기</button>
+          <button type="button" disabled={selectedDebtIds.length === 0} onClick={() => onConfirm(selectedDebtIds)} className="inline-flex h-[34px] min-w-[48px] shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-[5px] bg-neutral-90 px-3 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-neutral-20 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40">다음</button>
         </div>
       </div>
     </BaseModal>
