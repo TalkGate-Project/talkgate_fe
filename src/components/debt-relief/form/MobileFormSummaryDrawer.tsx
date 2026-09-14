@@ -6,6 +6,7 @@ import type { FormStepMeta } from "./steps";
 import FormCustomerSummary from "./FormCustomerSummary";
 import FormFinancialSummary from "./FormFinancialSummary";
 import FormStepChecklist from "./FormStepChecklist";
+import DraftSavedCheckIcon from "./DraftSavedCheckIcon";
 
 /** Figma 모바일 분석하기 — 18×18 프레임, 아이콘 14 영역, green→mint 그라디언트 */
 function MobileAnalyzeSparkleIcon() {
@@ -29,6 +30,22 @@ function MobileAnalyzeSparkleIcon() {
           <stop className="analyze-sparkle-end" offset="1" stopColor="#A9FFD4" />
         </linearGradient>
       </defs>
+    </svg>
+  );
+}
+
+/** 임시저장 아이콘 버튼용 — 플로피디스크 형태, currentColor로 톤 상속 */
+function SaveIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path
+        d="M4 3.5h9.17a1.5 1.5 0 0 1 1.06.44l1.83 1.83c.28.28.44.66.44 1.06V16.5A1.5 1.5 0 0 1 15 18H4a1.5 1.5 0 0 1-1.5-1.5v-11A1.5 1.5 0 0 1 4 3.5Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path d="M6.25 3.5v4h6v-4" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M6.25 18v-5.5h6.5V18" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -58,6 +75,12 @@ type Props = {
   analyzing: boolean;
   /** 필수값 미충족(생성) / 변경 없음(수정)이면 true — 버튼은 유지하고 활성 효과만 숨김 */
   analyzeDisabled?: boolean;
+  onSaveDraft: () => void;
+  /** 저장 요청을 받을 수 없는 외부 상태일 때만 사용한다. 고객 연동 여부로는 비활성화하지 않는다. */
+  saveDraftDisabled?: boolean;
+  savingDraft?: boolean;
+  /** 마지막으로 저장한 내용과 현재 폼이 같으면 true */
+  draftSaved?: boolean;
   /** 실제 고객 레코드와 연동된 데이터면 이름 옆에 연동 아이콘을 붙인다. */
   isCustomerConnected?: boolean;
   linkedCustomerName?: string;
@@ -81,6 +104,10 @@ export default function MobileFormSummaryDrawer({
   onAnalyze,
   analyzing,
   analyzeDisabled = false,
+  onSaveDraft,
+  saveDraftDisabled = false,
+  savingDraft = false,
+  draftSaved = false,
   isCustomerConnected = false,
   linkedCustomerName,
   linkedCustomerContact,
@@ -115,6 +142,16 @@ export default function MobileFormSummaryDrawer({
           <h2 className="flex-1 min-w-0 truncate text-[16px] font-bold leading-[19px] text-foreground">
             {step.label}
           </h2>
+          {/* 임시저장 — 좁은 헤더라 아이콘 전용 원형 버튼으로, 분석하기 바로 왼쪽에 배치 */}
+          <button
+            type="button"
+            onClick={onSaveDraft}
+            disabled={saveDraftDisabled || savingDraft || analyzing}
+            aria-label={savingDraft ? "임시저장 중" : draftSaved ? "저장됨" : "임시저장"}
+            className="shrink-0 inline-flex items-center justify-center w-8 h-8 cursor-pointer rounded-full border border-neutral-30 text-neutral-70 hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {draftSaved ? <DraftSavedCheckIcon /> : <SaveIcon />}
+          </button>
           {/* Figma: 92×34, radius 5, drop-shadow, 사이드바와 동일 analyze-button */}
           <button
               type="button"

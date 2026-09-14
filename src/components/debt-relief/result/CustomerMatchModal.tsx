@@ -326,21 +326,25 @@ export default function CustomerMatchModal({
                         <td className="h-[59px] px-3 align-middle text-[14px] font-medium text-neutral-90 opacity-80 whitespace-nowrap">
                           {formatDateTime(customer.applicationDate)}
                         </td>
-                        <td className="h-[59px] px-3 align-middle text-center">
-                          <button
-                            type="button"
-                            disabled={matchingId === customer.id || customer.isAnalysisConnected}
-                            onClick={() => handleMatch(customer.id)}
-                            className="cursor-pointer inline-flex h-[34px] min-w-[48px] items-center justify-center rounded-[5px] bg-neutral-90 px-3 py-0 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-neutral-20 disabled:cursor-not-allowed disabled:opacity-50 dark:text-[#333333]"
-                          >
-                            <span className="-translate-y-px">
-                              {matchingId === customer.id
-                                ? "..."
-                                : customer.isAnalysisConnected
-                                  ? "연동됨"
-                                  : "연동"}
-                            </span>
-                          </button>
+                        <td className="h-[59px] px-3">
+                          {/* align-middle(vertical-align)은 inline-block 버튼을 x-height 기준으로
+                              맞춰 셀 높이 중앙에서 몇 px 어긋나 보인다 — flex로 확실히 중앙 정렬한다. */}
+                          <div className="flex h-full items-center justify-center">
+                            <button
+                              type="button"
+                              disabled={matchingId === customer.id || customer.isAnalysisConnected}
+                              onClick={() => handleMatch(customer.id)}
+                              className="cursor-pointer inline-flex h-[34px] min-w-[48px] items-center justify-center rounded-[5px] bg-neutral-90 px-3 py-0 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-neutral-20 disabled:cursor-not-allowed disabled:opacity-50 dark:text-[#333333]"
+                            >
+                              <span className="translate-y-px">
+                                {matchingId === customer.id
+                                  ? "..."
+                                  : customer.isAnalysisConnected
+                                    ? "연동됨"
+                                    : "연동"}
+                              </span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -390,7 +394,7 @@ export default function CustomerMatchModal({
                         onClick={() => handleMatch(customer.id)}
                         className="cursor-pointer inline-flex h-[34px] min-w-[48px] shrink-0 items-center justify-center rounded-[5px] bg-neutral-90 px-3 py-0 text-[14px] font-semibold leading-[17px] text-neutral-20 disabled:cursor-not-allowed disabled:opacity-50 dark:text-[#333333]"
                       >
-                        <span className="-translate-y-px">
+                        <span className="translate-y-px">
                           {matchingId === customer.id
                             ? "..."
                             : customer.isAnalysisConnected
@@ -433,7 +437,7 @@ export default function CustomerMatchModal({
               disabled={Boolean(matchingId)}
               className="cursor-pointer inline-flex h-[34px] items-center justify-center rounded-[5px] border border-neutral-30 bg-card px-3 py-0 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#4D4D4D] dark:bg-[#1E1E1E] dark:text-[#FDFDFD] dark:hover:bg-[#222222]"
             >
-              <span className="-translate-y-px">취소</span>
+              <span className="translate-y-px">취소</span>
             </button>
           </div>
     </BaseModal>

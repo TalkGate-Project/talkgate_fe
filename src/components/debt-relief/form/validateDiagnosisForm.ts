@@ -10,33 +10,9 @@ const MISSING_DEBT_ITEM_FIELD_LABELS: Record<MissingDebtItemField, string> = {
   interestRate: "금리",
 };
 
-function isValidDateOnly(value: string | undefined): value is string {
-  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
-}
-
-/**
- * 상세모드 채무 항목 1건에서 비어있는 필드를 반환한다.
- * 연체(개월)는 0이 "연체 없음"이라는 유효한 기본값이라 여기서 검사하지 않는다.
- */
+/** 상세모드도 간편모드와 공통으로 입력하는 현재 잔액만 항목 단위 필수값으로 검사한다. */
 export function getMissingDebtItemFields(debt: DebtItemFormState): MissingDebtItemField[] {
-  const missing: MissingDebtItemField[] = [];
-  const today = new Date();
-  const todayText = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-  const loanDate = debt.loanDate ?? "";
-  const maturityDate = debt.maturityDate ?? "";
-  const validLoanDate = isValidDateOnly(loanDate);
-  const validMaturityDate = isValidDateOnly(maturityDate);
-  if (!validLoanDate || loanDate > todayText) missing.push("loanDate");
-  if (!validMaturityDate || maturityDate <= todayText || (validLoanDate && maturityDate <= loanDate)) {
-    missing.push("maturityDate");
-  }
-  if (!debt.currentBalanceWon) missing.push("currentBalanceWon");
-  // 0% 무이자 대출은 유효하다. undefined만 미입력으로 구분한다.
-  if (debt.interestRate == null) missing.push("interestRate");
-  return missing;
+  return debt.currentBalanceWon ? [] : ["currentBalanceWon"];
 }
 
 // 채무현황 스텝의 필수값은 입력 모드에 따라 달라진다.
@@ -45,7 +21,7 @@ export function getMissingDebtItemFields(debt: DebtItemFormState): MissingDebtIt
 // 결과화면 「채무 상세」모달(DebtHistoryCard만 재사용, 채무발생 원인 UI가 없음)도 이 함수를
 // 그대로 써서 자기 화면에 없는 필드를 요구하지 않도록 한다 — 채무발생 원인은 별도로 검사한다.
 //
-// 대출일·만기일·금액·금리(getMissingDebtItemFieldLabels)는 일부러 여기 포함하지 않는다.
+// 항목별 현재 잔액(getMissingDebtItemFieldLabels)은 일부러 여기 포함하지 않는다.
 // 이 함수는 isDiagnosisFormComplete → canAnalyze로 이어져 "분석하기" 버튼의 disabled를
 // 직접 결정하는데, 새 행은 항상 이 4개가 비어있는 상태로 시작해서(createEmptyDebtItem)
 // 포함시키면 버튼이 계속 비활성 상태에 갇혀 클릭 자체가 막히고, 그 안에서 modal을 띄우거나
@@ -59,7 +35,7 @@ export function getMissingDebtFieldLabels(form: DiagnosisFormState): string[] {
   return missing;
 }
 
-/** 상세모드 채무 항목들 중 대출일·만기일·금액·금리가 비어있는 게 있으면 그 라벨들(중복 제거). */
+/** 상세모드 채무 항목들 중 간편모드와 공통인 필수값이 비어있으면 그 라벨들(중복 제거). */
 export function getMissingDebtItemFieldLabels(form: DiagnosisFormState): string[] {
   if (form.debtInputMode !== "detailed") return [];
   const missingItemFields = new Set<MissingDebtItemField>();
@@ -70,7 +46,7 @@ export function getMissingDebtItemFieldLabels(form: DiagnosisFormState): string[
 }
 
 // 실 API(POST /v1/analysis)가 필수로 요구하는 항목. 폼에서 null/빈 값일 수 있는 것만 검사한다.
-// 부동산 "없음"(빈 배열)은 명시 선택 여부를 realEstateStatusConfirmed로 따로 검사한다.
+// 보유 자산 목록은 선택 입력이며, 빈 목록도 자산 없음으로 허용한다.
 export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[] {
   const missing: string[] = [];
   if (!form.customerName.trim()) missing.push("고객명");
@@ -81,7 +57,6 @@ export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[
   if (!form.housingType) missing.push("주거 형태");
   if (form.dependents === null) missing.push("부양가족");
   if (form.spouseIncome === null) missing.push("배우자 소득");
-  if (!form.realEstateStatusConfirmed) missing.push("부동산 보유 여부");
   if (form.hasSpouseHousingAsset === null) missing.push("배우자 명의 주택 또는 전세보증금 보유 여부");
   if (form.hasSpouseHousingAsset && form.spouseHousingAssetValue <= 0) {
     missing.push("배우자 명의 주택 또는 전세보증금 가액");
@@ -89,6 +64,17 @@ export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[
   if (form.hasRecentAssetDisposal === null) missing.push("최근 2년 내 재산 처분 이력");
   missing.push(...getMissingDebtFieldLabels(form));
   if (form.debtCauses.length === 0) missing.push("채무발생 원인");
+  return missing;
+}
+
+// 임시저장(작성중) API는 customerName/gender/ageGroup/region 4개만 필수다(FRONTEND_CHANGES5.md
+// 2026-09-11 스펙) — getMissingRequiredFieldLabels(전체 필수)와 분리된 별도 검증.
+export function getMissingDraftRequiredFieldLabels(form: DiagnosisFormState): string[] {
+  const missing: string[] = [];
+  if (!form.customerName.trim()) missing.push("고객명");
+  if (!form.gender) missing.push("성별");
+  if (!form.ageGroup) missing.push("연령대");
+  if (!form.region) missing.push("거주 지역");
   return missing;
 }
 
@@ -108,13 +94,11 @@ export function getMissingRequiredFieldLabelsForStep(
     }
     case "assets": {
       const missing: string[] = [];
-      if (!form.realEstateStatusConfirmed) missing.push("부동산 보유 여부");
       if (form.hasSpouseHousingAsset === null) missing.push("배우자 명의 주택 또는 전세보증금 보유 여부");
       if (form.hasSpouseHousingAsset && form.spouseHousingAssetValue <= 0) {
         missing.push("배우자 명의 주택 또는 전세보증금 가액");
       }
       if (form.hasRecentAssetDisposal === null) missing.push("최근 2년 내 재산 처분 이력");
-      // 금융 자산/차량 가액은 null(미선택)·0(미보유 명시)을 구분해 null만 미입력으로 판정한다.
       return missing;
     }
     case "debts": {
@@ -189,12 +173,10 @@ export function isDiagnosisFormComplete(form: DiagnosisFormState): boolean {
   return getMissingRequiredFieldLabels(form).length === 0;
 }
 
-// 좌측 네비게이터 체크(v) 표시 전용. getMissingRequiredFieldLabelsForStep는 "다음" 버튼 게이트와
-// 공유하는 함수라 상세모드 채무 항목 필드(대출일·만기일·금리)를 일부러 검사하지 않는데(48-53줄 주석 참고),
-// 체크리스트는 실제 완료 여부를 보여줘야 하므로 debts 스텝에서만 그 필드들도 함께 확인한다.
+// 좌측 네비게이터 체크(v) 표시 전용. 상세모드에서도 간편모드와 공통인 필수값만 확인한다.
 export function isDiagnosisStepComplete(form: DiagnosisFormState, stepKey: FormStepKey): boolean {
   // 자산 현황의 사이드바 체크는 하단의 두 필수 질문에 답했는지만 보여준다.
-  // 보유 자산 입력 여부와 배우자 자산 가액은 다음 단계/최종 제출 검증에서 별도로 확인한다.
+  // 배우자 자산 가액은 다음 단계/최종 제출 검증에서 별도로 확인한다.
   if (stepKey === "assets") {
     return form.hasSpouseHousingAsset !== null && form.hasRecentAssetDisposal !== null;
   }

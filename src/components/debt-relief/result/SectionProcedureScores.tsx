@@ -84,6 +84,49 @@ const STATUS_CHIP: Record<ConditionStatus, string> = {
   risk: "bg-danger-10 text-danger-40 dark:bg-danger-10/90 dark:text-danger-80",
 };
 
+const SCORE_ANIMATION_DURATION = 900;
+// 위 "분석 브리핑" 숫자 카운트업이 먼저 눈에 들어온 다음 이 막대그래프가 뒤따라 채워지도록,
+// 페이지 로드 즉시가 아니라 살짝 지연 후 시작한다. globals.css의 .procedure-score-bar
+// animation-delay와 같은 값으로 맞춰야 숫자와 막대가 같은 타이밍에 같이 움직인다.
+export const SCORE_ANIMATION_DELAY = 320;
+
+function AnimatedScore({ value }: { value: number }) {
+  const targetValue = Math.max(0, Math.min(100, Math.round(value)));
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      setDisplayValue(targetValue);
+      return;
+    }
+
+    let animationFrame = 0;
+    let startedAt = 0;
+
+    const delayTimer = window.setTimeout(() => {
+      const updateValue = (now: number) => {
+        if (startedAt === 0) startedAt = now;
+
+        const progress = Math.min((now - startedAt) / SCORE_ANIMATION_DURATION, 1);
+        const easedProgress = 1 - Math.pow(1 - progress, 3);
+        setDisplayValue(Math.round(targetValue * easedProgress));
+
+        if (progress < 1) animationFrame = requestAnimationFrame(updateValue);
+      };
+
+      animationFrame = requestAnimationFrame(updateValue);
+    }, SCORE_ANIMATION_DELAY);
+
+    return () => {
+      window.clearTimeout(delayTimer);
+      cancelAnimationFrame(animationFrame);
+    };
+  }, [targetValue]);
+
+  return <>{displayValue}</>;
+}
+
 function ConditionIcon({ status }: { status: ConditionStatus }) {
   if (status === "met") {
     return (
@@ -161,14 +204,14 @@ export function ScoreRow({
         </span>
         {score.recommended && (
           <span className="inline-flex items-center justify-center h-[17px] px-1 rounded-[4px] bg-neutral-90 text-neutral-0 text-[11px] font-medium leading-[13px] shrink-0">
-            추천
+            희망
           </span>
         )}
       </div>
 
       <div className="flex-1 min-w-0 h-2 rounded-full bg-neutral-30 overflow-hidden">
         <div
-          className={`h-full rounded-l-full ${
+          className={`procedure-score-bar h-full rounded-l-full ${
             isSelected && !compact ? "bg-neutral-70" : "bg-neutral-40"
           }`}
           style={{ width: `${score.score}%` }}
@@ -177,7 +220,7 @@ export function ScoreRow({
 
       <div className="flex items-baseline gap-0.5 shrink-0 w-[42px] md:w-[49px] justify-end">
         <span className="text-[16px] font-semibold leading-[19px] text-neutral-90 text-right">
-          {score.score}
+          <AnimatedScore value={score.score} />
         </span>
         <span className="text-[12px] font-medium leading-[14px] tracking-[-0.02em] text-neutral-60">
           /100
@@ -258,14 +301,14 @@ function GroupScoreHeader({
         </span>
         {recommended && (
           <span className="inline-flex items-center justify-center h-[17px] px-1 rounded-[4px] bg-neutral-90 text-neutral-0 text-[11px] font-medium leading-[13px] shrink-0">
-            추천
+            희망
           </span>
         )}
       </div>
 
       <div className="flex-1 min-w-0 h-2 rounded-full bg-neutral-30 overflow-hidden">
         <div
-          className={`h-full rounded-l-full ${
+          className={`procedure-score-bar h-full rounded-l-full ${
             highlighted && !inPanel ? "bg-neutral-70" : "bg-neutral-40"
           }`}
           style={{ width: `${score}%` }}
@@ -274,7 +317,7 @@ function GroupScoreHeader({
 
       <div className="flex items-baseline gap-0.5 shrink-0 w-[42px] md:w-[49px] justify-end">
         <span className="text-[16px] font-semibold leading-[19px] text-neutral-90 text-right">
-          {score}
+          <AnimatedScore value={score} />
         </span>
         <span className="text-[12px] font-medium leading-[14px] tracking-[-0.02em] text-neutral-60">
           /100
@@ -409,11 +452,11 @@ export default function SectionProcedureScores({
 
   return (
     <div className="flex flex-col gap-6 md:gap-8">
-      {/* 절차별 성공 가능성 타이틀 */}
+      {/* 절차별 분석 점수 타이틀 */}
       <div>
         <div className="flex items-center gap-1">
           <h2 className="inline-flex h-6 items-center text-[16px] font-semibold leading-none tracking-[0.2px] text-foreground">
-            절차별 성공 가능성
+            절차별 분석 점수
           </h2>
           <DisclaimerInfoTooltip label="절차별 성공 가능성 안내">
             성공 가능성 점수는 입력 정보 기준{" "}

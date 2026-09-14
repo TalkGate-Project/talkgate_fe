@@ -8,6 +8,7 @@ import pleaseDragImg from "@/assets/images/projects/please_drag.webp";
 import pleaseDragDarkImg from "@/assets/images/projects/please_drag_dark.webp";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import BaseModal from "@/components/common/BaseModal";
+import { DoubleChevronRightIcon } from "@/components/icons";
 import type { Project, ProjectType } from "@/types/projects";
 
 type Props = {
@@ -554,12 +555,13 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                   </div>
                 </div>
                 <button
-                  className="h-[34px] px-3 rounded-[5px] border border-neutral-30 bg-card text-foreground text-[14px] font-semibold leading-[17px] disabled:opacity-50 w-full md:w-auto"
+                  className="inline-flex h-[34px] w-full items-center justify-center gap-1 rounded-[5px] border border-neutral-30 bg-card px-3 text-[14px] font-semibold leading-[17px] text-foreground disabled:opacity-50 md:w-auto"
                   type="button"
                   onClick={handleSkip}
                   disabled={submitting}
                 >
                   건너뛰기
+                  <DoubleChevronRightIcon />
                 </button>
               </div>
             </div>

@@ -29,9 +29,10 @@ export type DebtHistoryCardProps = {
   desktopLayoutBreakpoint?: "tablet" | "desktop";
   /** 전용 가로 스크롤바를 상세 모드에만 또는 모든 모드에 표시한다. */
   customScrollbarMode?: "detailed" | "all";
+  detailedLayout?: "table" | "cards";
 };
 
-export default function DebtHistoryCard({ form, update, disabled = false, areaBackgroundClassName = "bg-neutral-10", showDebtItemFieldErrors = false, scrollFadeColorClassName, desktopLayoutBreakpoint = "tablet", customScrollbarMode }: DebtHistoryCardProps) {
+export default function DebtHistoryCard({ form, update, disabled = false, areaBackgroundClassName = "bg-neutral-10", showDebtItemFieldErrors = false, scrollFadeColorClassName, desktopLayoutBreakpoint = "tablet", customScrollbarMode, detailedLayout }: DebtHistoryCardProps) {
   const handleModeChange = (mode: DebtDisplayMode) => {
     if (disabled) return;
     update("debtInputMode", mode);
@@ -49,7 +50,7 @@ export default function DebtHistoryCard({ form, update, disabled = false, areaBa
       <DebtModeToggle value={form.debtInputMode} onChange={handleModeChange} disabled={disabled} />
     </div>
     <div className={`flex flex-col gap-5 px-5 py-5 ${desktopBodyPaddingClassName} ${disabled ? "pointer-events-none opacity-80" : ""}`}>
-      <DebtItemsTable debts={form.debts} assets={form.assets} mode={form.debtInputMode} onChange={(debts) => update("debts", debts)} sumCardBackgroundClassName={areaBackgroundClassName} showFieldErrors={showDebtItemFieldErrors} lockedDebtIds={form.assetOriginDebtIds} scrollFadeColorClassName={scrollFadeColorClassName} desktopLayoutBreakpoint={desktopLayoutBreakpoint} customScrollbarMode={customScrollbarMode} />
+      <DebtItemsTable debts={form.debts} assets={form.assets} mode={form.debtInputMode} onChange={(debts) => update("debts", debts)} sumCardBackgroundClassName={areaBackgroundClassName} showFieldErrors={showDebtItemFieldErrors} lockedDebtIds={form.assetOriginDebtIds} scrollFadeColorClassName={scrollFadeColorClassName} desktopLayoutBreakpoint={desktopLayoutBreakpoint} customScrollbarMode={customScrollbarMode} detailedLayout={detailedLayout} />
     </div>
   </div>;
 }

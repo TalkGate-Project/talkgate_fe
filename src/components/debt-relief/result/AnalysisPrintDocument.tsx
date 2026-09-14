@@ -30,6 +30,7 @@ import {
   formatYearsLabel,
   parseConsultedAt,
   resolveSectionKind,
+  resolveUnsecuredDebtManwon,
   shouldShowRepaymentRate,
 } from "./SectionRepaymentPlan";
 import { TYPE_LABEL as MESSAGE_TYPE_LABEL } from "./SectionDeliveryMessages";
@@ -304,7 +305,7 @@ export default function AnalysisPrintDocument({
           </div>
         </PrintSection>
 
-        <PrintSection number={sectionNumber++} title="AI 분석 추천">
+        <PrintSection number={sectionNumber++} title="분석 브리핑">
           <p className="print-recommendation-title">{detail.recommendation.title}</p>
           <p className="print-paragraph">{detail.recommendation.description}</p>
           <InfoTable
@@ -312,7 +313,7 @@ export default function AnalysisPrintDocument({
           />
         </PrintSection>
 
-        <PrintSection number={sectionNumber++} title="절차별 성공 가능성">
+        <PrintSection number={sectionNumber++} title="절차별 분석 점수">
           <table className="print-data-table">
             <thead>
               <tr>
@@ -423,13 +424,13 @@ export default function AnalysisPrintDocument({
                   ...(shouldShowRepaymentRate(selectedProcedure)
                     ? [
                         {
-                          label: "변제율",
+                          label: "변제율 (무담보 채무 기준)",
                           value:
                             plan.monthlyPaymentManwon === 0
                               ? "-"
                               : formatRepaymentRate(
                                   plan.totalPaymentManwon,
-                                  detail.debtStatus.totalDebtManwon
+                                  resolveUnsecuredDebtManwon(detail)
                                 ),
                         },
                       ]

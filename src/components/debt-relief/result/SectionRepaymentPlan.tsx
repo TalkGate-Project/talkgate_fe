@@ -1,5 +1,11 @@
-import type { DiagnosisDetail, RecommendedProcedure, RepaymentPlan } from "@/types/debtRelief";
+import {
+  isAdjustableRepaymentProcedure,
+  type DiagnosisDetail,
+  type RecommendedProcedure,
+  type RepaymentPlan,
+} from "@/types/debtRelief";
 import { formatManwonComma } from "@/components/debt-relief/format";
+import { isDebtCollateralLoan } from "@/types/analysis";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 
 // "절차별 성공 가능성"에서 고른 절차에 따라 이 섹션의 구성이 통째로 바뀐다(2026-08-07 백엔드
@@ -53,6 +59,15 @@ export function formatRepaymentRate(
 ): string {
   const repaymentRate = calculateRepaymentRate(totalPaymentManwon, totalDebtManwon);
   return repaymentRate == null ? "-" : `${repaymentRate}%`;
+}
+
+export function resolveUnsecuredDebtManwon(detail: DiagnosisDetail): number {
+  return (
+    detail.collateralBreakdown?.unsecuredDebt ??
+    detail.inputData.debts
+      .filter((debt) => !debt.isExcludedFromAnalysis && !isDebtCollateralLoan(debt))
+      .reduce((sum, debt) => sum + debt.currentBalanceWon / 10_000, 0)
+  );
 }
 
 export function resolveSectionKind(procedure: RecommendedProcedure): RepaymentSectionKind {
@@ -257,16 +272,30 @@ function RepaymentTimeline({
   );
 }
 
+function AdjustmentsIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path
+        d="M9.99992 5.00065V3.33398M9.99992 5.00065C9.07944 5.00065 8.33325 5.74684 8.33325 6.66732C8.33325 7.58779 9.07944 8.33398 9.99992 8.33398M9.99992 5.00065C10.9204 5.00065 11.6666 5.74684 11.6666 6.66732C11.6666 7.58779 10.9204 8.33398 9.99992 8.33398M4.99992 15.0007C5.92039 15.0007 6.66659 14.2545 6.66659 13.334C6.66659 12.4135 5.92039 11.6673 4.99992 11.6673M4.99992 15.0007C4.07944 15.0007 3.33325 14.2545 3.33325 13.334C3.33325 12.4135 4.07944 11.6673 4.99992 11.6673M4.99992 15.0007V16.6673M4.99992 11.6673V3.33398M9.99992 8.33398V16.6673M14.9999 15.0007C15.9204 15.0007 16.6666 14.2545 16.6666 13.334C16.6666 12.4135 15.9204 11.6673 14.9999 11.6673M14.9999 15.0007C14.0794 15.0007 13.3333 14.2545 13.3333 13.334C13.3333 12.4135 14.0794 11.6673 14.9999 11.6673M14.9999 15.0007V16.6673M14.9999 11.6673V3.33398"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 // 2026-08-08: 가용소득이 사실상 없어 월 변제액이 0원으로 산출되는 케이스(개인회생/개인워크아웃 등)는
 // "0원"이 아니라 "산정 불가"로 표시하고, 기간·총액도 의미가 없으므로 "-"로 비운다.
 function PlanRowsPanel({
   plan,
   selectedProcedure,
-  totalDebtManwon,
+  unsecuredDebtManwon,
 }: {
   plan: RepaymentPlan;
   selectedProcedure: RecommendedProcedure;
-  totalDebtManwon: number;
+  unsecuredDebtManwon: number;
 }) {
   const isUnpayable = plan.monthlyPaymentManwon === 0;
   return (
@@ -283,11 +312,11 @@ function PlanRowsPanel({
       />
       {shouldShowRepaymentRate(selectedProcedure) && (
         <PlanRow
-          label="변제율"
+          label="변제율 (무담보 채무 기준)"
           value={
             isUnpayable
               ? "-"
-              : formatRepaymentRate(plan.totalPaymentManwon, totalDebtManwon)
+              : formatRepaymentRate(plan.totalPaymentManwon, unsecuredDebtManwon)
           }
         />
       )}
@@ -315,7 +344,7 @@ function SummaryInfoCard({ content }: { content: BucketSummaryContent }) {
 function ExemptionAmount({ manwon }: { manwon: number }) {
   return (
     <p className="flex items-end gap-1">
-      <span className="font-montserrat text-[20px] font-bold leading-6 tracking-[-0.03em] text-neutral-70 lg:text-[28px] lg:leading-7">
+      <span className="font-montserrat text-[20px] font-extrabold leading-6 tracking-[-0.03em] text-neutral-70 lg:text-[28px] lg:leading-7">
         약 {manwon.toLocaleString("ko-KR")}
       </span>
       <span className="text-[14px] font-semibold leading-[17px] text-neutral-60">만원</span>
@@ -541,17 +570,23 @@ function PrecautionsList({ notes }: { notes: string[] }) {
 export default function SectionRepaymentPlan({
   detail,
   selectedProcedure,
+  onAdjust,
 }: {
   detail: DiagnosisDetail;
   selectedProcedure: RecommendedProcedure;
+  onAdjust?: () => void;
 }) {
   const kind = resolveSectionKind(selectedProcedure);
   const plan = detail.repaymentPlanByProcedure[selectedProcedure];
+  const adjustmentApplied = isAdjustableRepaymentProcedure(selectedProcedure)
+    ? detail.adjustedRepayment[selectedProcedure] != null
+    : false;
+  const adjustmentAvailable = kind === "full" && plan && isAdjustableRepaymentProcedure(selectedProcedure);
 
   return (
     <div className="flex flex-col gap-[21px]">
       <div>
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1">
           <h2 className="inline-flex h-6 items-center text-[16px] font-semibold leading-none tracking-[0.2px] text-foreground">
             {SECTION_TITLE[kind]}
           </h2>
@@ -560,6 +595,26 @@ export default function SectionRepaymentPlan({
             <br />
             법원 결정에 따라 달라질 수 있습니다.
           </DisclaimerInfoTooltip>
+          {adjustmentAvailable && onAdjust ? (
+            <button
+              type="button"
+              onClick={onAdjust}
+              className={`relative ml-2 flex h-7 cursor-pointer items-center justify-center gap-1 rounded-[5px] border bg-card px-2 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10 ${
+                adjustmentApplied
+                  ? "border-secondary-60 text-secondary-60"
+                  : "border-secondary-20 text-secondary-20"
+              }`}
+            >
+              <AdjustmentsIcon />
+              <span className="text-foreground">변제 계획 조정</span>
+              {adjustmentApplied ? (
+                <span
+                  className="absolute -right-1 -top-1 size-2 rounded-full bg-secondary-60"
+                  aria-hidden
+                />
+              ) : null}
+            </button>
+          ) : null}
         </div>
         <div className="mt-3 border-t border-neutral-30" />
       </div>
@@ -573,7 +628,7 @@ export default function SectionRepaymentPlan({
           <PlanRowsPanel
             plan={plan}
             selectedProcedure={selectedProcedure}
-            totalDebtManwon={detail.debtStatus.totalDebtManwon}
+            unsecuredDebtManwon={resolveUnsecuredDebtManwon(detail)}
           />
           {plan.monthlyPaymentManwon > 0 && (
             <RepaymentTimeline
