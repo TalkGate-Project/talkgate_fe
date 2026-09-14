@@ -204,7 +204,7 @@ export function ScoreRow({
         </span>
         {score.recommended && (
           <span className="inline-flex items-center justify-center h-[17px] px-1 rounded-[4px] bg-neutral-90 text-neutral-0 text-[11px] font-medium leading-[13px] shrink-0">
-            추천
+            희망
           </span>
         )}
       </div>
@@ -301,7 +301,7 @@ function GroupScoreHeader({
         </span>
         {recommended && (
           <span className="inline-flex items-center justify-center h-[17px] px-1 rounded-[4px] bg-neutral-90 text-neutral-0 text-[11px] font-medium leading-[13px] shrink-0">
-            추천
+            희망
           </span>
         )}
       </div>
