@@ -29,9 +29,13 @@ function AssetMetric({ label, value }: { label: string; value: string }) {
 
 function buildAssetComposition(detail: DiagnosisDetail): AssetCompositionItem[] {
   const amounts = new Map<AnalysisAssetCategory, number>();
-  for (const asset of detail.inputData.assets) {
-    if (!Number.isFinite(asset.marketValue) || asset.marketValue <= 0) continue;
-    amounts.set(asset.category, (amounts.get(asset.category) ?? 0) + asset.marketValue);
+  const assetDetails = detail.collateralBreakdown?.assetDetails;
+  const assets = assetDetails?.length ? assetDetails : detail.inputData.assets;
+
+  for (const asset of assets) {
+    const amountManwon = "netValue" in asset ? asset.netValue : asset.marketValue;
+    if (!Number.isFinite(amountManwon) || amountManwon <= 0) continue;
+    amounts.set(asset.category, (amounts.get(asset.category) ?? 0) + amountManwon);
   }
 
   const totalAmount = Array.from(amounts.values()).reduce((sum, amount) => sum + amount, 0);
