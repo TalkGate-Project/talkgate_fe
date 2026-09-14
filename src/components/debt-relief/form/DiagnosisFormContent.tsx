@@ -158,6 +158,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     restoreDraft,
     startFresh,
     finalizeDraft,
+    finalizeAllDrafts,
   } = useAnalysisDraft({
     enabled: !isEdit,
     identityReady: ready && !memberLoading,
@@ -580,6 +581,10 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
       } else {
         await DebtReliefService.updateAnalysisDraft(projectId, draftId, draftFormSnapshot);
       }
+      // 서버 임시저장이 성공한 시점부터는 서버 데이터를 단일 진실 공급원으로 삼는다. 예약된
+      // 자동저장까지 중단한 뒤 분석 폼 관련 로컬 초안을 모두 지워, 이후 새 분석 진입 시 과거
+      // 스텝이 복원되는 간헐적 경쟁 조건을 막는다.
+      finalizeAllDrafts();
       setSavedDraftForm(draftFormSnapshot);
     } catch (error) {
       console.error("Failed to save analysis draft:", error);

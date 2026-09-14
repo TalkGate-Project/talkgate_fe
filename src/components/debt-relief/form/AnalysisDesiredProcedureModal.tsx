@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import { RECOMMENDED_PROCEDURE_LABEL, isAdjustableRepaymentProcedure, type RecommendedProcedure } from "@/types/debtRelief";
 import AnalyzeSparkleIcon from "./AnalyzeSparkleIcon";
+import { DoubleChevronRightIcon } from "@/components/icons";
 
 type Props = {
   open: boolean;
@@ -22,15 +23,6 @@ function CloseIcon() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path d="M6 18 18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function DoubleChevronRightIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <path d="M5.5 4.5 10.5 10 5.5 15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M10.5 4.5 15.5 10 10.5 15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -117,8 +109,8 @@ export default function AnalysisDesiredProcedureModal({
           onClick={onSkip}
           className="inline-flex cursor-pointer items-center gap-1 text-[14px] font-semibold text-neutral-60 hover:text-neutral-70"
         >
-          <DoubleChevronRightIcon />
           건너뛰기
+          <DoubleChevronRightIcon />
         </button>
         <div className="flex items-center gap-2">
           <button

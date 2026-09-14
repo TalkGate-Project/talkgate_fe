@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { DoubleChevronRightIcon } from "@/components/icons";
 import {
   usePhoneVerification,
   type VerificationResult,
@@ -143,29 +144,7 @@ export function PhoneVerificationStep({
           disabled={isVerifying}
         >
           <span>건너뛰기</span>
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="text-[#808080]"
-          >
-            <path
-              d="M5 3.5L8.5 7L5 10.5"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M8.5 3.5L12 7L8.5 10.5"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <DoubleChevronRightIcon />
         </button>
       </div>
     </div>

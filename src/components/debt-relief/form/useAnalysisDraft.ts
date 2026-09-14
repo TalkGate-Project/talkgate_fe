@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DiagnosisFormState } from "@/types/debtRelief";
 import {
+  ANALYSIS_DRAFTS_CLEARED_AT_KEY,
+  ANALYSIS_DRAFTS_CLEARED_EVENT,
+  clearAllAnalysisDrafts,
   hasMeaningfulAnalysisDraftData,
   readAnalysisDraft,
   removeAnalysisDraft,
@@ -126,6 +129,32 @@ export function useAnalysisDraft({
     writeAnalysisDraft(currentScope, payload);
   }, []);
 
+  const stopLocalDraftPersistence = useCallback(() => {
+    finalizedRef.current = true;
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleDraftsCleared = () => {
+      stopLocalDraftPersistence();
+      const currentScope = scopeRef.current;
+      if (currentScope) removeAnalysisDraft(currentScope);
+    };
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === ANALYSIS_DRAFTS_CLEARED_AT_KEY) handleDraftsCleared();
+    };
+
+    window.addEventListener(ANALYSIS_DRAFTS_CLEARED_EVENT, handleDraftsCleared);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener(ANALYSIS_DRAFTS_CLEARED_EVENT, handleDraftsCleared);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [stopLocalDraftPersistence]);
+
   // 저장이 막힌 상태(관리자·부관리자 + 고객 미연동)로 바뀌는 순간 한 번만 기존 드래프트를
   // 정리한다. form을 의존성에 넣지 않아 타이핑마다 재실행되지 않는다 — 탭을 오래 켜두는
   // 제품 특성상 매 입력마다 불필요한 정리 호출이 쌓이는 걸 피하기 위함.
@@ -183,14 +212,15 @@ export function useAnalysisDraft({
   }, []);
 
   const finalizeDraft = useCallback(() => {
-    finalizedRef.current = true;
-    if (saveTimerRef.current) {
-      clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = null;
-    }
+    stopLocalDraftPersistence();
     const currentScope = scopeRef.current;
     if (currentScope) removeAnalysisDraft(currentScope);
-  }, []);
+  }, [stopLocalDraftPersistence]);
+
+  const finalizeAllDrafts = useCallback(() => {
+    stopLocalDraftPersistence();
+    clearAllAnalysisDrafts();
+  }, [stopLocalDraftPersistence]);
 
   return {
     state,
@@ -198,5 +228,6 @@ export function useAnalysisDraft({
     restoreDraft,
     startFresh,
     finalizeDraft,
+    finalizeAllDrafts,
   };
 }

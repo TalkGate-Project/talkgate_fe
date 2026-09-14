@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import BaseModal from "@/components/common/BaseModal";
+import { DoubleChevronRightIcon } from "@/components/icons";
 import { RECOMMENDED_PROCEDURE_LABEL } from "@/types/debtRelief";
 import {
   ANALYSIS_ADJUSTED_REPAYMENT_PERIOD_RANGE,
@@ -58,15 +59,6 @@ function RefreshIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-    </svg>
-  );
-}
-
-function DoubleChevronRightIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <path d="M5.5 4.5 10.5 10 5.5 15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M10.5 4.5 15.5 10 10.5 15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -323,8 +315,8 @@ export default function AnalysisAdjustedRepaymentModal({
             disabled={submitting}
             className="inline-flex cursor-pointer items-center gap-1 text-[14px] font-semibold text-neutral-60 hover:text-neutral-70 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <DoubleChevronRightIcon />
             건너뛰기
+            <DoubleChevronRightIcon />
           </button>
         ) : null}
         <div className="flex items-center gap-3">
