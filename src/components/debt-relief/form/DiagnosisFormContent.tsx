@@ -34,6 +34,7 @@ import FormSidebar from "./FormSidebar";
 import MobileFormSummaryDrawer from "./MobileFormSummaryDrawer";
 import FormMobileActionBar from "./FormMobileActionBar";
 import FormStepNavButton from "./FormStepNavButton";
+import DraftSavedCheckIcon from "./DraftSavedCheckIcon";
 import AnalysisLoadingOverlayHost, {
   type AnalysisProgressHandle,
 } from "./AnalysisLoadingOverlayHost";
@@ -74,7 +75,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   // 재분석(PATCH .../input)해 finalize한다(중복 분석 건 생성 방지).
   const [draftId, setDraftId] = useState<number | null>(diagnosisId ? Number(diagnosisId) : null);
   const [savingDraft, setSavingDraft] = useState(false);
-  const [draftSavedFlash, setDraftSavedFlash] = useState(false);
+  const [savedDraftForm, setSavedDraftForm] = useState<DiagnosisFormState | null>(null);
   // 수정 모드 진입 시 로드된 분석의 실제 상태. drafting 건만 임시저장 버튼을 다시 노출한다 —
   // PATCH /analysis/:id/draft가 drafting 상태 건에서만 허용되기 때문(백엔드 제약).
   const [loadedAnalysisStatus, setLoadedAnalysisStatus] = useState<AnalysisStatus | null>(null);
@@ -537,6 +538,10 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   const canShowTempSave = !isEdit || loadedAnalysisStatus === "drafting";
 
   const missingDraftFields = useMemo(() => getMissingDraftRequiredFieldLabels(form), [form]);
+  const draftSaved = useMemo(
+    () => savedDraftForm !== null && !isDiagnosisFormDirty(form, savedDraftForm),
+    [form, savedDraftForm]
+  );
 
   const handleSaveDraft = async () => {
     if (savingDraft || analyzing || !projectId) return;
@@ -549,15 +554,15 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     }
 
     setSavingDraft(true);
+    const draftFormSnapshot = structuredClone(form);
     try {
       if (draftId == null) {
-        const result = await DebtReliefService.createAnalysisDraft(projectId, form, selectedCustomerId);
+        const result = await DebtReliefService.createAnalysisDraft(projectId, draftFormSnapshot, selectedCustomerId);
         setDraftId(Number(result.id));
       } else {
-        await DebtReliefService.updateAnalysisDraft(projectId, draftId, form);
+        await DebtReliefService.updateAnalysisDraft(projectId, draftId, draftFormSnapshot);
       }
-      setDraftSavedFlash(true);
-      window.setTimeout(() => setDraftSavedFlash(false), 1500);
+      setSavedDraftForm(draftFormSnapshot);
     } catch (error) {
       console.error("Failed to save analysis draft:", error);
       showErrorModal({
@@ -883,7 +888,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         onSaveDraft={handleSaveDraft}
         saveDraftDisabled={!canShowTempSave}
         savingDraft={savingDraft}
-        draftSavedFlash={draftSavedFlash}
+        draftSaved={draftSaved}
         isCustomerConnected={isCustomerConnected}
         linkedCustomerName={linkedCustomerSummary?.name}
         linkedCustomerContact={linkedCustomerSummary?.contact}
@@ -974,10 +979,19 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
                 type="button"
                 onClick={handleSaveDraft}
                 disabled={!canShowTempSave || savingDraft || analyzing}
-                aria-label={savingDraft ? "임시저장 중" : "임시저장"}
+                aria-label={savingDraft ? "임시저장 중" : draftSaved ? "저장됨" : "임시저장"}
                 className="inline-flex items-center justify-center h-[34px] px-3 rounded-[5px] border border-neutral-30 bg-card text-[14px] leading-[17px] tracking-[-0.02em] font-semibold text-neutral-70 whitespace-nowrap cursor-pointer hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {savingDraft ? "저장 중" : draftSavedFlash ? "저장됨" : "임시저장"}
+                {savingDraft ? (
+                  "저장 중"
+                ) : draftSaved ? (
+                  <span className="inline-flex items-center gap-1" aria-live="polite">
+                    <DraftSavedCheckIcon />
+                    저장됨
+                  </span>
+                ) : (
+                  "임시저장"
+                )}
               </button>
               <button
                   type="button"

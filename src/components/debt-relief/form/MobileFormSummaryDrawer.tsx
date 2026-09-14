@@ -6,6 +6,7 @@ import type { FormStepMeta } from "./steps";
 import FormCustomerSummary from "./FormCustomerSummary";
 import FormFinancialSummary from "./FormFinancialSummary";
 import FormStepChecklist from "./FormStepChecklist";
+import DraftSavedCheckIcon from "./DraftSavedCheckIcon";
 
 /** Figma 모바일 분석하기 — 18×18 프레임, 아이콘 14 영역, green→mint 그라디언트 */
 function MobileAnalyzeSparkleIcon() {
@@ -78,8 +79,8 @@ type Props = {
   /** true면 버튼은 유지하고 비활성화만 한다 — 수정 모드에서 drafting 건이 아닐 때 */
   saveDraftDisabled?: boolean;
   savingDraft?: boolean;
-  /** 저장 성공 직후 잠깐 체크 아이콘으로 바뀌는 상태 */
-  draftSavedFlash?: boolean;
+  /** 마지막으로 저장한 내용과 현재 폼이 같으면 true */
+  draftSaved?: boolean;
   /** 실제 고객 레코드와 연동된 데이터면 이름 옆에 연동 아이콘을 붙인다. */
   isCustomerConnected?: boolean;
   linkedCustomerName?: string;
@@ -106,7 +107,7 @@ export default function MobileFormSummaryDrawer({
   onSaveDraft,
   saveDraftDisabled = false,
   savingDraft = false,
-  draftSavedFlash = false,
+  draftSaved = false,
   isCustomerConnected = false,
   linkedCustomerName,
   linkedCustomerContact,
@@ -146,16 +147,10 @@ export default function MobileFormSummaryDrawer({
             type="button"
             onClick={onSaveDraft}
             disabled={saveDraftDisabled || savingDraft || analyzing}
-            aria-label={savingDraft ? "임시저장 중" : "임시저장"}
+            aria-label={savingDraft ? "임시저장 중" : draftSaved ? "저장됨" : "임시저장"}
             className="shrink-0 inline-flex items-center justify-center w-8 h-8 cursor-pointer rounded-full border border-neutral-30 text-neutral-70 hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {draftSavedFlash ? (
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
-                <path d="M4.5 10.5l3.5 3.5 7.5-7.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            ) : (
-              <SaveIcon />
-            )}
+            {draftSaved ? <DraftSavedCheckIcon /> : <SaveIcon />}
           </button>
           {/* Figma: 92×34, radius 5, drop-shadow, 사이드바와 동일 analyze-button */}
           <button
