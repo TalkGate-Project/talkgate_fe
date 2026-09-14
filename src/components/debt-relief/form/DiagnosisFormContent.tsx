@@ -35,6 +35,7 @@ import MobileFormSummaryDrawer from "./MobileFormSummaryDrawer";
 import FormMobileActionBar from "./FormMobileActionBar";
 import FormStepNavButton from "./FormStepNavButton";
 import DraftSavedCheckIcon from "./DraftSavedCheckIcon";
+import TrashOutlineIcon from "@/components/debt-relief/TrashOutlineIcon";
 import AnalysisLoadingOverlayHost, {
   type AnalysisProgressHandle,
 } from "./AnalysisLoadingOverlayHost";
@@ -75,6 +76,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   // 재분석(PATCH .../input)해 finalize한다(중복 분석 건 생성 방지).
   const [draftId, setDraftId] = useState<number | null>(diagnosisId ? Number(diagnosisId) : null);
   const [savingDraft, setSavingDraft] = useState(false);
+  const [deletingDraft, setDeletingDraft] = useState(false);
   const [savedDraftForm, setSavedDraftForm] = useState<DiagnosisFormState | null>(null);
   // 수정 모드 진입 시 로드된 분석의 실제 상태. drafting 건만 임시저장 버튼을 다시 노출한다 —
   // PATCH /analysis/:id/draft가 drafting 상태 건에서만 허용되기 때문(백엔드 제약).
@@ -612,6 +614,12 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   // 목록으로 보낸다. 로딩 중(loadedAnalysisStatus 미확정)엔 폼 자체가 렌더되지 않아 도달하지 않는다.
   const exitTarget =
     isEdit && loadedAnalysisStatus !== "drafting" ? `/debt-relief/${diagnosisId}` : "/debt-relief";
+  const deletableDraftId =
+    isEdit && loadedAnalysisStatus === "drafting" && diagnosisId
+      ? diagnosisId
+      : !isEdit && draftId !== null
+        ? String(draftId)
+        : null;
 
   const goBack = () => {
     if (isFirst) {
@@ -632,6 +640,37 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   // goBack의 isFirst 분기와 동일한 목적지를 재사용한다.
   const handleClose = () => {
     router.push(exitTarget);
+  };
+
+  const handleDeleteDraft = () => {
+    if (!projectId || !deletableDraftId || deletingDraft) return;
+
+    showConfirmModal({
+      title: "진단 삭제",
+      headline: "이 진단을 삭제하시겠습니까?",
+      message: "삭제된 진단은 복구할 수 없습니다.",
+      type: "warning",
+      confirmText: "삭제",
+      cancelText: "취소",
+      onConfirm: async () => {
+        setDeletingDraft(true);
+        try {
+          await DebtReliefService.deleteDiagnosis(projectId, deletableDraftId);
+          if (!isEdit) finalizeAllDrafts();
+          router.replace("/debt-relief");
+        } catch (error) {
+          console.error("Failed to delete analysis draft:", error);
+          showErrorModal({
+            title: "삭제 실패",
+            headline: "진단을 삭제하지 못했습니다.",
+            description: "잠시 후 다시 시도해주세요.",
+            hideCancel: true,
+          });
+        } finally {
+          setDeletingDraft(false);
+        }
+      },
+    });
   };
 
   const handleAnalyze = async () => {
@@ -993,10 +1032,23 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
           <div className="flex-1 min-w-0 px-6 lg:px-7 pt-4 lg:pt-8 pb-7">{renderStep()}</div>
 
           {/* 푸터 — 데스크톱 전용, 모바일은 FormMobileActionBar(fixed)가 대신함.
-              3열 flex: 좌측 스페이서 ↔ 중앙 이전/다음 ↔ 우측 분석하기 (좌우 flex-1로 중앙 정렬 유지) */}
+              3열 flex: 좌측 삭제 ↔ 중앙 이전/다음 ↔ 우측 분석하기 (좌우 flex-1로 중앙 정렬 유지) */}
           <div role="separator" className="hidden lg:block h-px bg-neutral-30 opacity-50" />
           <div className="hidden lg:flex items-center px-7 pt-[13px] pb-3">
-            <div className="flex-1" aria-hidden />
+            <div className="flex-1">
+              {deletableDraftId ? (
+                <button
+                  type="button"
+                  onClick={handleDeleteDraft}
+                  disabled={deletingDraft || savingDraft || analyzing}
+                  aria-label={deletingDraft ? "진단 삭제 중" : "진단 삭제"}
+                  className="inline-flex h-[34px] items-center justify-center gap-2.5 rounded-[5px] border border-neutral-30 bg-card px-3 py-1.5 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-danger-40 whitespace-nowrap cursor-pointer hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <TrashOutlineIcon />
+                  {deletingDraft ? "삭제 중" : "삭제"}
+                </button>
+              ) : null}
+            </div>
             <div className="flex items-center gap-2">
               <FormStepNavButton direction="prev" disabled={isFirst} onClick={goBack} />
               <FormStepNavButton direction="next" disabled={isLast} onClick={goNext} />
