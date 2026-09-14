@@ -354,11 +354,16 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
     // 상세모드에서는 debts가 원본이고 debtBreakdown/overdueMonths는 서버가 자동 집계한다.
     // 굳이 같이 보내면 두 값이 어긋났을 때 어느 쪽이 진실인지 모호해지므로 보내지 않는다.
     debtInputMode: form.debtInputMode,
-    debts: form.debts.map((debt) => debt.debtType === "credit_card" ? normalizeCreditCardDebt(debt) : isDetailed ? {
-      ...debt,
-      isCollateralLoan: isDebtCollateralLoan(debt),
-      ...calculateDebtItemAmortization(debt),
-    } : {
+    debts: form.debts.map((debt) => debt.debtType === "credit_card" ? normalizeCreditCardDebt(debt) : isDetailed ? (() => {
+      const { manualCalculationOverrides = [], ...debtInput } = debt;
+      const calculated = calculateDebtItemAmortization(debt);
+      return {
+        ...debtInput,
+        isCollateralLoan: isDebtCollateralLoan(debt),
+        ...calculated,
+        ...Object.fromEntries(manualCalculationOverrides.map((field) => [field, debt[field] ?? 0])),
+      };
+    })() : {
       id: debt.id,
       debtType: debt.debtType,
       creditorName: debt.creditorName,
@@ -430,11 +435,16 @@ function toAnalysisDraftFormInput(form: DiagnosisFormState): AnalysisDraftFormIn
     ...(form.housingType ? { housingType: form.housingType } : {}),
     additionalFixedExpense: form.additionalFixedExpense,
     debtInputMode: form.debtInputMode,
-    debts: form.debts.map((debt) => debt.debtType === "credit_card" ? normalizeCreditCardDebt(debt) : isDetailed ? {
-      ...debt,
-      isCollateralLoan: isDebtCollateralLoan(debt),
-      ...calculateDebtItemAmortization(debt),
-    } : {
+    debts: form.debts.map((debt) => debt.debtType === "credit_card" ? normalizeCreditCardDebt(debt) : isDetailed ? (() => {
+      const { manualCalculationOverrides = [], ...debtInput } = debt;
+      const calculated = calculateDebtItemAmortization(debt);
+      return {
+        ...debtInput,
+        isCollateralLoan: isDebtCollateralLoan(debt),
+        ...calculated,
+        ...Object.fromEntries(manualCalculationOverrides.map((field) => [field, debt[field] ?? 0])),
+      };
+    })() : {
       id: debt.id,
       debtType: debt.debtType,
       creditorName: debt.creditorName,
@@ -518,9 +528,18 @@ export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormSt
       ...debt,
       isCollateralLoan: isDebtCollateralLoan(debt),
     };
-    return debtInputMode === "detailed"
-      ? { ...normalizedDebt, ...calculateDebtItemAmortization(normalizedDebt) }
-      : normalizedDebt;
+    if (debtInputMode !== "detailed") return normalizedDebt;
+    const calculated = calculateDebtItemAmortization(normalizedDebt);
+    const calculationFields = ["monthlyPaymentWon", "remainingInterestWon", "totalRepaymentWon"] as const;
+    const manualCalculationOverrides = calculationFields.filter(
+      (field) => debt[field] != null && debt[field] !== calculated[field]
+    );
+    return {
+      ...normalizedDebt,
+      ...calculated,
+      ...Object.fromEntries(manualCalculationOverrides.map((field) => [field, debt[field]])),
+      ...(manualCalculationOverrides.length > 0 ? { manualCalculationOverrides } : {}),
+    };
   });
 
   return {

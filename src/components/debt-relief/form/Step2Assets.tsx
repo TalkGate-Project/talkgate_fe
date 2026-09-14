@@ -7,6 +7,7 @@ import DebtItemsTable from "./DebtItemsTable";
 import { DebtModeToggle } from "./DebtHistoryCard";
 import { AssetIcon } from "./assetIcons";
 import { PillSelect } from "./PillSelect";
+import { showConfirmModal } from "@/providers/ConfirmModalProvider";
 
 type Props = { form: DiagnosisFormState; update: <K extends keyof DiagnosisFormState>(key: K, value: DiagnosisFormState[K]) => void };
 
@@ -23,7 +24,7 @@ export default function Step2Assets({ form, update }: Props) {
     const assetIds = new Set(assets.map((asset) => asset.id));
     const removedCollateralDebtIds = new Set(form.debts.filter((debt) => debt.collateralAssetId && !assetIds.has(debt.collateralAssetId)).map((debt) => debt.id));
     update("assets", assets);
-    update("debts", form.debts.map((debt) => debt.collateralAssetId && !assetIds.has(debt.collateralAssetId) ? { ...debt, collateralAssetId: undefined } : debt));
+    update("debts", form.debts.filter((debt) => !removedCollateralDebtIds.has(debt.id)));
     update("assetOriginDebtIds", form.assetOriginDebtIds.filter((id) => !removedCollateralDebtIds.has(id)));
     update("realEstateStatusConfirmed", true);
   };
@@ -37,6 +38,17 @@ export default function Step2Assets({ form, update }: Props) {
   const toggleAsset = (category: AssetItemFormState["category"]) => {
     const existing = form.assets.find((asset) => asset.category === category);
     if (existing) {
+      const hasCollateralDebt = form.debts.some((debt) => debt.collateralAssetId === existing.id);
+      if (hasCollateralDebt) {
+        showConfirmModal({
+          title: "자산 삭제",
+          message: "이 자산과 연결된 담보 대출도 함께 삭제됩니다.",
+          confirmText: "삭제",
+          type: "warning",
+          onConfirm: () => setAssets(form.assets.filter((asset) => asset.id !== existing.id)),
+        });
+        return;
+      }
       setAssets(form.assets.filter((asset) => asset.id !== existing.id));
       return;
     }
@@ -66,14 +78,22 @@ export default function Step2Assets({ form, update }: Props) {
             update("assetOriginDebtIds", [...form.assetOriginDebtIds, debt.id]);
             return;
           }
-          update("debts", form.debts.map((debt) => debt.collateralAssetId === asset.id ? { ...debt, collateralAssetId: undefined } : debt));
-          update("assetOriginDebtIds", form.assetOriginDebtIds.filter((id) => !collateralDebts.some((debt) => debt.id === id)));
+          showConfirmModal({
+            title: "담보 대출 삭제",
+            message: "이 자산의 담보 대출을 삭제할까요?",
+            confirmText: "삭제",
+            type: "warning",
+            onConfirm: () => {
+              update("debts", form.debts.filter((debt) => debt.collateralAssetId !== asset.id));
+              update("assetOriginDebtIds", form.assetOriginDebtIds.filter((id) => !collateralDebts.some((debt) => debt.id === id)));
+            },
+          });
         };
         return <section key={asset.id} className="overflow-hidden rounded-[14px] border border-neutral-30 bg-card">
           <div className="flex min-h-14 flex-wrap items-center gap-3 bg-neutral-10 px-5 py-2.5 lg:px-6">
             <div className="flex min-w-[130px] flex-1 items-center gap-2"><AssetIcon category={asset.category} /><strong className="text-[16px] font-semibold text-foreground">{category?.label}</strong></div>
             <div className="w-[152px] shrink-0"><ManwonInput value={asset.marketValue} onChange={(marketValue) => updateAsset(asset.id, { marketValue })} /></div>
-            <button type="button" onClick={() => setAssets(form.assets.filter((item) => item.id !== asset.id))} aria-label={`${category?.label} 삭제`} className="grid h-8 w-8 cursor-pointer place-items-center text-neutral-50 hover:text-neutral-70"><RemoveIcon /></button>
+            <button type="button" onClick={() => toggleAsset(asset.category)} aria-label={`${category?.label} 삭제`} className="grid h-8 w-8 cursor-pointer place-items-center text-neutral-50 hover:text-neutral-70"><RemoveIcon /></button>
           </div>
           <>
             <div className="flex min-h-12 items-center justify-between gap-3 border-t border-neutral-30 px-5 lg:px-6">
@@ -93,6 +113,8 @@ export default function Step2Assets({ form, update }: Props) {
                 showSummaryCards={false}
                 assetCollateralOnly
                 desktopLayoutBreakpoint="desktop"
+                customScrollbarMode="detailed"
+                detailedLayout="cards"
               />
             </div>}
           </>

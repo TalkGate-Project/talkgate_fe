@@ -98,7 +98,7 @@ export default function AnalysisDesiredProcedureModal({
                 type="button"
                 onClick={() => setSelected(procedure)}
                 aria-pressed={isSelected}
-                className={`h-12 rounded-lg text-[16px] tracking-[-0.02em] transition-colors ${
+                className={`h-12 cursor-pointer rounded-lg text-[16px] tracking-[-0.02em] transition-colors ${
                   isSelected
                     ? "bg-neutral-90 font-semibold text-neutral-20"
                     : "border border-neutral-30 bg-card font-medium text-foreground hover:bg-neutral-20/50"

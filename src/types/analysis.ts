@@ -151,6 +151,8 @@ export type AnalysisDebtItem = {
   monthlyPaymentWon?: number;
   remainingInterestWon?: number;
   totalRepaymentWon?: number;
+  /** 프론트 폼에서 자동 계산값을 사용자가 직접 수정한 필드. API 전송 시 메타데이터 자체는 제외한다. */
+  manualCalculationOverrides?: Array<"monthlyPaymentWon" | "remainingInterestWon" | "totalRepaymentWon">;
   /** true면 채무는 저장하되 총채무·청산가치·면책액·AI 진단 계산에서 제외한다. */
   isExcludedFromAnalysis?: boolean;
 };

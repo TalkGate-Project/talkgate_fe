@@ -183,7 +183,7 @@ export function ManwonQuickInput({
             key={preset}
             label={preset.toLocaleString("ko-KR")}
             selected={value === preset}
-            onClick={() => onChange(value === preset ? null : preset)}
+            onClick={() => onChange(preset)}
           />
         ))}
       </div>
