@@ -85,6 +85,10 @@ const STATUS_CHIP: Record<ConditionStatus, string> = {
 };
 
 const SCORE_ANIMATION_DURATION = 900;
+// 위 "분석 브리핑" 숫자 카운트업이 먼저 눈에 들어온 다음 이 막대그래프가 뒤따라 채워지도록,
+// 페이지 로드 즉시가 아니라 살짝 지연 후 시작한다. globals.css의 .procedure-score-bar
+// animation-delay와 같은 값으로 맞춰야 숫자와 막대가 같은 타이밍에 같이 움직인다.
+export const SCORE_ANIMATION_DELAY = 320;
 
 function AnimatedScore({ value }: { value: number }) {
   const targetValue = Math.max(0, Math.min(100, Math.round(value)));
@@ -98,18 +102,26 @@ function AnimatedScore({ value }: { value: number }) {
     }
 
     let animationFrame = 0;
-    const startedAt = performance.now();
+    let startedAt = 0;
 
-    const updateValue = (now: number) => {
-      const progress = Math.min((now - startedAt) / SCORE_ANIMATION_DURATION, 1);
-      const easedProgress = 1 - Math.pow(1 - progress, 3);
-      setDisplayValue(Math.round(targetValue * easedProgress));
+    const delayTimer = window.setTimeout(() => {
+      const updateValue = (now: number) => {
+        if (startedAt === 0) startedAt = now;
 
-      if (progress < 1) animationFrame = requestAnimationFrame(updateValue);
+        const progress = Math.min((now - startedAt) / SCORE_ANIMATION_DURATION, 1);
+        const easedProgress = 1 - Math.pow(1 - progress, 3);
+        setDisplayValue(Math.round(targetValue * easedProgress));
+
+        if (progress < 1) animationFrame = requestAnimationFrame(updateValue);
+      };
+
+      animationFrame = requestAnimationFrame(updateValue);
+    }, SCORE_ANIMATION_DELAY);
+
+    return () => {
+      window.clearTimeout(delayTimer);
+      cancelAnimationFrame(animationFrame);
     };
-
-    animationFrame = requestAnimationFrame(updateValue);
-    return () => cancelAnimationFrame(animationFrame);
   }, [targetValue]);
 
   return <>{displayValue}</>;
