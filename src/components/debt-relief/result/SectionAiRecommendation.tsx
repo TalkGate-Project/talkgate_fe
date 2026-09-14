@@ -1,8 +1,14 @@
 import type { DiagnosisDetail } from "@/types/debtRelief";
 import { formatDateTimeDisplay } from "@/components/debt-relief/format";
+import AnimatedBriefingAmount from "./AnimatedBriefingAmount";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 
-type BriefingMetric = { label: string; amount: string; unit: string };
+type BriefingMetric = {
+  label: string;
+  value: number;
+  unit: string;
+  maximumFractionDigits?: number;
+};
 
 function formatDecimal(value: number, maximumFractionDigits = 1): string {
   return value.toLocaleString("ko-KR", { maximumFractionDigits });
@@ -10,9 +16,9 @@ function formatDecimal(value: number, maximumFractionDigits = 1): string {
 
 function formatDebtMetric(manwon: number): BriefingMetric {
   if (Math.abs(manwon) >= 10_000) {
-    return { label: "총 채무", amount: formatDecimal(manwon / 10_000), unit: "억원" };
+    return { label: "총 채무", value: manwon / 10_000, unit: "억원", maximumFractionDigits: 1 };
   }
-  return { label: "총 채무", amount: formatDecimal(manwon, 0), unit: "만원" };
+  return { label: "총 채무", value: manwon, unit: "만원" };
 }
 
 function describeOccupation(occupation: string): string {
@@ -58,7 +64,11 @@ function BriefingMetricItem({ metric, index }: { metric: BriefingMetric; index: 
       <p className="text-[13px] font-medium leading-[17px] text-neutral-60 lg:text-[14px]">{metric.label}</p>
       <div className="mt-3 flex min-w-0 items-end gap-2">
         <strong className="min-w-0 font-montserrat text-[24px] font-extrabold leading-none tracking-[1px] text-neutral-90 lg:text-[28px] lg:leading-[34px]">
-          {metric.amount}
+          <AnimatedBriefingAmount
+            value={metric.value}
+            index={index}
+            maximumFractionDigits={metric.maximumFractionDigits}
+          />
         </strong>
         <span className="shrink-0 pb-0.5 text-[14px] font-semibold leading-[19px] text-neutral-90 lg:text-[16px]">{metric.unit}</span>
       </div>
@@ -76,9 +86,9 @@ export default function SectionAiRecommendation({
   const { totalDebtManwon, totalAssetManwon, monthlyAvailableIncomeManwon, overdueMonths } = detail.debtStatus;
   const metrics: BriefingMetric[] = [
     formatDebtMetric(totalDebtManwon),
-    { label: "총 자산", amount: formatDecimal(totalAssetManwon, 0), unit: "만원" },
-    { label: "월 가용소득", amount: formatDecimal(monthlyAvailableIncomeManwon, 0), unit: "만원" },
-    { label: "연체 기간", amount: formatDecimal(overdueMonths, 0), unit: "개월" },
+    { label: "총 자산", value: totalAssetManwon, unit: "만원" },
+    { label: "월 가용소득", value: monthlyAvailableIncomeManwon, unit: "만원" },
+    { label: "연체 기간", value: overdueMonths, unit: "개월" },
   ];
 
   return (

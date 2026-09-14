@@ -944,7 +944,10 @@ svg path:focus {
 
 .procedure-score-bar {
   transform-origin: left center;
-  animation: procedure-score-fill 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* 지연값(320ms)은 SectionProcedureScores.tsx의 SCORE_ANIMATION_DELAY와 같은 값이어야
+     막대 옆 숫자 카운트업과 같은 타이밍에 시작한다 — 위 "분석 브리핑" 숫자가 먼저 눈에 들어온
+     다음 이 그래프가 뒤따라 채워지도록 즉시 시작하지 않는다. */
+  animation: procedure-score-fill 0.9s cubic-bezier(0.22, 1, 0.36, 1) 320ms both;
   will-change: transform;
 }
 

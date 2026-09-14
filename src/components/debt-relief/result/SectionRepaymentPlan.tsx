@@ -5,6 +5,7 @@ import {
   type RepaymentPlan,
 } from "@/types/debtRelief";
 import { formatManwonComma } from "@/components/debt-relief/format";
+import { isDebtCollateralLoan } from "@/types/analysis";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 
 // "절차별 성공 가능성"에서 고른 절차에 따라 이 섹션의 구성이 통째로 바뀐다(2026-08-07 백엔드
@@ -58,6 +59,15 @@ export function formatRepaymentRate(
 ): string {
   const repaymentRate = calculateRepaymentRate(totalPaymentManwon, totalDebtManwon);
   return repaymentRate == null ? "-" : `${repaymentRate}%`;
+}
+
+export function resolveUnsecuredDebtManwon(detail: DiagnosisDetail): number {
+  return (
+    detail.collateralBreakdown?.unsecuredDebt ??
+    detail.inputData.debts
+      .filter((debt) => !debt.isExcludedFromAnalysis && !isDebtCollateralLoan(debt))
+      .reduce((sum, debt) => sum + debt.currentBalanceWon / 10_000, 0)
+  );
 }
 
 export function resolveSectionKind(procedure: RecommendedProcedure): RepaymentSectionKind {
@@ -281,11 +291,11 @@ function AdjustmentsIcon() {
 function PlanRowsPanel({
   plan,
   selectedProcedure,
-  totalDebtManwon,
+  unsecuredDebtManwon,
 }: {
   plan: RepaymentPlan;
   selectedProcedure: RecommendedProcedure;
-  totalDebtManwon: number;
+  unsecuredDebtManwon: number;
 }) {
   const isUnpayable = plan.monthlyPaymentManwon === 0;
   return (
@@ -302,11 +312,11 @@ function PlanRowsPanel({
       />
       {shouldShowRepaymentRate(selectedProcedure) && (
         <PlanRow
-          label="변제율"
+          label="변제율 (무담보 채무 기준)"
           value={
             isUnpayable
               ? "-"
-              : formatRepaymentRate(plan.totalPaymentManwon, totalDebtManwon)
+              : formatRepaymentRate(plan.totalPaymentManwon, unsecuredDebtManwon)
           }
         />
       )}
@@ -618,7 +628,7 @@ export default function SectionRepaymentPlan({
           <PlanRowsPanel
             plan={plan}
             selectedProcedure={selectedProcedure}
-            totalDebtManwon={detail.debtStatus.totalDebtManwon}
+            unsecuredDebtManwon={resolveUnsecuredDebtManwon(detail)}
           />
           {plan.monthlyPaymentManwon > 0 && (
             <RepaymentTimeline

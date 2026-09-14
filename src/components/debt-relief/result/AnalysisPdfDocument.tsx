@@ -34,6 +34,7 @@ import {
   formatYearsLabel,
   parseConsultedAt,
   resolveSectionKind,
+  resolveUnsecuredDebtManwon,
   shouldShowRepaymentRate,
 } from "./SectionRepaymentPlan";
 import { TYPE_LABEL as MESSAGE_TYPE_LABEL } from "./SectionDeliveryMessages";
@@ -571,13 +572,13 @@ export default function AnalysisPdfDocument({
                   ...(shouldShowRepaymentRate(selectedProcedure)
                     ? [
                         {
-                          label: "변제율",
+                          label: "변제율 (무담보 채무 기준)",
                           value:
                             plan.monthlyPaymentManwon === 0
                               ? "-"
                               : formatRepaymentRate(
                                   plan.totalPaymentManwon,
-                                  detail.debtStatus.totalDebtManwon
+                                  resolveUnsecuredDebtManwon(detail)
                                 ),
                         },
                       ]

@@ -465,8 +465,16 @@ function toAnalysisDraftFormInput(form: DiagnosisFormState): AnalysisDraftFormIn
     hasActiveLawsuit: form.hasOngoingLitigation,
     lawsuitNote: form.litigationDetail || undefined,
     hasTaxArrears: form.hasTaxArrears,
-    hasRecentAssetDisposal: Boolean(form.hasRecentAssetDisposal),
-    spouseHousingAssetValue: form.hasSpouseHousingAsset ? form.spouseHousingAssetValue : 0,
+    ...(form.hasRecentAssetDisposal !== null
+      ? { hasRecentAssetDisposal: form.hasRecentAssetDisposal }
+      : {}),
+    ...(form.hasSpouseHousingAsset !== null
+      ? {
+          spouseHousingAssetValue: form.hasSpouseHousingAsset
+            ? form.spouseHousingAssetValue
+            : 0,
+        }
+      : {}),
     isOperatingBusiness: form.isOperatingBusiness,
     ...(form.isOperatingBusiness
       ? {
