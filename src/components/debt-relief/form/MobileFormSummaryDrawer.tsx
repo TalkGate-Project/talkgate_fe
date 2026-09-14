@@ -147,7 +147,7 @@ export default function MobileFormSummaryDrawer({
             onClick={onSaveDraft}
             disabled={saveDraftDisabled || savingDraft || analyzing}
             aria-label={savingDraft ? "임시저장 중" : "임시저장"}
-            className="shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full border border-neutral-30 text-neutral-70 hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-60"
+            className="shrink-0 inline-flex items-center justify-center w-8 h-8 cursor-pointer rounded-full border border-neutral-30 text-neutral-70 hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {draftSavedFlash ? (
               <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
