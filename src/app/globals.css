@@ -905,11 +905,11 @@ svg path:focus {
   0%,
   100% {
     filter: brightness(1);
-    box-shadow: 0 0 0 0 rgb(63 147 255 / 0.12), 0 0 4px rgb(63 147 255 / 0.28);
+    box-shadow: 0 0 0 0 rgb(0 226 114 / 0.12), 0 0 4px rgb(0 226 114 / 0.28);
   }
   50% {
     filter: brightness(1.3);
-    box-shadow: 0 0 0 4px rgb(63 147 255 / 0.08), 0 0 10px rgb(63 147 255 / 0.62);
+    box-shadow: 0 0 0 4px rgb(0 226 114 / 0.08), 0 0 10px rgb(0 226 114 / 0.62);
   }
 }
 
@@ -959,7 +959,7 @@ svg path:focus {
   }
 
   .analysis-progress-current {
-    box-shadow: 0 0 0 2px rgb(63 147 255 / 0.18), 0 0 8px rgb(63 147 255 / 0.34);
+    box-shadow: 0 0 0 2px rgb(0 226 114 / 0.18), 0 0 8px rgb(0 226 114 / 0.34);
   }
 }
 

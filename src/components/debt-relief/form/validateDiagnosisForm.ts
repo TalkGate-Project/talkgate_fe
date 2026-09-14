@@ -46,7 +46,7 @@ export function getMissingDebtItemFieldLabels(form: DiagnosisFormState): string[
 }
 
 // 실 API(POST /v1/analysis)가 필수로 요구하는 항목. 폼에서 null/빈 값일 수 있는 것만 검사한다.
-// 부동산 "없음"(빈 배열)은 명시 선택 여부를 realEstateStatusConfirmed로 따로 검사한다.
+// 보유 자산 목록은 선택 입력이며, 빈 목록도 자산 없음으로 허용한다.
 export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[] {
   const missing: string[] = [];
   if (!form.customerName.trim()) missing.push("고객명");
@@ -57,7 +57,6 @@ export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[
   if (!form.housingType) missing.push("주거 형태");
   if (form.dependents === null) missing.push("부양가족");
   if (form.spouseIncome === null) missing.push("배우자 소득");
-  if (!form.realEstateStatusConfirmed) missing.push("부동산 보유 여부");
   if (form.hasSpouseHousingAsset === null) missing.push("배우자 명의 주택 또는 전세보증금 보유 여부");
   if (form.hasSpouseHousingAsset && form.spouseHousingAssetValue <= 0) {
     missing.push("배우자 명의 주택 또는 전세보증금 가액");
@@ -95,13 +94,11 @@ export function getMissingRequiredFieldLabelsForStep(
     }
     case "assets": {
       const missing: string[] = [];
-      if (!form.realEstateStatusConfirmed) missing.push("부동산 보유 여부");
       if (form.hasSpouseHousingAsset === null) missing.push("배우자 명의 주택 또는 전세보증금 보유 여부");
       if (form.hasSpouseHousingAsset && form.spouseHousingAssetValue <= 0) {
         missing.push("배우자 명의 주택 또는 전세보증금 가액");
       }
       if (form.hasRecentAssetDisposal === null) missing.push("최근 2년 내 재산 처분 이력");
-      // 금융 자산/차량 가액은 null(미선택)·0(미보유 명시)을 구분해 null만 미입력으로 판정한다.
       return missing;
     }
     case "debts": {
@@ -179,7 +176,7 @@ export function isDiagnosisFormComplete(form: DiagnosisFormState): boolean {
 // 좌측 네비게이터 체크(v) 표시 전용. 상세모드에서도 간편모드와 공통인 필수값만 확인한다.
 export function isDiagnosisStepComplete(form: DiagnosisFormState, stepKey: FormStepKey): boolean {
   // 자산 현황의 사이드바 체크는 하단의 두 필수 질문에 답했는지만 보여준다.
-  // 보유 자산 입력 여부와 배우자 자산 가액은 다음 단계/최종 제출 검증에서 별도로 확인한다.
+  // 배우자 자산 가액은 다음 단계/최종 제출 검증에서 별도로 확인한다.
   if (stepKey === "assets") {
     return form.hasSpouseHousingAsset !== null && form.hasRecentAssetDisposal !== null;
   }

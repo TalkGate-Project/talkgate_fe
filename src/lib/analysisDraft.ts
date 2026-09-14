@@ -4,6 +4,8 @@ import {
 } from "@/types/debtRelief";
 
 const ANALYSIS_DRAFT_STORAGE_PREFIX = "tg_analysis_new_draft:";
+export const ANALYSIS_DRAFTS_CLEARED_EVENT = "tg-analysis-drafts-cleared";
+export const ANALYSIS_DRAFTS_CLEARED_AT_KEY = "tg_analysis_drafts_cleared_at";
 const ANALYSIS_DRAFT_VERSION = 1;
 const ANALYSIS_DRAFT_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -234,6 +236,11 @@ export function clearAllAnalysisDrafts(): void {
     Object.keys(window.localStorage)
       .filter((key) => key.startsWith(ANALYSIS_DRAFT_STORAGE_PREFIX))
       .forEach((key) => window.localStorage.removeItem(key));
+
+    // 다른 탭에 열린 분석 폼도 자동저장을 중단하도록 storage 이벤트를 발생시킨다. 같은 탭의
+    // 다른 폼에는 storage 이벤트가 오지 않으므로 별도 커스텀 이벤트도 함께 보낸다.
+    window.localStorage.setItem(ANALYSIS_DRAFTS_CLEARED_AT_KEY, String(Date.now()));
+    window.dispatchEvent(new Event(ANALYSIS_DRAFTS_CLEARED_EVENT));
   } catch (error) {
     console.error("Failed to clear analysis drafts:", error);
   }

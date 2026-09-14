@@ -90,10 +90,10 @@ export default function AnalysisDebtSelectionModal({ open, debts, onClose, onCon
             return (
               <label key={debt.id} className="flex h-16 cursor-pointer items-center rounded-[12px] bg-neutral-10 px-5 max-[366px]:h-auto max-[366px]:min-h-[84px] max-[366px]:py-3 lg:h-[71px] lg:px-6">
                 <Checkbox checked={selectedDebtIdSet.has(debt.id)} onChange={(checked) => toggleDebt(debt.id, checked)} size={24} className="shrink-0" ariaLabel={`${creditorLabel} 선택`} />
-                <span className="ml-3 grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 lg:ml-[17px] lg:gap-x-4">
+                <span className="ml-3 grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 max-[366px]:grid-cols-1 lg:ml-[17px] lg:gap-x-4">
                   <span className="col-start-1 row-start-1 block min-w-0 truncate text-[14px] font-semibold leading-[17px] tracking-[0.2px] text-foreground lg:text-[16px] lg:leading-[19px]">{creditorLabel} ({typeLabel})</span>
                   <span className="col-start-1 row-start-2 mt-1 whitespace-nowrap text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">{isDebtCollateralLoan(debt) ? "담보부" : "무담보"}<span className="ml-4">{debt.overdueMonths === 0 ? "연체 없음" : `연체 ${debt.overdueMonths}개월`}</span></span>
-                  <span className="col-start-2 row-span-2 row-start-1 min-w-0 truncate whitespace-nowrap text-right text-[14px] font-bold leading-[17px] tracking-[0.2px] text-foreground lg:text-[16px] lg:leading-[19px]">
+                  <span className="col-start-2 row-span-2 row-start-1 min-w-0 truncate whitespace-nowrap text-right text-[14px] font-bold leading-[17px] tracking-[0.2px] text-foreground max-[366px]:col-start-1 max-[366px]:row-span-1 max-[366px]:row-start-3 max-[366px]:mt-1 max-[366px]:justify-self-end lg:text-[16px] lg:leading-[19px]">
                     <span className="lg:hidden">{formatCompactKoreanWon(debt.currentBalanceWon)}</span>
                     <span className="hidden lg:inline">{formatWon(debt.currentBalanceWon)}</span>
                   </span>

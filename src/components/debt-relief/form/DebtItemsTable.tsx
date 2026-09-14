@@ -222,7 +222,7 @@ function CollateralSelect({
   className?: string;
   onChange: (isCollateralLoan: boolean) => void;
 }) {
-  const disabled = locked || debt.debtType === "credit_card";
+  const disabled = locked;
 
   return (
     <div className="relative">
@@ -266,6 +266,20 @@ function DetailedScrollbarArrowIcon({ direction }: { direction: "left" | "right"
 }
 
 type EditableCalculationField = "monthlyPaymentWon" | "remainingInterestWon" | "totalRepaymentWon";
+type AutomaticCalculationInputField =
+  | "debtType"
+  | "currentBalanceWon"
+  | "interestRate"
+  | "repaymentMethod"
+  | "maturityDate";
+
+const AUTOMATIC_CALCULATION_INPUT_FIELDS = new Set<AutomaticCalculationInputField>([
+  "debtType",
+  "currentBalanceWon",
+  "interestRate",
+  "repaymentMethod",
+  "maturityDate",
+]);
 
 function CalculatedDebtField({
   label,
@@ -717,12 +731,15 @@ export default function DebtItemsTable({
         if (debt.id !== id) return debt;
         const merged = { ...debt, ...patch };
         if (merged.debtType === "credit_card") return normalizeCreditCardDebt(merged);
+        const shouldRecalculate = Object.keys(patch).some((field) =>
+          AUTOMATIC_CALCULATION_INPUT_FIELDS.has(field as AutomaticCalculationInputField)
+        );
+        if (!shouldRecalculate) return merged;
         const calculated = calculateDebtItemAmortization(merged);
-        const overrides = merged.manualCalculationOverrides ?? [];
         return {
           ...merged,
           ...calculated,
-          ...Object.fromEntries(overrides.map((field) => [field, merged[field] ?? 0])),
+          manualCalculationOverrides: undefined,
         };
       })
     );
@@ -928,7 +945,6 @@ export default function DebtItemsTable({
               const isFieldInvalid = (field: "loanDate" | "maturityDate" | "currentBalanceWon" | "interestRate") => missingFields.includes(field);
               const locked = lockedDebtIds.includes(debt.id);
               const collateralAsset = assets.find((asset) => asset.id === debt.collateralAssetId);
-              const isCreditCard = debt.debtType === "credit_card";
               return (<div key={debt.id} className={`relative flex flex-col gap-3 rounded-lg p-4 pt-4 pb-5 shadow-[0_1px_2px_rgba(9,30,66,0.12)] bg-card`}>
                       {!locked && <button type="button" onClick={() => removeRow(debt.id)} aria-label="행 삭제" className="absolute right-3 top-2 cursor-pointer text-neutral-50 hover:text-neutral-70"><RemoveRowIcon /></button>}
                       <div className={`grid gap-2.5 ${assetCollateralOnly ? "grid-cols-[114px_156px_92px_minmax(160px,1fr)_90px_110px]" : "grid-cols-[114px_100px_136px_82px_minmax(140px,1fr)_80px_100px]"}`}>
@@ -952,12 +968,12 @@ export default function DebtItemsTable({
                     <WonInput value={debt.currentBalanceWon} onChange={(value) => updateItem(debt.id, { currentBalanceWon: value })} invalid={isFieldInvalid("currentBalanceWon")}/>
                   </div>
                         <div className="min-w-0 flex flex-col gap-2"><span className="text-[13px] font-medium leading-4 text-neutral-60">금리(%)</span>
-                    <fieldset disabled={debt.debtType === "credit_card"} className="min-w-0 disabled:opacity-50 [&:disabled_input]:cursor-not-allowed [&:disabled_select]:cursor-not-allowed">
+                    <fieldset className="min-w-0">
                       <PercentInput value={debt.interestRate} onChange={(value) => updateItem(debt.id, { interestRate: value ?? undefined })} invalid={isFieldInvalid("interestRate")}/>
                     </fieldset>
                   </div>
                         <div className="min-w-0 flex flex-col gap-2"><span className="text-[13px] font-medium leading-4 text-neutral-60">상환방식</span>
-                    <fieldset disabled={debt.debtType === "credit_card"} className="min-w-0 disabled:opacity-50 [&:disabled_input]:cursor-not-allowed [&:disabled_select]:cursor-not-allowed">
+                    <fieldset className="min-w-0">
                       <SelectField className="h-[34px] text-[13px]" value={debt.repaymentMethod ?? "equal_principal_and_interest"} onChange={(e) => updateItem(debt.id, {
                       repaymentMethod: e.target.value as DebtItemFormState["repaymentMethod"],
                   })}>
@@ -970,9 +986,9 @@ export default function DebtItemsTable({
                       </div>
                       <div className="grid grid-cols-[132px_222px_minmax(136px,1fr)_minmax(136px,1fr)_minmax(148px,1fr)] gap-2.5">
                         <div className="min-w-0 flex flex-col gap-2"><span className="text-[13px] font-medium leading-4 text-neutral-60">대출일</span>
-                    <fieldset disabled={debt.debtType === "credit_card"} className="min-w-0 disabled:opacity-50 [&:disabled_input]:cursor-not-allowed [&:disabled_select]:cursor-not-allowed">
+                    <fieldset className="min-w-0">
                       <div className="relative">
-                        <DatePicker disabled={debt.debtType === "credit_card"} value={parseDateOnly(debt.loanDate)} onChange={(date) => updateItem(debt.id, { loanDate: formatDateOnly(date) })} allowTextInput invalid={isFieldInvalid("loanDate")} className="pr-8"/>
+                        <DatePicker value={parseDateOnly(debt.loanDate)} onChange={(date) => updateItem(debt.id, { loanDate: formatDateOnly(date) })} allowTextInput invalid={isFieldInvalid("loanDate")} className="pr-8"/>
                         <CalendarInlineIcon className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"/>
                       </div>
                     </fieldset>
@@ -982,28 +998,31 @@ export default function DebtItemsTable({
                       <span className="w-[144px] shrink-0 text-[13px] font-medium leading-4 text-neutral-60">만기일</span>
                       <span className="text-[13px] font-medium leading-4 text-neutral-60">남은기간</span>
                     </div>
-                    <fieldset disabled={debt.debtType === "credit_card"} className="min-w-0 flex disabled:opacity-50 [&:disabled_input]:cursor-not-allowed [&:disabled_select]:cursor-not-allowed">
+                    <fieldset className="min-w-0 flex">
                       <div className="relative w-[144px] shrink-0">
-                        <DatePicker disabled={debt.debtType === "credit_card"} value={parseDateOnly(debt.maturityDate)} onChange={(date) => updateItem(debt.id, { maturityDate: formatDateOnly(date) })} allowTextInput maxDate={maxMaturityDate} invalid={isFieldInvalid("maturityDate")} className="pr-8 !rounded-r-none"/>
+                        <DatePicker value={parseDateOnly(debt.maturityDate)} onChange={(date) => updateItem(debt.id, { maturityDate: formatDateOnly(date) })} allowTextInput maxDate={maxMaturityDate} invalid={isFieldInvalid("maturityDate")} className="pr-8 !rounded-r-none"/>
                         <CalendarInlineIcon className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"/>
                       </div>
                       <RemainingMonthsInput
                         value={debt.remainingMonths}
-                        disabled={debt.debtType === "credit_card"}
                         invalid={isFieldInvalid("maturityDate")}
                         onChangeMonths={(months) => {
+                          if (debt.debtType === "credit_card") {
+                            updateItem(debt.id, { remainingMonths: months });
+                            return;
+                          }
                           const nextMaturityDate = addMonthsClamped(new Date(), months);
                           updateItem(debt.id, {
                             maturityDate: formatDateOnly(nextMaturityDate > maxMaturityDate ? maxMaturityDate : nextMaturityDate),
                           });
                         }}
-                        onClear={() => updateItem(debt.id, { maturityDate: "" })}
+                        onClear={() => updateItem(debt.id, debt.debtType === "credit_card" ? { remainingMonths: undefined } : { maturityDate: "" })}
                       />
                     </fieldset>
                   </div>
-                        <CalculatedDebtField label="월불입" value={debt.monthlyPaymentWon ?? 0} disabled={isCreditCard} overridden={debt.manualCalculationOverrides?.includes("monthlyPaymentWon") ?? false} onChange={(value) => updateCalculatedItem(debt.id, "monthlyPaymentWon", value)} onReset={() => resetCalculatedItem(debt.id, "monthlyPaymentWon")}/>
-                        <CalculatedDebtField label="잔여이자" value={debt.remainingInterestWon ?? 0} disabled={isCreditCard} overridden={debt.manualCalculationOverrides?.includes("remainingInterestWon") ?? false} onChange={(value) => updateCalculatedItem(debt.id, "remainingInterestWon", value)} onReset={() => resetCalculatedItem(debt.id, "remainingInterestWon")}/>
-                        <CalculatedDebtField label="잔여상환액" value={debt.totalRepaymentWon ?? 0} disabled={isCreditCard} overridden={debt.manualCalculationOverrides?.includes("totalRepaymentWon") ?? false} onChange={(value) => updateCalculatedItem(debt.id, "totalRepaymentWon", value)} onReset={() => resetCalculatedItem(debt.id, "totalRepaymentWon")}/>
+                        <CalculatedDebtField label="월불입" value={debt.monthlyPaymentWon ?? 0} disabled={false} overridden={debt.manualCalculationOverrides?.includes("monthlyPaymentWon") ?? false} onChange={(value) => updateCalculatedItem(debt.id, "monthlyPaymentWon", value)} onReset={() => resetCalculatedItem(debt.id, "monthlyPaymentWon")}/>
+                        <CalculatedDebtField label="잔여이자" value={debt.remainingInterestWon ?? 0} disabled={false} overridden={debt.manualCalculationOverrides?.includes("remainingInterestWon") ?? false} onChange={(value) => updateCalculatedItem(debt.id, "remainingInterestWon", value)} onReset={() => resetCalculatedItem(debt.id, "remainingInterestWon")}/>
+                        <CalculatedDebtField label="잔여상환액" value={debt.totalRepaymentWon ?? 0} disabled={false} overridden={debt.manualCalculationOverrides?.includes("totalRepaymentWon") ?? false} onChange={(value) => updateCalculatedItem(debt.id, "totalRepaymentWon", value)} onReset={() => resetCalculatedItem(debt.id, "totalRepaymentWon")}/>
                       </div>
                     </div>);
           })}
@@ -1125,7 +1144,7 @@ export default function DebtItemsTable({
                   />
                 </td>
                 <td className={BODY_CELL}>
-                  <fieldset disabled={debt.debtType === "credit_card"} className="min-w-0 disabled:opacity-50 [&:disabled_input]:cursor-not-allowed [&:disabled_select]:cursor-not-allowed">
+                  <fieldset className="min-w-0">
                     <SelectField
                       className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`}
                       value={debt.repaymentMethod ?? "equal_principal_and_interest"}
@@ -1150,10 +1169,9 @@ export default function DebtItemsTable({
                   />
                 </td>
                 <td className={BODY_CELL}>
-                  <fieldset disabled={debt.debtType === "credit_card"} className="min-w-0 disabled:opacity-50 [&:disabled_input]:cursor-not-allowed [&:disabled_select]:cursor-not-allowed">
+                  <fieldset className="min-w-0">
                     <div className="relative">
                       <DatePicker
-                        disabled={debt.debtType === "credit_card"}
                         value={parseDateOnly(debt.loanDate)}
                         onChange={(date) => updateItem(debt.id, { loanDate: formatDateOnly(date) })}
                         allowTextInput
@@ -1165,10 +1183,9 @@ export default function DebtItemsTable({
                   </fieldset>
                 </td>
                 <td className={BODY_CELL}>
-                  <fieldset disabled={debt.debtType === "credit_card"} className="min-w-0 disabled:opacity-50 [&:disabled_input]:cursor-not-allowed [&:disabled_select]:cursor-not-allowed">
+                  <fieldset className="min-w-0">
                     <div className="relative">
                       <DatePicker
-                        disabled={debt.debtType === "credit_card"}
                         value={parseDateOnly(debt.maturityDate)}
                         onChange={(date) => updateItem(debt.id, { maturityDate: formatDateOnly(date) })}
                         allowTextInput
@@ -1189,7 +1206,7 @@ export default function DebtItemsTable({
                   />
                 </td>
                 <td className={BODY_CELL}>
-                  <fieldset disabled={debt.debtType === "credit_card"} className="min-w-0 disabled:opacity-50 [&:disabled_input]:cursor-not-allowed [&:disabled_select]:cursor-not-allowed">
+                  <fieldset className="min-w-0">
                     <PercentInput
                       value={debt.interestRate}
                       onChange={(value) => updateItem(debt.id, { interestRate: value ?? undefined })}
@@ -1198,10 +1215,10 @@ export default function DebtItemsTable({
                     />
                   </fieldset>
                 </td>
-                <td className={READONLY_CELL}>{debt.debtType === "credit_card" ? "-" : debt.remainingMonths ? `${debt.remainingMonths}개월` : "-"}</td>
-                <td className={READONLY_CELL}>{debt.debtType === "credit_card" ? "-" : formatWon(debt.monthlyPaymentWon ?? 0)}</td>
-                <td className={READONLY_CELL}>{debt.debtType === "credit_card" ? "-" : formatWon(debt.remainingInterestWon ?? 0)}</td>
-                <td className={READONLY_CELL}>{debt.debtType === "credit_card" ? "-" : formatWon(debt.totalRepaymentWon ?? debt.currentBalanceWon)}</td>
+                <td className={READONLY_CELL}>{debt.remainingMonths ? `${debt.remainingMonths}개월` : "-"}</td>
+                <td className={READONLY_CELL}>{formatWon(debt.monthlyPaymentWon ?? 0)}</td>
+                <td className={READONLY_CELL}>{formatWon(debt.remainingInterestWon ?? 0)}</td>
+                <td className={READONLY_CELL}>{formatWon(debt.totalRepaymentWon ?? debt.currentBalanceWon)}</td>
                 <td className={`${BODY_CELL} text-center`}>
                   {!lockedDebtIds.includes(debt.id) && <button type="button" onClick={() => removeRow(debt.id)} aria-label="행 삭제" className="cursor-pointer inline-flex items-center justify-center w-6 h-6 hover:opacity-70"><RemoveRowIcon /></button>}
                 </td>

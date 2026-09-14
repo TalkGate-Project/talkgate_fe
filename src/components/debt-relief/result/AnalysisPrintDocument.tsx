@@ -305,7 +305,7 @@ export default function AnalysisPrintDocument({
           </div>
         </PrintSection>
 
-        <PrintSection number={sectionNumber++} title="AI 분석 추천">
+        <PrintSection number={sectionNumber++} title="분석 브리핑">
           <p className="print-recommendation-title">{detail.recommendation.title}</p>
           <p className="print-paragraph">{detail.recommendation.description}</p>
           <InfoTable
@@ -313,7 +313,7 @@ export default function AnalysisPrintDocument({
           />
         </PrintSection>
 
-        <PrintSection number={sectionNumber++} title="절차별 성공 가능성">
+        <PrintSection number={sectionNumber++} title="절차별 분석 점수">
           <table className="print-data-table">
             <thead>
               <tr>

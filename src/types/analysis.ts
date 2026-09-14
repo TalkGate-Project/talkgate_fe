@@ -157,20 +157,10 @@ export type AnalysisDebtItem = {
   isExcludedFromAnalysis?: boolean;
 };
 
-/** 신용카드는 대출 상세값과 담보 연결 없이 기본 채무 정보만 저장한다. */
+/** 신용카드는 자동 상환 계산 없이 사용자가 입력한 상세값을 그대로 저장한다. */
 export function normalizeCreditCardDebt(debt: AnalysisDebtItem): AnalysisDebtItem {
   if (debt.debtType !== "credit_card") return debt;
-  return {
-    id: debt.id,
-    debtType: debt.debtType,
-    creditorName: debt.creditorName,
-    overdueMonths: debt.overdueMonths,
-    currentBalanceWon: debt.currentBalanceWon,
-    isCollateralLoan: false,
-    ...(debt.isExcludedFromAnalysis !== undefined
-      ? { isExcludedFromAnalysis: debt.isExcludedFromAnalysis }
-      : {}),
-  };
+  return { ...debt, manualCalculationOverrides: undefined };
 }
 
 export function isDebtCollateralLoan(
