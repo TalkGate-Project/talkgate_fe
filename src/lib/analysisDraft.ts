@@ -16,6 +16,10 @@ export type AnalysisDraftPayload = {
   form: DiagnosisFormState;
   selectedCustomerId: number | null;
   step: number;
+  /** 이미 서버에 임시저장(POST .../draft)해 생성된 분석 건의 id. 새로고침 후 복원할 때 이것도
+   * 함께 돌려줘야 다음 임시저장이 PATCH(수정)로 이어진다 — 없으면 다시 POST(생성)를 타서
+   * 서버에 고아 drafting 건이 하나 더 생긴다. */
+  draftId: number | null;
 };
 
 export type AnalysisDraft = AnalysisDraftPayload & AnalysisDraftScope & {
@@ -93,6 +97,16 @@ function normalizeDraft(value: unknown, scope?: AnalysisDraftScope): AnalysisDra
     return null;
   }
 
+  // 구버전 초안(draftId 필드 추가 전)은 undefined로 읽히므로 null로 취급한다 — 어차피 그
+  // 시점엔 서버 draft 대응 개념이 없었으니 다시 생성(POST)되는 게 맞다.
+  const draftId = value.draftId ?? null;
+  if (
+    draftId !== null &&
+    (typeof draftId !== "number" || !Number.isFinite(draftId))
+  ) {
+    return null;
+  }
+
   const step = value.step;
   if (typeof step !== "number" || !Number.isInteger(step) || step < 1 || step > 5) {
     return null;
@@ -100,7 +114,7 @@ function normalizeDraft(value: unknown, scope?: AnalysisDraftScope): AnalysisDra
 
   // 탭 이동만 기록된 빈 초안은 복원 대상이 아니다. 저장 시뿐 아니라 읽기·정리 시점에도
   // 검사해야 과거 버전에서 남은 빈 초안이 복원 모달을 다시 띄우지 않는다.
-  if (!hasMeaningfulAnalysisDraftData(form, selectedCustomerId)) return null;
+  if (!hasMeaningfulAnalysisDraftData(form, selectedCustomerId, draftId)) return null;
 
   return {
     version: ANALYSIS_DRAFT_VERSION,
@@ -109,15 +123,17 @@ function normalizeDraft(value: unknown, scope?: AnalysisDraftScope): AnalysisDra
     savedAt: value.savedAt,
     form,
     selectedCustomerId,
+    draftId,
     step,
   };
 }
 
 export function hasMeaningfulAnalysisDraftData(
   form: DiagnosisFormState,
-  selectedCustomerId: number | null
+  selectedCustomerId: number | null,
+  draftId: number | null = null
 ): boolean {
-  if (selectedCustomerId !== null) return true;
+  if (selectedCustomerId !== null || draftId !== null) return true;
 
   // 자산 칩을 추가하면 realEstateStatusConfirmed가 true가 되고, 마지막 칩을 다시 제거해도
   // 그 조작 흔적은 남는다. 실제 입력값이 모두 빈 상태라면 이 내부 검증 플래그 하나만으로

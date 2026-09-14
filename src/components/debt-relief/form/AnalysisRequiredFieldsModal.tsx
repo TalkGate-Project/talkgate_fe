@@ -4,17 +4,22 @@ import BaseModal from "@/components/common/BaseModal";
 
 type IncompleteStep = { index: number; label: string; missingFields: string[] };
 
-export default function AnalysisRequiredFieldsModal({ open, steps, unchanged, onClose, onSelectStep }: { open: boolean; steps: IncompleteStep[]; unchanged: boolean; onClose: () => void; onSelectStep: (index: number) => void }) {
+export default function AnalysisRequiredFieldsModal({ open, steps, unchanged, mode = "analyze", tone, headline, description, onClose, onSelectStep }: { open: boolean; steps: IncompleteStep[]; unchanged: boolean; mode?: "analyze" | "draft"; /** 사유별 색상 톤. 미지정 시 mode 기준 기본값(draft=warning, analyze=info) — 임시저장이라도 "고객 미연동"처럼 분석하기 흐름의 기존 안내와 같은 성격이면 info로 맞춘다. */ tone?: "info" | "warning"; headline?: string; description?: string; onClose: () => void; onSelectStep: (index: number) => void }) {
   if (!open) return null;
-  return <BaseModal onClose={onClose} overlayClassName="bg-black/35 dark:bg-[#000000CC]" containerClassName="w-[calc(100vw-2rem)] sm:w-[440px] sm:min-w-[440px] max-w-[440px] rounded-[14px] bg-card shadow-[0_18px_50px_rgba(0,0,0,0.22)] dark:shadow-none" ariaLabel="분석하기 필수 정보 안내">
+  const isDraft = mode === "draft";
+  const resolvedTone = tone ?? (isDraft ? "warning" : "info");
+  const accentClassName = resolvedTone === "warning"
+    ? "text-warning-60 dark:text-warning-20"
+    : "text-secondary-80 dark:text-secondary-20";
+  return <BaseModal onClose={onClose} overlayClassName="bg-black/35 dark:bg-[#000000CC]" containerClassName="w-[calc(100vw-2rem)] sm:w-[440px] sm:min-w-[440px] max-w-[440px] rounded-[14px] bg-card shadow-[0_18px_50px_rgba(0,0,0,0.22)] dark:shadow-none" ariaLabel={`${isDraft ? "임시저장" : "분석하기"} 필수 정보 안내`}>
     <div className="relative px-7 pt-6 pb-[30px]">
       <div className="flex items-start justify-between">
-        <h2 className="text-[18px] font-semibold text-neutral-90">분석하기</h2>
+        <h2 className="text-[18px] font-semibold text-neutral-90">{isDraft ? "임시저장" : "분석하기"}</h2>
         <button type="button" onClick={onClose} aria-label="닫기" className="grid h-6 w-6 cursor-pointer place-items-center text-neutral-50 hover:text-neutral-70"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M6 18 18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg></button>
       </div>
-      <div className="mt-6 flex justify-center text-secondary-80 dark:text-secondary-20"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden><circle cx="20" cy="20" r="17" stroke="currentColor" strokeWidth="4"/><path d="M20 11v11M20 29h.01" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/></svg></div>
-      <p className="mt-5 text-center text-[18px] font-semibold leading-[21px] text-secondary-80 dark:text-secondary-20">{unchanged ? "변경된 내용이 없습니다." : "필수 정보가 입력되지 않았습니다."}</p>
-      <p className="mt-3 text-center text-[14px] font-medium leading-[20px] text-neutral-90">{unchanged ? "정보를 수정한 뒤 다시 분석해주세요." : "다음 단계의 필수 정보를 입력해주세요."}</p>
+      <div className={`mt-6 flex justify-center ${accentClassName}`}><svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden><circle cx="20" cy="20" r="17" stroke="currentColor" strokeWidth="4"/><path d="M20 11v11M20 29h.01" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/></svg></div>
+      <p className={`mt-5 text-center text-[18px] font-semibold leading-[21px] ${accentClassName}`}>{headline ?? (unchanged ? "변경된 내용이 없습니다." : "필수 정보가 입력되지 않았습니다.")}</p>
+      <p className="mt-3 text-center text-[14px] font-medium leading-[20px] text-neutral-90">{description ?? (unchanged ? "정보를 수정한 뒤 다시 분석해주세요." : isDraft ? "다음 항목을 입력해야 임시저장할 수 있습니다." : "다음 단계의 필수 정보를 입력해주세요.")}</p>
       {steps.length > 0 && (
         <div className="mt-4 flex flex-col gap-2">
           {steps.map((step) => (

@@ -80,6 +80,14 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   // PATCH /analysis/:id/draft가 drafting 상태 건에서만 허용되기 때문(백엔드 제약).
   const [loadedAnalysisStatus, setLoadedAnalysisStatus] = useState<AnalysisStatus | null>(null);
   const [requiredFieldsModalOpen, setRequiredFieldsModalOpen] = useState(false);
+  // 임시저장 버튼은 항상 클릭 가능한 상태로 두고(disabled로 숨기지 않는다), 클릭 시점에
+  // 막힌 이유를 모달로 설명한다 — "customer"(고객 미연동)·"fields"(필수값 미입력)는 사용자가
+  // 바로 해소할 수 있고, "status"(이미 분석된 건이라 drafting 전용 API를 쓸 수 없음)는 해소
+  // 방법이 없지만 그래도 버튼을 죽이지 않고 왜 안 되는지 알려주는 쪽을 택했다 — 이유 없이
+  // 회색으로 비활성화된 버튼은 사용자에게 "고장난 버튼"으로 보인다는 피드백 반영(2026-09-14).
+  const [draftBlockReason, setDraftBlockReason] = useState<null | "customer" | "fields" | "status">(
+    null
+  );
   const [debtSelectionModalOpen, setDebtSelectionModalOpen] = useState(false);
   // 채무 현황 선택("다음") → 희망 절차 선택 → (대상 절차면) 희망 변제율 설정 → 분석하기, 순서로
   // 이어지는 제출 직전 모달 체인. pendingAnalysisForm은 채무 선택이 반영된 폼을 체인 내내 들고
@@ -158,6 +166,10 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     form,
     selectedCustomerId: selectedCustomerId ?? null,
     step: currentIndex + 1,
+    draftId,
+    // 서버 임시저장과 동일한 제약: 관리자·부관리자가 고객 미연동 상태로 작성 중이면 브라우저
+    // 로컬 자동저장(새로고침/탭 종료 복원용)도 남기지 않는다.
+    canPersistDraft: !(isAdminOrSubAdmin && !isCustomerConnected),
   });
   const analysisDraftReady =
     isEdit || analysisDraftState.status === "active" || analysisDraftState.status === "disabled";
@@ -442,6 +454,9 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     setSelectedCustomerId(draft.selectedCustomerId ?? undefined);
     setLinkedCustomerSummary(null);
     setCustomerLinkStep(null);
+    // 초안 저장 당시 이미 서버 임시저장이 된 건이면 그 id도 함께 되돌려야, 다음 임시저장이
+    // 새 건을 또 만들지 않고(PATCH) 이어서 수정된다.
+    setDraftId(draft.draftId ?? null);
 
     // 저장된 초안이 진입 URL의 다른 고객 프리필에 다시 덮이지 않게 관련 파라미터를 제거한다.
     const params = new URLSearchParams(searchParams.toString());
@@ -531,12 +546,6 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     return true;
   }, [form, isEdit, baselineForm, loadedAnalysisStatus]);
 
-  // 임시저장 버튼 노출 여부. 신규작성은 항상 노출. 수정 모드는 drafting 상태 건일 때만 —
-  // PATCH /analysis/:id/draft가 drafting 건에만 허용되기 때문(백엔드 제약). 오늘 기준으로는
-  // canEditDiagnosisInfo 게이트가 drafting 건의 수정 진입 자체를 막고 있어 도달하지 않지만,
-  // 그 게이트가 나중에 drafting을 허용하도록 바뀌면 별도 수정 없이 자동으로 노출된다.
-  const canShowTempSave = !isEdit || loadedAnalysisStatus === "drafting";
-
   const missingDraftFields = useMemo(() => getMissingDraftRequiredFieldLabels(form), [form]);
   const draftSaved = useMemo(
     () => savedDraftForm !== null && !isDiagnosisFormDirty(form, savedDraftForm),
@@ -545,11 +554,20 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
 
   const handleSaveDraft = async () => {
     if (savingDraft || analyzing || !projectId) return;
+    // 관리자·부관리자는 생성/수정 모두 실제 고객과 연동된 진단만 임시저장할 수 있다.
+    if (isAdminOrSubAdmin && !isCustomerConnected) {
+      setDraftBlockReason("customer");
+      return;
+    }
     if (missingDraftFields.length > 0) {
-      showErrorModal({
-        headline: "필수 항목을 입력해주세요.",
-        description: `${missingDraftFields.join(", ")} 항목을 입력해야 임시저장할 수 있습니다.`,
-      });
+      setDraftBlockReason("fields");
+      return;
+    }
+    // 임시저장 수정 API는 작성중(drafting) 건에만 허용된다(백엔드 제약, OpenAPI 스펙 확인 완료).
+    // 이미 분석된 수정 건에 요청을 보내 일반 서버 오류를 띄우지 않고, 클릭 시점에 현재 상태의
+    // 제약을 명확히 안내한다.
+    if (isEdit && loadedAnalysisStatus !== "drafting") {
+      setDraftBlockReason("status");
       return;
     }
 
@@ -734,6 +752,11 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     setDebtSelectionModalOpen(true);
   };
 
+  const handleAdjustedRepaymentBack = () => {
+    setAdjustedRepaymentModalOpen(false);
+    setDesiredProcedureModalOpen(true);
+  };
+
   const handleDesiredProcedureSkip = () => {
     if (!pendingAnalysisForm) return;
     const nextForm: DiagnosisFormState = { ...pendingAnalysisForm, desiredProcedure: null, adjustedRepayment: {} };
@@ -886,7 +909,6 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         analyzing={analyzing}
         analyzeDisabled={!canAnalyze || incompleteSteps.length > 0}
         onSaveDraft={handleSaveDraft}
-        saveDraftDisabled={!canShowTempSave}
         savingDraft={savingDraft}
         draftSaved={draftSaved}
         isCustomerConnected={isCustomerConnected}
@@ -978,9 +1000,9 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
               <button
                 type="button"
                 onClick={handleSaveDraft}
-                disabled={!canShowTempSave || savingDraft || analyzing}
+                disabled={savingDraft || analyzing}
                 aria-label={savingDraft ? "임시저장 중" : draftSaved ? "저장됨" : "임시저장"}
-                className="inline-flex items-center justify-center h-[34px] px-3 rounded-[5px] border border-neutral-30 bg-card text-[14px] leading-[17px] tracking-[-0.02em] font-semibold text-neutral-70 whitespace-nowrap cursor-pointer hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-[34px] w-[92px] items-center justify-center rounded-[5px] border border-neutral-30 bg-card px-2 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-neutral-70 whitespace-nowrap cursor-pointer hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {savingDraft ? (
                   "저장 중"
@@ -1032,6 +1054,45 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
           goToStep(index);
         }}
       />
+      <AnalysisRequiredFieldsModal
+        open={draftBlockReason !== null}
+        mode="draft"
+        // 고객 미연동은 "분석하기"의 동일 상황(고객 연동 필요 안내)과 같은 성격의 안내라
+        // warning이 아니라 기존 info(파란색) 톤을 맞춰 쓴다. 실제로 막힌(필수값 미입력·이미
+        // 분석된 건) 경우만 warning 톤을 유지한다.
+        tone={draftBlockReason === "customer" ? "info" : "warning"}
+        headline={
+          draftBlockReason === "customer"
+            ? "고객 정보가 연동되지 않았습니다."
+            : draftBlockReason === "status"
+              ? "임시저장할 수 없는 진단입니다."
+              : undefined
+        }
+        description={
+          draftBlockReason === "customer"
+            ? "관리자와 부관리자는 고객을 연동한 뒤 임시저장할 수 있습니다."
+            : draftBlockReason === "status"
+              ? "작성중 상태의 진단만 임시저장할 수 있습니다."
+              : undefined
+        }
+        steps={
+          draftBlockReason === "customer"
+            ? [{ index: -1, label: "고객 정보", missingFields: ["고객 연동"] }]
+            : draftBlockReason === "fields"
+              ? [{ index: 0, label: FORM_STEPS[0].label, missingFields: missingDraftFields }]
+              : []
+        }
+        unchanged={false}
+        onClose={() => setDraftBlockReason(null)}
+        onSelectStep={(index) => {
+          setDraftBlockReason(null);
+          if (index === -1) {
+            setCustomerLinkStep("mode");
+            return;
+          }
+          goToStep(index);
+        }}
+      />
       <AnalysisDebtSelectionModal
         open={debtSelectionModalOpen}
         debts={form.debts}
@@ -1057,6 +1118,8 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
             : null
         }
         onClose={() => setAdjustedRepaymentModalOpen(false)}
+        onSkip={handleAdjustedRepaymentReset}
+        onBack={handleAdjustedRepaymentBack}
         onReset={
           pendingAdjustableProcedure &&
           pendingAnalysisForm?.adjustedRepayment[pendingAdjustableProcedure]

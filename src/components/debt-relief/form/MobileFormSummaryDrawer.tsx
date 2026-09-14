@@ -76,7 +76,7 @@ type Props = {
   /** 필수값 미충족(생성) / 변경 없음(수정)이면 true — 버튼은 유지하고 활성 효과만 숨김 */
   analyzeDisabled?: boolean;
   onSaveDraft: () => void;
-  /** true면 버튼은 유지하고 비활성화만 한다 — 수정 모드에서 drafting 건이 아닐 때 */
+  /** 저장 요청을 받을 수 없는 외부 상태일 때만 사용한다. 고객 연동 여부로는 비활성화하지 않는다. */
   saveDraftDisabled?: boolean;
   savingDraft?: boolean;
   /** 마지막으로 저장한 내용과 현재 폼이 같으면 true */
