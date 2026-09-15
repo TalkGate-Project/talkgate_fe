@@ -30,6 +30,7 @@ import { showErrorModal } from "@/lib/errorModalEvents";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { useTeamMembers } from "@/hooks/useTeamMembers";
 import { useTeamDragAndDrop } from "@/hooks/useTeamDragAndDrop";
+import { flattenTeamData } from "@/hooks/useTeamTree";
 import { useTeamSearch } from "@/hooks/useTeamSearch";
 import { useDepartmentFilter } from "@/hooks/useDepartmentFilter";
 import { ViewMode } from "@/types/teamManagement";
@@ -130,6 +131,10 @@ export default function TeamManagementSettings() {
   const { isAdminOrSubAdmin } = useMyMember(projectId);
 
   const { teamMembers, assignedMembers, unassignedMembers } = useTeamMembers(treeData, teamsData);
+  const assignedMemberIds = useMemo(
+    () => new Set(flattenTeamData(assignedMembers).map((member) => member.id)),
+    [assignedMembers]
+  );
   const assignableMembers = useMemo(
     () => unassignedMembers.filter((member) => Boolean(member.id && member.name.trim())),
     [unassignedMembers]
@@ -178,6 +183,9 @@ export default function TeamManagementSettings() {
     cancelMove,
     cancelLeaderChange,
   } = useTeamDragAndDrop(teamMembers, canDrag, handleMove, handleInvalidMemberDrop);
+  const isDraggingAssignedMember = Boolean(
+    dragState.draggedItemId && assignedMemberIds.has(dragState.draggedItemId)
+  );
 
   const confirmLeaderChange = useCallback(async () => {
     if (!pendingLeaderChange) return;
@@ -218,7 +226,7 @@ export default function TeamManagementSettings() {
 
   const handleRemoveParentDrop = useCallback(
     async (memberId: string) => {
-      if (!canDrag) return;
+      if (!canDrag || !assignedMemberIds.has(memberId)) return;
       try {
         await removeParentMutation.mutateAsync({
           memberId: Number(memberId),
@@ -232,7 +240,7 @@ export default function TeamManagementSettings() {
         });
       }
     },
-    [canDrag, removeParentMutation]
+    [assignedMemberIds, canDrag, removeParentMutation]
   );
 
   const handleListRemoveParentDrop = useCallback(
@@ -373,9 +381,9 @@ export default function TeamManagementSettings() {
 
       {/* 스크롤 가능한 리스트 영역 */}
       {viewMode === "list" ? (
-        <div className="flex-1 mx-4 md:mx-7 overflow-hidden flex gap-4 border-b border-[#E2E2E2] dark:!border-[#444444] relative min-h-0">
-          <div className="relative flex-1 min-w-0 overflow-hidden max-h-[538px]">
-            {dragState.draggedItemId && isAdminOrSubAdmin && (
+        <div className="relative mx-4 flex min-h-0 flex-1 gap-4 overflow-hidden border-b border-[#E2E2E2] dark:!border-[#444444] md:mx-7 lg:h-[540px] lg:flex-none">
+          <div className="relative h-full min-w-0 flex-1 overflow-hidden">
+            {isDraggingAssignedMember && isAdminOrSubAdmin && (
             <div
               className="absolute right-6 top-4 z-20"
               onDragOver={(event) => {
@@ -478,7 +486,7 @@ export default function TeamManagementSettings() {
               zoom={zoom}
               onZoomChange={setZoom}
               onRemoveParentDrop={handleRemoveParentDrop}
-              canRemoveParent={isAdminOrSubAdmin}
+              canRemoveParent={isAdminOrSubAdmin && isDraggingAssignedMember}
               navigationTarget={treeNavigationTarget}
               isFullscreen={isFullscreen}
             />
