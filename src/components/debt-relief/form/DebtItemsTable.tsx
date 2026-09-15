@@ -938,7 +938,14 @@ export default function DebtItemsTable({
   if (detailedLayout === "cards" && mode === "detailed") {
       return (<div data-debt-items-table className="flex min-w-0 flex-col gap-5">
           <div className="rounded-lg bg-neutral-10 p-5">
-            <div id={scrollContainerId} ref={containerRef} {...dragScrollHandlers} onScroll={updateHorizontalScrollState} className={`table-horizontal-scroll overflow-x-auto ${customScrollbarEnabled ? "scrollbar-hide" : ""}`}>
+            <div
+              id={scrollContainerId}
+              ref={containerRef}
+              {...dragScrollHandlers}
+              onScroll={updateHorizontalScrollState}
+              className={`table-horizontal-scroll overflow-x-auto ${customScrollbarEnabled ? "scrollbar-hide" : ""}`}
+              style={{ scrollbarWidth: customScrollbarEnabled ? "none" : undefined }}
+            >
               <div className="flex min-w-[854px] flex-col gap-4" aria-label="채무 상세 내역">
                 {debts.map((debt) => {
               const missingFields = showFieldErrors ? getMissingDebtItemFields(debt) : [];
