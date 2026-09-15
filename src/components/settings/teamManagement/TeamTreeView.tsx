@@ -325,7 +325,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
               }}
             >
               <div
-                className="bg-border"
+                className="bg-border org-tree-connector-v"
                 style={{
                   width: `${TOKENS.connector.width}px`,
                   height: "100%",
@@ -437,7 +437,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
               >
                 {/* 부모에서 내려오는 수직 연결선 */}
                 <div
-                  className="bg-border md:h-[20px] h-[12px]"
+                  className="bg-border org-tree-connector-v md:h-[20px] h-[12px]"
                   style={{
                     width: `${TOKENS.connector.width}px`,
                   }}
@@ -456,7 +456,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
                             <>
                               {branchIndex > 0 && (
                                 <div
-                                  className="absolute left-[-12px] right-[50%] top-0 bg-border"
+                                  className="absolute left-[-12px] right-[50%] top-0 bg-border org-tree-connector-h"
                                   style={{
                                     height: `${TOKENS.connector.width}px`,
                                   }}
@@ -464,7 +464,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
                               )}
                               {branchIndex < childBranches.length - 1 && (
                                 <div
-                                  className="absolute left-[50%] right-[-12px] top-0 bg-border"
+                                  className="absolute left-[50%] right-[-12px] top-0 bg-border org-tree-connector-h"
                                   style={{
                                     height: `${TOKENS.connector.width}px`,
                                   }}
@@ -474,7 +474,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
                           )}
 
                           <div
-                            className="h-[12px] bg-border md:h-[20px]"
+                            className="h-[12px] bg-border org-tree-connector-v md:h-[20px]"
                             style={{
                               width: `${TOKENS.connector.width}px`,
                             }}

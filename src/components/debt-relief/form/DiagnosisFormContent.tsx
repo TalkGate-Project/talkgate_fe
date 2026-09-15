@@ -170,9 +170,6 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     selectedCustomerId: selectedCustomerId ?? null,
     step: currentIndex + 1,
     draftId,
-    // 서버 임시저장과 동일한 제약: 관리자·부관리자가 고객 미연동 상태로 작성 중이면 브라우저
-    // 로컬 자동저장(새로고침/탭 종료 복원용)도 남기지 않는다.
-    canPersistDraft: !(isAdminOrSubAdmin && !isCustomerConnected),
   });
   const analysisDraftReady =
     isEdit || analysisDraftState.status === "active" || analysisDraftState.status === "disabled";
