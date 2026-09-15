@@ -30,6 +30,7 @@ import { showErrorModal } from "@/lib/errorModalEvents";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { useTeamMembers } from "@/hooks/useTeamMembers";
 import { useTeamDragAndDrop } from "@/hooks/useTeamDragAndDrop";
+import { flattenTeamData } from "@/hooks/useTeamTree";
 import { useTeamSearch } from "@/hooks/useTeamSearch";
 import { useDepartmentFilter } from "@/hooks/useDepartmentFilter";
 import { ViewMode } from "@/types/teamManagement";
@@ -73,6 +74,11 @@ export default function TeamManagementSettings() {
     memberId: string;
     requestId: number;
   } | null>(null);
+  const [listExpansionTarget, setListExpansionTarget] = useState<{
+    memberId: string;
+    requestId: number;
+  } | null>(null);
+  const [isListRemoveParentDragOver, setIsListRemoveParentDragOver] = useState(false);
 
   useEffect(() => {
     const selected = getSelectedProjectId();
@@ -125,6 +131,10 @@ export default function TeamManagementSettings() {
   const { isAdminOrSubAdmin } = useMyMember(projectId);
 
   const { teamMembers, assignedMembers, unassignedMembers } = useTeamMembers(treeData, teamsData);
+  const assignedMemberIds = useMemo(
+    () => new Set(flattenTeamData(assignedMembers).map((member) => member.id)),
+    [assignedMembers]
+  );
   const assignableMembers = useMemo(
     () => unassignedMembers.filter((member) => Boolean(member.id && member.name.trim())),
     [unassignedMembers]
@@ -173,14 +183,22 @@ export default function TeamManagementSettings() {
     cancelMove,
     cancelLeaderChange,
   } = useTeamDragAndDrop(teamMembers, canDrag, handleMove, handleInvalidMemberDrop);
+  const isDraggingAssignedMember = Boolean(
+    dragState.draggedItemId && assignedMemberIds.has(dragState.draggedItemId)
+  );
 
   const confirmLeaderChange = useCallback(async () => {
     if (!pendingLeaderChange) return;
+    const newLeaderMemberId = pendingLeaderChange.memberId;
     try {
       await assignLeaderMutation.mutateAsync({
         memberId: Number(pendingLeaderChange.currentLeaderId),
-        newLeaderMemberId: Number(pendingLeaderChange.memberId),
+        newLeaderMemberId: Number(newLeaderMemberId),
       });
+      setListExpansionTarget((currentTarget) => ({
+        memberId: newLeaderMemberId,
+        requestId: (currentTarget?.requestId ?? 0) + 1,
+      }));
       cancelLeaderChange();
     } catch (error) {
       console.error("Team leader change failed:", error);
@@ -208,7 +226,7 @@ export default function TeamManagementSettings() {
 
   const handleRemoveParentDrop = useCallback(
     async (memberId: string) => {
-      if (!canDrag) return;
+      if (!canDrag || !assignedMemberIds.has(memberId)) return;
       try {
         await removeParentMutation.mutateAsync({
           memberId: Number(memberId),
@@ -222,8 +240,23 @@ export default function TeamManagementSettings() {
         });
       }
     },
-    [canDrag, removeParentMutation]
+    [assignedMemberIds, canDrag, removeParentMutation]
   );
+
+  const handleListRemoveParentDrop = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setIsListRemoveParentDragOver(false);
+      if (!dragState.draggedItemId) return;
+      void handleRemoveParentDrop(dragState.draggedItemId);
+    },
+    [dragState.draggedItemId, handleRemoveParentDrop]
+  );
+
+  useEffect(() => {
+    if (!dragState.draggedItemId) setIsListRemoveParentDragOver(false);
+  }, [dragState.draggedItemId]);
 
   const handleMemberClick = useCallback((member: TeamMember) => {
     setSelectedMemberId(Number(member.id));
@@ -348,18 +381,73 @@ export default function TeamManagementSettings() {
 
       {/* 스크롤 가능한 리스트 영역 */}
       {viewMode === "list" ? (
-        <div className="flex-1 mx-4 md:mx-7 overflow-hidden flex gap-4 border-b border-[#E2E2E2] dark:!border-[#444444] relative min-h-0">
-          <div className="flex-1 min-w-0 overflow-y-auto max-h-[538px]">
-            <TeamListView
-              data={filteredByDepartment}
-              dragHandlers={dragHandlers}
-              dragState={dragState}
-              tags={[]}
-              onMemberClick={handleMemberClick}
-              searchTerm={searchTerm}
-              matchingIds={matchingIds}
-              expandedForSearch={expandedForSearch}
-            />
+        <div className="relative mx-4 flex min-h-0 flex-1 gap-4 overflow-hidden border-b border-[#E2E2E2] dark:!border-[#444444] md:mx-7 lg:h-[540px] lg:flex-none">
+          <div className="relative h-full min-w-0 flex-1 overflow-hidden">
+            {isDraggingAssignedMember && isAdminOrSubAdmin && (
+            <div
+              className="absolute right-6 top-4 z-20"
+              onDragOver={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                event.dataTransfer.dropEffect = "move";
+                setIsListRemoveParentDragOver(true);
+              }}
+              onDragLeave={(event) => {
+                if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+                setIsListRemoveParentDragOver(false);
+              }}
+              onDrop={handleListRemoveParentDrop}
+            >
+              <div
+                className={`flex h-[100px] w-[100px] items-center justify-center rounded-full border-2 border-dashed transition-colors ${
+                  isListRemoveParentDragOver
+                    ? "border-secondary-40 bg-secondary-10"
+                    : "border-neutral-40 bg-neutral-10/90"
+                }`}
+              >
+                <div className="px-2 text-center">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                    className={`mx-auto mb-1 ${
+                      isListRemoveParentDragOver ? "stroke-secondary-40" : "stroke-neutral-60"
+                    }`}
+                  >
+                    <path
+                      d="M12 5V19M5 12H19"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span
+                    className={`block text-[10px] font-medium leading-tight ${
+                      isListRemoveParentDragOver ? "text-secondary-40" : "text-neutral-60"
+                    }`}
+                  >
+                    소속 해제
+                  </span>
+                </div>
+              </div>
+            </div>
+            )}
+            <div className="h-full overflow-y-auto">
+              <TeamListView
+                data={filteredByDepartment}
+                dragHandlers={dragHandlers}
+                dragState={dragState}
+                tags={[]}
+                onMemberClick={handleMemberClick}
+                searchTerm={searchTerm}
+                matchingIds={matchingIds}
+                expandedForSearch={expandedForSearch}
+                expansionTarget={listExpansionTarget}
+              />
+            </div>
           </div>
           {unassignedMembersArea}
         </div>
@@ -398,7 +486,7 @@ export default function TeamManagementSettings() {
               zoom={zoom}
               onZoomChange={setZoom}
               onRemoveParentDrop={handleRemoveParentDrop}
-              canRemoveParent={isAdminOrSubAdmin}
+              canRemoveParent={isAdminOrSubAdmin && isDraggingAssignedMember}
               navigationTarget={treeNavigationTarget}
               isFullscreen={isFullscreen}
             />

@@ -15,7 +15,18 @@ type Props = {
   searchTerm?: string;
   matchingIds?: Set<string>;
   expandedForSearch?: Set<string>;
+  expansionTarget?: { memberId: string; requestId: number } | null;
 };
+
+function findExpansionPath(items: TeamMember[], targetId: string, path: string[] = []): string[] | null {
+  for (const item of items) {
+    const nextPath = [...path, item.id];
+    if (item.id === targetId) return nextPath;
+    const childPath = findExpansionPath(item.children ?? [], targetId, nextPath);
+    if (childPath) return childPath;
+  }
+  return null;
+}
 
 // 매칭되는 노드와 그 자손들의 ID를 수집
 function collectMatchingAndDescendants(items: TeamMember[], matchingIds: Set<string>): Set<string> {
@@ -52,6 +63,7 @@ export default function TeamListView({
   searchTerm = "",
   matchingIds = new Set(),
   expandedForSearch = new Set(),
+  expansionTarget = null,
 }: Props) {
   // level 0, 1까지만 기본적으로 열린 상태로 초기화 (2 depth)
   const collectItemsUpToDepth = useCallback((items: TeamMember[], maxDepth: number = 1): Set<string> => {
@@ -82,6 +94,13 @@ export default function TeamListView({
     }
   }, [data, collectItemsUpToDepth]);
 
+  useEffect(() => {
+    if (!expansionTarget) return;
+    const expansionPath = findExpansionPath(data, expansionTarget.memberId);
+    if (!expansionPath) return;
+    setExpandedItems((previousItems) => new Set([...previousItems, ...expansionPath]));
+  }, [data, expansionTarget]);
+
   // 검색어 유무에 따라 확장 상태 결정
   const currentExpanded = useMemo(() => {
     if (searchTerm) return expandedForSearch;
@@ -90,7 +109,8 @@ export default function TeamListView({
 
   // 검색 중일 때 표시해야 할 노드들 (매칭 + 조상 + 자손)
   const visibleIds = useMemo(() => {
-    if (!searchTerm || matchingIds.size === 0) return null; // null이면 모두 표시
+    if (!searchTerm) return null; // null이면 모두 표시
+    if (matchingIds.size === 0) return new Set<string>();
     const matchingAndDescendants = collectMatchingAndDescendants(data, matchingIds);
     // expandedForSearch = 조상들, matchingAndDescendants = 매칭 노드 + 자손들
     return new Set([...expandedForSearch, ...matchingAndDescendants]);
@@ -241,7 +261,13 @@ export default function TeamListView({
   return (
     <div>
       {/* 검색바 및 태그 영역 제거됨 (상위 컴포넌트로 이동) */}
-      <div>{renderItems(data)}</div>
+      {searchTerm && matchingIds.size === 0 ? (
+        <p className="py-10 text-center text-[14px] text-muted-foreground">
+          일치하는 배정 구성원이 없습니다.
+        </p>
+      ) : (
+        <div>{renderItems(data)}</div>
+      )}
     </div>
   );
 }

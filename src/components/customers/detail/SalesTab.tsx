@@ -324,8 +324,8 @@ export default function SalesTab({
             </button>
           </div>
         </div>
-        <div className="hidden lg:grid lg:grid-cols-[200px_120px_160px_minmax(0,1fr)_auto] lg:gap-2 lg:items-start">
-          <label className="block">
+        <div className="hidden lg:flex lg:flex-wrap lg:gap-2 lg:items-start">
+          <label className="block w-[200px] flex-shrink-0">
             <span className="flex items-center gap-1 text-[14px] text-neutral-60 dark:text-neutral-60 mb-1 font-medium">
               날짜
               <span className="text-danger-40">*</span>
@@ -334,7 +334,7 @@ export default function SalesTab({
               <DatePicker
                 value={paymentDate}
                 onChange={setPaymentDate}
-                className="h-[34px] pr-9 font-medium"
+                className="h-[34px] w-full pr-9 font-medium"
                 invalid={!!paymentDateError}
               />
               <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-neutral-60 dark:text-neutral-60">
@@ -359,7 +359,7 @@ export default function SalesTab({
               <p className="mt-1 text-[12px] text-danger-40">{paymentDateError}</p>
             )}
           </label>
-          <label className="block">
+          <label className="block w-[120px] flex-shrink-0">
             <span className="block text-[14px] text-neutral-60 dark:text-neutral-60 mb-1 font-medium">
               결제수단
             </span>
@@ -375,7 +375,7 @@ export default function SalesTab({
               ))}
             </SelectField>
           </label>
-          <label className="block">
+          <label className="block w-[160px] flex-shrink-0">
             <span className="flex items-center gap-1 text-[14px] text-neutral-60 dark:text-neutral-60 mb-1 font-medium">
               금액
               <span className="text-danger-40">*</span>
@@ -394,7 +394,7 @@ export default function SalesTab({
               <p className="mt-1 text-[12px] text-danger-40">{paymentAmountError}</p>
             )}
           </label>
-          <label className="block">
+          <label className="block min-w-[200px] flex-[1_1_240px]">
             <span className="block text-[14px] text-neutral-60 dark:text-neutral-60 mb-1 font-medium">
               설명
             </span>
@@ -406,7 +406,7 @@ export default function SalesTab({
             />
           </label>
           <button
-            className="cursor-pointer w-[48px] h-[34px] mt-[22px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold"
+            className="cursor-pointer w-[48px] h-[34px] mt-[22px] flex-shrink-0 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold"
             onClick={handleAddPayment}
           >
             추가
@@ -522,7 +522,7 @@ export default function SalesTab({
           <div className="mb-2 text-[14px] font-medium leading-[1] tracking-[0.2px] text-neutral-60 dark:text-neutral-60">
             컬러
           </div>
-            <div className="flex items-center gap-2 h-[34px]">
+            <div className="flex min-h-[34px] flex-wrap items-center gap-2">
               {[
                 { hex: "#00E272", cls: "bg-primary-60" },
                 { hex: "#00B55B", cls: "bg-primary-80" },
