@@ -31,7 +31,7 @@ type Props = {
   onConfirm: (value: AdjustedRepaymentValue) => void;
 };
 
-const DEFAULT_RATE_PERCENT = 30;
+const DEFAULT_RATE_PERCENT = 80;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
