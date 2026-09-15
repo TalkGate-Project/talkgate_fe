@@ -1288,3 +1288,16 @@ svg path:focus {
     center / 16px 16px no-repeat;
 }
 
+/* 조직도 트리뷰 연결선: Firefox에서만 렌더링 시 선이 사라졌다 나타나는 현상이 있어
+   두께를 2px로 늘려 검증 중. -moz-appearance는 Firefox 계열에서만 지원되므로
+   @supports 피처 쿼리로 다른 브라우저에 영향 없이 Firefox만 타겟팅한다. */
+@supports (-moz-appearance: none) {
+  .org-tree-connector-v {
+    width: 2px !important;
+  }
+
+  .org-tree-connector-h {
+    height: 2px !important;
+  }
+}
+
