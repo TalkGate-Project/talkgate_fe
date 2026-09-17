@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { DebtStatusSummary, DiagnosisDetail } from "@/types/debtRelief";
-import { formatManwonComma } from "@/components/debt-relief/format";
+import { formatDebtWonParts, formatWonAsManwon } from "@/components/debt-relief/format";
 import DebtDetailModal from "./DebtDetailModal";
 import { isDebtCollateralLoan } from "@/types/analysis";
 
@@ -42,6 +42,11 @@ function Metric({
   );
 }
 
+function AmountMetric({ label, won }: { label: string; won: number }) {
+  const { amount, unit } = formatDebtWonParts(won);
+  return <Metric label={label} value={amount} unit={unit} />;
+}
+
 export default function SectionDebtStatus({
   detail,
   projectId,
@@ -53,16 +58,16 @@ export default function SectionDebtStatus({
 }) {
   const debt: DebtStatusSummary = detail.debtStatus;
   // 상세입력 모드 건에만 이자 포함 총채무가 내려온다 — 간편모드면 "총 상환 예정" 칸 자체를 숨긴다.
-  const hasInterest = debt.totalDebtWithInterestManwon != null;
+  const hasInterest = debt.totalDebtWithInterestWon != null;
   const [debtDetailOpen, setDebtDetailOpen] = useState(false);
-  const securedDebtManwon =
+  const securedDebtWon =
     detail.collateralBreakdown?.collateralDebt ??
     detail.inputData.debts
       .filter((item) => !item.isExcludedFromAnalysis && isDebtCollateralLoan(item))
-      .reduce((sum, item) => sum + item.currentBalanceWon / 10_000, 0);
-  const unsecuredDebtManwon =
+      .reduce((sum, item) => sum + item.currentBalanceWon, 0);
+  const unsecuredDebtWon =
     detail.collateralBreakdown?.unsecuredDebt ??
-    Math.max(0, debt.totalDebtManwon - securedDebtManwon);
+    Math.max(0, debt.totalDebtWon - securedDebtWon);
 
   return (
     <div className="flex flex-col gap-5">
@@ -94,29 +99,19 @@ export default function SectionDebtStatus({
             hasInterest ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2"
           }`}
         >
-          <Metric
+          <AmountMetric
             label={hasInterest ? "총 채무 (원금)" : "총 채무"}
-            value={debt.totalDebtManwon.toLocaleString("ko-KR")}
-            unit="만원"
+            won={debt.totalDebtWon}
           />
           {hasInterest && (
-            <Metric
+            <AmountMetric
               label="총 상환 예정 (이자 포함)"
-              value={debt.totalDebtWithInterestManwon!.toLocaleString("ko-KR")}
-              unit="만원"
+              won={debt.totalDebtWithInterestWon!}
             />
           )}
           <Metric label="연체 기간" value={String(debt.overdueMonths)} unit="개월" />
-          <Metric
-            label="담보"
-            value={securedDebtManwon.toLocaleString("ko-KR")}
-            unit="만원"
-          />
-          <Metric
-            label="무담보"
-            value={unsecuredDebtManwon.toLocaleString("ko-KR")}
-            unit="만원"
-          />
+          <AmountMetric label="담보" won={securedDebtWon} />
+          <AmountMetric label="무담보" won={unsecuredDebtWon} />
         </div>
 
         {/* 우: 채무 구성 */}
@@ -138,7 +133,7 @@ export default function SectionDebtStatus({
                   {item.percent}%
                 </span>
                 <span className="min-w-[85px] shrink-0 whitespace-nowrap text-right text-[14px] font-medium leading-[17px] tabular-nums text-neutral-60">
-                  {formatManwonComma(item.amountManwon)}
+                  {formatWonAsManwon(item.amountWon)}
                 </span>
               </div>
             ))}

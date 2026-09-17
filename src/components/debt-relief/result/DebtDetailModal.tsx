@@ -12,11 +12,7 @@ import {
   getMissingDebtItemFieldLabels,
 } from "@/components/debt-relief/form/validateDiagnosisForm";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
-import {
-  DebtReliefService,
-  fromAnalysisFormInput,
-  wonToManwon,
-} from "@/services/debtRelief";
+import { DebtReliefService, fromAnalysisFormInput } from "@/services/debtRelief";
 import {
   canEditDiagnosisInfo,
   canSaveDiagnosisDebts,
@@ -50,15 +46,8 @@ function CloseIcon() {
   );
 }
 
-function computeTotalDebtManwon(form: DiagnosisFormState): number {
-  if (form.debtInputMode === "detailed") {
-    return wonToManwon(form.debts.reduce((sum, debt) => sum + (debt.currentBalanceWon || 0), 0));
-  }
-  let total = 0;
-  for (const type of form.debtTypes) {
-    total += form.debtAmounts[type] ?? 0;
-  }
-  return total;
+function computeTotalDebtWon(form: DiagnosisFormState): number {
+  return form.debts.reduce((sum, debt) => sum + (debt.currentBalanceWon || 0), 0);
 }
 
 /**
@@ -114,7 +103,7 @@ export default function DebtDetailModal({
     []
   );
 
-  const totalDebtManwon = useMemo(() => computeTotalDebtManwon(form), [form]);
+  const totalDebtWon = useMemo(() => computeTotalDebtWon(form), [form]);
 
   if (!open) return null;
 
@@ -223,7 +212,7 @@ export default function DebtDetailModal({
             <DebtHistoryCard
               form={form}
               update={update}
-              totalDebtManwon={totalDebtManwon}
+              totalDebtWon={totalDebtWon}
               disabled={submitting}
               areaBackgroundClassName="bg-neutral-10"
               showDebtItemFieldErrors={showDebtItemFieldErrors}

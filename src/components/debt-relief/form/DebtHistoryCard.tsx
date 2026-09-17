@@ -19,7 +19,7 @@ export function DebtModeToggle({ value, onChange, disabled, compact = false }: {
 export type DebtHistoryCardProps = {
   form: DiagnosisFormState;
   update: <K extends keyof DiagnosisFormState>(key: K, value: DiagnosisFormState[K]) => void;
-  totalDebtManwon: number;
+  totalDebtWon: number;
   disabled?: boolean;
   areaBackgroundClassName?: string;
   showDebtItemFieldErrors?: boolean;

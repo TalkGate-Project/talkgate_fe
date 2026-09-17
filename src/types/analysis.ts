@@ -81,9 +81,9 @@ export type AnalysisDebtCause =
 // 2026-07-10 스펙 갱신: 단일 카테고리(realEstateType)에서 항목별 시가 breakdown으로 교체됨.
 // debtBreakdown과 동일 패턴 — 중복 보유 가능, 미보유 항목은 0 또는 생략.
 export type AnalysisRealEstateBreakdown = {
-  ownedValue?: number; // 자가 소유 부동산 시가 (만원)
-  jeonseDeposit?: number; // 전세 보증금 (만원)
-  rentalValue?: number; // 임대 수익용 부동산 시가 (만원)
+  ownedValue?: number; // 자가 소유 부동산 시가 (원)
+  jeonseDeposit?: number; // 전세 보증금 (원)
+  rentalValue?: number; // 임대 수익용 부동산 시가 (원)
 };
 
 export type AnalysisAssetCategory =
@@ -109,7 +109,7 @@ export type AnalysisDebtBreakdown = {
 };
 
 // ── 채무 입력 모드 (2026-08-04 신규) ────────────────────────
-// simple: 기존과 동일하게 debtBreakdown(종류별 잔액, 만원)을 보낸다. 생략 시 기본값.
+// simple: debtBreakdown(종류별 잔액, 원)을 보낸다. 생략 시 기본값.
 // detailed: debts(채무 건별 상세) 배열을 보내고 debtBreakdown은 서버가 자동 집계한다.
 export type AnalysisDebtInputMode = "simple" | "detailed";
 
@@ -128,7 +128,7 @@ export type AnalysisRepaymentMethod =
   | "bullet_payment"
   | "interest_only";
 
-// ⚠️ 금액 필드(*Won)만 원 단위다 — 이 도메인의 다른 모든 금액은 만원 단위라 혼동 주의.
+// 분석 도메인의 모든 금액 필드는 원 단위다.
 export type AnalysisDebtItem = {
   /** 프론트에서 생성한 임의 ID (수정 시 항목 식별용) */
   id: string;
@@ -233,10 +233,10 @@ export type AnalysisFormInput = {
   employmentType: string;
   dependents: number;
   hasSpouseIncome: boolean;
-  /** 만원 단위 실제 세후 실수령액. 소득 없으면 0(2026-08-07 스펙 — 구간 선택 폐지) */
+  /** 원 단위 실제 세후 실수령액. 소득 없으면 0 */
   monthlyIncome: number;
   housingType: AnalysisHousingType;
-  /** 법원 인정 최저생계비를 넘어서 추가로 인정받아야 할 금액(만원). 일반 식비·교통비 등은
+  /** 법원 인정 최저생계비를 넘어서 추가로 인정받아야 할 금액(원). 일반 식비·교통비 등은
    * 최저생계비 개념에 이미 포함되어 더 이상 받지 않는다(2026-08-07 스펙 — fixedExpenses 폐지).
    * 해당 없으면 0. */
   additionalFixedExpense: number;
@@ -254,7 +254,7 @@ export type AnalysisFormInput = {
   lawsuitNote?: string;
   hasTaxArrears?: boolean;
   hasRecentAssetDisposal?: boolean;
-  /** 배우자 명의 주택 또는 전세보증금 가액(만원). 미보유는 0. */
+  /** 배우자 명의 주택 또는 전세보증금 가액(원). 미보유는 0. */
   spouseHousingAssetValue?: number;
   /** 사업 영위 여부(현재 또는 과거). 새출발기금 후보 게이트 — 필수값이라 누락 시 400 */
   isOperatingBusiness: boolean;
@@ -272,7 +272,7 @@ export type AnalysisFormInput = {
    * 키로 보낼 수 있다 — pickProcedureValue로 조회. 작성중 임시저장(draft)에는 저장되지 않는다.
    * PATCH /analysis/:id/input에서 생략하면 기존 수정안이 초기화된다(유지하려면 다시 보내야 함).
    * PATCH /analysis/:id/debts에서 reanalyze:true면 초기화된다. */
-  adjustedRepayment?: AnalysisAdjustedRepaymentMap;
+  adjustedRepayment?: AnalysisAdjustedRepaymentInputMap;
 };
 
 export type CreateAnalysisInput = AnalysisFormInput & {
@@ -382,19 +382,19 @@ export type AnalysisInputData = Omit<
   debtBreakdown: AnalysisDebtBreakdown;
   /** 상세모드 전용 서버 계산값 */
   debtDerivedSignals?: AnalysisDebtDerivedSignals;
-  /** 상세모드 전용 — 이자 포함 총채무 (만원) */
+  /** 상세모드 전용 — 이자 포함 총채무 (원) */
   totalDebtWithInterest?: number;
   // 2026-09-11 실 OpenAPI 스펙 확인 — debts[]에서 서버가 집계한 값 4종. collateralDebt/
   // creditorCount는 isCollateralLoan·creditorName만 있으면 계산되므로 간편·상세 모드 모두에서
   // 채워진다. debtIncurredLast*는 debts[].loanDate가 있어야 계산 가능한데, 간편모드는 채무
   // 항목에 대출일을 받지 않아(상세모드 전용 입력) 항상 0/누락일 가능성이 높다 — debtDerivedSignals와
   // 같은 "상세모드 전용" 취급.
-  /** 담보부 채무 합계 (만원, 서버 계산). collateralBreakdown.collateralDebt(자산별 청산가치 계산용)와는
+  /** 담보부 채무 합계 (원, 서버 계산). collateralBreakdown.collateralDebt(자산별 청산가치 계산용)와는
    * 별개의 단순 합계 — 혼동 주의. */
   collateralDebt?: number;
   /** 채권자 수 (서버 계산, 같은 채권처는 1명으로 집계) */
   creditorCount?: number;
-  /** 상세모드 전용(추정) 서버 계산값 — 최근 3/6개월·1년 내 발생 채무액 (만원) */
+  /** 상세모드 전용(추정) 서버 계산값 — 최근 3/6개월·1년 내 발생 채무액 (원) */
   debtIncurredLast3Months?: number;
   debtIncurredLast6Months?: number;
   debtIncurredLast1Year?: number;
@@ -466,14 +466,13 @@ export function procedureEntries<T>(
   return entries;
 }
 
-// 금액은 모두 만원 단위로 내려온다(2026-07-20 실응답 확인: monthlyPayment 125 ×
-// periodMonths 40 = totalPayment 5000 으로 totalDebt와 동일 스케일).
+// 금액은 모두 원 단위로 내려온다.
 export type AnalysisExpectedRepayment = {
   monthlyPayment: number;
   periodMonths: number;
   totalPayment: number;
   expectedExemption: number;
-  /** 이자 포함 예상 면책 채무 (만원). 채무 상세입력(detailed) 모드로 생성된 건에만 존재 */
+  /** 이자 포함 예상 면책 채무 (원). 채무 상세입력(detailed) 모드로 생성된 건에만 존재 */
   expectedExemptionWithInterest?: number;
 };
 
@@ -509,6 +508,16 @@ export type AnalysisAdjustedRepayment = {
   totalPayment?: number;
   expectedExemption?: number;
 };
+
+/** 생성·재진단 요청에는 서버 계산 결과 필드를 포함하지 않는다. */
+export type AnalysisAdjustedRepaymentInput = Pick<
+  AnalysisAdjustedRepayment,
+  "monthlyPayment" | "periodMonths"
+>;
+
+export type AnalysisAdjustedRepaymentInputMap = Partial<
+  Record<AnalysisAdjustedRepaymentProcedure, AnalysisAdjustedRepaymentInput>
+>;
 
 // scores/expectedRepayment와 동일하게 절차별 동적 맵. 해당 절차의 분석 산출 변제계획이
 // 없으면(자격 게이트 미통과 등) 그 키는 저장되지 않는다.

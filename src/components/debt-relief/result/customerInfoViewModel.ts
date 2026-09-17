@@ -19,7 +19,7 @@ import {
   type DebtCause,
   type DebtType,
 } from "@/types/debtRelief";
-import { wonToManwon } from "@/components/debt-relief/format";
+import { formatDebtWon } from "@/components/debt-relief/format";
 
 // 「고객정보」 모달(DiagnosisCustomerInfoModal)과 모바일 PDF(AnalysisPdfDocument)가 공유하는
 // 순수 뷰모델. UI 컴포넌트(BaseModal, DebtDetailModal 등)를 참조하지 않아야 한다 — PDF는
@@ -87,19 +87,14 @@ function yesNo(value: boolean | null | undefined): string {
   return value ? "있음" : "없음";
 }
 
-function formatManwon(value: number | null | undefined): string {
-  if (value == null || Number.isNaN(value)) return "-";
-  return `${value.toLocaleString("ko-KR")}만원`;
-}
-
 function formatWon(value: number | null | undefined): string {
   if (value == null || Number.isNaN(value)) return "-";
   return `${Math.round(value).toLocaleString("ko-KR")}원`;
 }
 
-function formatManwonAsWon(value: number | null | undefined): string {
+function formatManwon(value: number | null | undefined): string {
   if (value == null || Number.isNaN(value)) return "-";
-  return formatWon(value * 10_000);
+  return formatDebtWon(value);
 }
 
 function formatDate(value: string | null | undefined): string {
@@ -109,7 +104,7 @@ function formatDate(value: string | null | undefined): string {
 /** 법정 생계비처럼 월소득에서 차감되는 항목 표시용 — Figma가 "-" 부호를 붙여 보여준다. */
 function formatDeductedManwon(value: number | null | undefined): string {
   if (value == null || Number.isNaN(value)) return "-";
-  return `-${value.toLocaleString("ko-KR")}만원`;
+  return `-${formatDebtWon(value)}`;
 }
 
 function formatDependents(count: number | null | undefined): string {
@@ -210,10 +205,10 @@ export function buildSections(input: AnalysisInputData) {
     { label: "총 채무합계", value: formatManwon(input.totalDebt), emphasize: true },
   ];
 
-  const collateralDebtManwon = wonToManwon(debts.filter(isDebtCollateralLoan).reduce((sum, debt) => sum + debt.currentBalanceWon, 0));
+  const collateralDebtWon = debts.filter(isDebtCollateralLoan).reduce((sum, debt) => sum + debt.currentBalanceWon, 0);
   const debtRightRows: DisplayRow[] = [
     { label: "채무 건수", value: `${debts.length}건` },
-    { label: "담보부채무", value: formatManwon(collateralDebtManwon) },
+    { label: "담보부채무", value: formatManwon(collateralDebtWon) },
     { label: "연체기간", value: `${input.overdueMonths ?? 0}개월` },
     { label: "채무발생원인", value: debtCausesLabel(input.debtCauses ?? []) },
   ];
@@ -227,9 +222,9 @@ export function buildSections(input: AnalysisInputData) {
   // 최저생계비를 계산해 보여주면 옆의 월 가용소득과 앞뒤가 안 맞는 숫자가 나란히 표시된다 —
   // 차라리 "-"로 비워 잘못된 확신을 주지 않는다(types/analysis.ts AnalysisInputData 주석 참고).
   const isLegacyIncomeData = input.monthlyIncome == null;
-  const minimumLivingCostManwon = isLegacyIncomeData
+  const minimumLivingCostWon = isLegacyIncomeData
     ? null
-    : wonToManwon(resolveCourtMinimumLivingCostWon((input.dependents ?? 0) + 1));
+    : resolveCourtMinimumLivingCostWon((input.dependents ?? 0) + 1);
 
   // 좌: 폼 입력값 그대로(고용형태~배우자소득) / 우: 월 가용소득 계산 breakdown — Step4IncomeExpense
   // 폼의 "입력 필드"와 "월 가용 소득" 계산 박스, 두 블록을 그대로 옮겨온 구성.
@@ -243,7 +238,7 @@ export function buildSections(input: AnalysisInputData) {
 
   const incomeRightRows: DisplayRow[] = [
     { label: "월 소득", value: formatManwon(input.monthlyIncome) },
-    { label: "법정 생계비", value: isLegacyIncomeData ? "-" : formatDeductedManwon(minimumLivingCostManwon) },
+    { label: "법정 생계비", value: isLegacyIncomeData ? "-" : formatDeductedManwon(minimumLivingCostWon) },
     {
       label: "추가 필수지출",
       value: isLegacyIncomeData ? "-" : formatManwon(input.additionalFixedExpense),
@@ -262,7 +257,7 @@ export function buildSections(input: AnalysisInputData) {
     { label: "주거형태", value: optionLabel(HOUSING_TYPE_OPTIONS, input.housingType) },
     {
       label: "법정 생계비",
-      value: isLegacyIncomeData ? "-" : formatDeductedManwon(minimumLivingCostManwon),
+      value: isLegacyIncomeData ? "-" : formatDeductedManwon(minimumLivingCostWon),
     },
     {
       label: "추가 필수지출",
@@ -422,7 +417,7 @@ export function buildCustomerInfoViewModel(
       value: hasDetailedDebtAmounts
         ? formatWon(collateralDebtWon)
         : collateralBreakdown
-          ? formatManwonAsWon(collateralBreakdown.collateralDebt)
+          ? formatWon(collateralBreakdown.collateralDebt)
           : "-",
     },
     {
@@ -430,14 +425,12 @@ export function buildCustomerInfoViewModel(
       value: hasDetailedDebtAmounts
         ? formatWon(unsecuredDebtWon)
         : collateralBreakdown
-          ? formatManwonAsWon(collateralBreakdown.unsecuredDebt)
+          ? formatWon(collateralBreakdown.unsecuredDebt)
           : "-",
     },
     {
       label: "총 합산",
-      // 상세 채무는 원 단위인데 서버의 totalDebt는 만원 단위라 반올림 오차가 생길 수 있다.
-      // 상세 내역이 있으면 위 두 합계와 같은 원본으로 계산하고, 간편·레거시 데이터만 totalDebt를 쓴다.
-      value: hasDetailedDebtAmounts ? formatWon(totalDebtWon) : formatManwonAsWon(input.totalDebt),
+      value: hasDetailedDebtAmounts ? formatWon(totalDebtWon) : formatWon(input.totalDebt),
       emphasize: true,
     },
   ];

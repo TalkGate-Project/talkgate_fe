@@ -5,7 +5,7 @@ import {
 } from "@/types/debtRelief";
 import type { AnalysisStatus } from "@/types/analysis";
 import type { FeePlanSummary } from "@/types/analysisFeePlan";
-import { formatDebtManwonParts } from "@/components/debt-relief/format";
+import { formatDebtWonParts } from "@/components/debt-relief/format";
 import { wonToManwon } from "@/components/stats/fee/feeFormat";
 import Tooltip from "@/components/common/Tooltip";
 
@@ -115,8 +115,8 @@ export function SuccessProbabilityText({ value }: { value: number }) {
 }
 
 // 총 채무: "51억" 강조(16px/600) + "원" 보조(14px/500)
-export function DebtAmountText({ manwon }: { manwon: number }) {
-  const { amount, unit } = formatDebtManwonParts(manwon);
+export function DebtAmountText({ won }: { won: number }) {
+  const { amount, unit } = formatDebtWonParts(won);
   return (
     <span className="inline-flex items-baseline whitespace-nowrap opacity-80">
       <span className="text-[16px] font-semibold leading-none text-neutral-90">{amount}</span>

@@ -1,20 +1,18 @@
 import type { CustomerGender } from "@/types/debtRelief";
 import type { FeePlanSummary } from "@/types/analysisFeePlan";
 
-const WON_PER_MANWON = 10000;
+const WON_PER_MANWON = 10_000;
 
+/** 원 단위 원본 값을 표시용 만원으로 반올림한다. */
 export function wonToManwon(won: number): number {
   return Math.round(won / WON_PER_MANWON);
 }
 
-export function manwonToWon(manwon: number): number {
-  return manwon * WON_PER_MANWON;
-}
-
-// 총 채무 (만원) → "3.1억원" / "5,000만원"
-export function formatDebtManwon(manwon: number): string {
-  if (manwon >= 10000) {
-    const eok = manwon / 10000;
+// 총 채무 원본(원) → "3.1억원" / "5,000만원"
+export function formatDebtWon(won: number): string {
+  const manwon = wonToManwon(won);
+  if (Math.abs(manwon) >= 10_000) {
+    const eok = manwon / 10_000;
     const text = Number.isInteger(eok) ? String(eok) : eok.toFixed(1);
     return `${text}억원`;
   }
@@ -22,18 +20,18 @@ export function formatDebtManwon(manwon: number): string {
 }
 
 // 테이블 강조 표기용: "51억원" → { amount: "51억", unit: "원" }
-export function formatDebtManwonParts(manwon: number): { amount: string; unit: string } {
-  const full = formatDebtManwon(manwon);
+export function formatDebtWonParts(won: number): { amount: string; unit: string } {
+  const full = formatDebtWon(won);
   if (full.endsWith("원")) {
     return { amount: full.slice(0, -1), unit: "원" };
   }
   return { amount: full, unit: "" };
 }
 
-// 월 가용 소득 (만원, 음수 가능) → "+45만원" / "-20만원"
-export function formatAvailableIncome(manwon: number): string {
-  const sign = manwon >= 0 ? "+" : "";
-  return `${sign}${manwon.toLocaleString("ko-KR")}만원`;
+// 월 가용 소득 원본(원, 음수 가능) → "+45만원" / "-20만원"
+export function formatAvailableIncome(won: number): string {
+  const sign = won >= 0 ? "+" : "";
+  return `${sign}${formatDebtWon(won)}`;
 }
 
 // "YYYY-MM-DD" → "MM/DD"
@@ -53,12 +51,18 @@ export function formatDateTimeDisplay(iso: string): string {
   return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-// 만원 → "3억 1천만원" 형태가 아닌 콤마 표기 "31,000만원"
+// 원 단위 콤마 표기
 // 담보 채무 분석 등 일부 인쇄용 항목은 API가 null을 내려줄 수 있어(타입 선언은 number지만 실제로는
 // nullable) 방어적으로 처리 — formatWon과 동일하게 "-"로 표기한다.
-export function formatManwonComma(manwon: number | null | undefined): string {
-  if (manwon == null) return "-";
-  return `${manwon.toLocaleString("ko-KR")}만원`;
+export function formatWon(won: number | null | undefined): string {
+  if (won == null) return "-";
+  return `${Math.round(won).toLocaleString("ko-KR")}원`;
+}
+
+/** 원 단위 원본을 기존 결과 화면의 콤마 포함 만원 표기로 변환한다. */
+export function formatWonAsManwon(won: number | null | undefined): string {
+  if (won == null) return "-";
+  return formatDebtWon(won);
 }
 
 // 고객 부가정보 → "42세 · 남" / "40대 · 남 · 자영업" (있는 필드만 표시)

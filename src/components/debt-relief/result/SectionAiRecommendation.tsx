@@ -1,5 +1,5 @@
 import type { DiagnosisDetail } from "@/types/debtRelief";
-import { formatDateTimeDisplay } from "@/components/debt-relief/format";
+import { formatDateTimeDisplay, formatWon } from "@/components/debt-relief/format";
 import AnimatedBriefingAmount from "./AnimatedBriefingAmount";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 
@@ -14,11 +14,8 @@ function formatDecimal(value: number, maximumFractionDigits = 1): string {
   return value.toLocaleString("ko-KR", { maximumFractionDigits });
 }
 
-function formatDebtMetric(manwon: number): BriefingMetric {
-  if (Math.abs(manwon) >= 10_000) {
-    return { label: "총 채무", value: manwon / 10_000, unit: "억원", maximumFractionDigits: 1 };
-  }
-  return { label: "총 채무", value: manwon, unit: "만원" };
+function formatAmountMetric(label: string, won: number): BriefingMetric {
+  return { label, value: won, unit: "원", maximumFractionDigits: 0 };
 }
 
 function describeOccupation(occupation: string): string {
@@ -31,12 +28,10 @@ function describeOccupation(occupation: string): string {
 }
 
 function buildBriefing(detail: DiagnosisDetail): string {
-  const { totalDebtManwon, totalAssetManwon, monthlyAvailableIncomeManwon, overdueMonths, composition } = detail.debtStatus;
-  const debt = Math.abs(totalDebtManwon) >= 10_000
-    ? `${formatDecimal(totalDebtManwon / 10_000)}억원`
-    : `${formatDecimal(totalDebtManwon, 0)}만원`;
-  const asset = `${formatDecimal(totalAssetManwon, 0)}만원`;
-  const availableIncome = `${formatDecimal(monthlyAvailableIncomeManwon, 0)}만원`;
+  const { totalDebtWon, totalAssetWon, monthlyAvailableIncomeWon, overdueMonths, composition } = detail.debtStatus;
+  const debt = formatWon(totalDebtWon);
+  const asset = formatWon(totalAssetWon);
+  const availableIncome = formatWon(monthlyAvailableIncomeWon);
   const overdue = overdueMonths > 0
     ? `연체 ${formatDecimal(overdueMonths, 0)}개월이 확인됩니다.`
     : "현재 연체는 확인되지 않습니다.";
@@ -47,11 +42,11 @@ function buildBriefing(detail: DiagnosisDetail): string {
     : "소득의 지속 가능성";
   const decisionVariables = `${privateDebt ? `${privateDebt.label}가 포함된 채권 구성` : "채권 구성"}과 ${incomeEvidence}`;
 
-  if (totalAssetManwon <= 0) {
+  if (totalAssetWon <= 0) {
     return `${basicSummary} 확인 가능한 자산이 없어 채무 전액이 자산을 초과하며, ${decisionVariables}이 이후 절차 판단의 핵심 변수입니다.`;
   }
 
-  const debtToAssetRatio = totalDebtManwon / totalAssetManwon;
+  const debtToAssetRatio = totalDebtWon / totalAssetWon;
   const assetAssessment = debtToAssetRatio > 1
     ? `채무가 자산의 약 ${formatDecimal(debtToAssetRatio)}배에 달해 채무초과 상태에 해당하며`
     : `자산 대비 채무 비율은 약 ${formatDecimal(debtToAssetRatio)}배이며`;
@@ -83,11 +78,11 @@ export default function SectionAiRecommendation({
   detail: DiagnosisDetail;
   showTopDivider?: boolean;
 }) {
-  const { totalDebtManwon, totalAssetManwon, monthlyAvailableIncomeManwon, overdueMonths } = detail.debtStatus;
+  const { totalDebtWon, totalAssetWon, monthlyAvailableIncomeWon, overdueMonths } = detail.debtStatus;
   const metrics: BriefingMetric[] = [
-    formatDebtMetric(totalDebtManwon),
-    { label: "총 자산", value: totalAssetManwon, unit: "만원" },
-    { label: "월 가용소득", value: monthlyAvailableIncomeManwon, unit: "만원" },
+    formatAmountMetric("총 채무", totalDebtWon),
+    formatAmountMetric("총 자산", totalAssetWon),
+    formatAmountMetric("월 가용소득", monthlyAvailableIncomeWon),
     { label: "연체 기간", value: overdueMonths, unit: "개월" },
   ];
 

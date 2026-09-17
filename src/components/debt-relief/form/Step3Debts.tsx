@@ -33,7 +33,7 @@ export default function Step3Debts({
   // 값 하나만으로 총 채무를 넘는 필드가 있으면 그 필드만 표시하고, 여러 필드의 조합으로만
   // 초과하는 경우(원인을 특정할 수 없음)에는 네 필드 모두 표시한다 — getOverLimitDebtFields 참고.
   const overLimitFields = debtSumOverLimitChecked
-    ? getOverLimitDebtFields(form, derived.totalDebtManwon)
+    ? getOverLimitDebtFields(form, derived.totalDebtWon)
     : [];
 
   return (
@@ -45,7 +45,7 @@ export default function Step3Debts({
       <DebtHistoryCard
         form={form}
         update={update}
-        totalDebtManwon={derived.totalDebtManwon}
+        totalDebtWon={derived.totalDebtWon}
         showDebtItemFieldErrors={debtItemFieldsMissingChecked}
         overLimitFields={overLimitFields}
         desktopLayoutBreakpoint="desktop"

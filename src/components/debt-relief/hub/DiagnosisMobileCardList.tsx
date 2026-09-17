@@ -199,7 +199,7 @@ export default function DiagnosisMobileCardList({
                 <span />
               )}
               <span className="ml-auto shrink-0">
-                <DebtAmountText manwon={item.totalDebtManwon} />
+                <DebtAmountText won={item.totalDebtWon} />
               </span>
             </div>
           </div>

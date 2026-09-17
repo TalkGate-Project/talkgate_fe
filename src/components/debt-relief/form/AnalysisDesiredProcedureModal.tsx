@@ -10,6 +10,8 @@ type Props = {
   open: boolean;
   /** 이전에 선택한 값이 있으면(편집 중 재진입 등) 미리 선택해서 보여준다 */
   initialProcedure?: RecommendedProcedure | null;
+  /** 기타사항의 특례기간 사업 영위 이력이 "예"일 때만 true */
+  freshStartFundEligible: boolean;
   onClose: () => void;
   /** "이전" — 채무 현황 선택 모달로 돌아간다 */
   onBack: () => void;
@@ -41,6 +43,7 @@ const PROCEDURE_GRID_ORDER: RecommendedProcedure[] = [
 export default function AnalysisDesiredProcedureModal({
   open,
   initialProcedure,
+  freshStartFundEligible,
   onClose,
   onBack,
   onSkip,
@@ -49,8 +52,13 @@ export default function AnalysisDesiredProcedureModal({
   const [selected, setSelected] = useState<RecommendedProcedure | null>(initialProcedure ?? null);
 
   useEffect(() => {
-    if (open) setSelected(initialProcedure ?? null);
-  }, [open, initialProcedure]);
+    if (!open) return;
+    setSelected(
+      initialProcedure === "fresh_start_fund" && !freshStartFundEligible
+        ? null
+        : initialProcedure ?? null
+    );
+  }, [freshStartFundEligible, initialProcedure, open]);
 
   if (!open) return null;
 
@@ -81,25 +89,44 @@ export default function AnalysisDesiredProcedureModal({
       </div>
 
       <div className="px-7 pb-7 pt-4">
-        <div className="grid grid-cols-2 gap-x-3 gap-y-3 rounded-xl bg-neutral-10 p-6 sm:gap-x-6 sm:gap-y-5 sm:p-10">
+        <div
+          className={`grid grid-cols-2 gap-x-3 gap-y-3 rounded-xl bg-neutral-10 px-6 pt-6 sm:gap-x-6 sm:gap-y-5 sm:px-10 sm:pt-10 ${
+            freshStartFundEligible ? "pb-6 sm:pb-10" : "pb-4 sm:pb-6"
+          }`}
+        >
           {PROCEDURE_GRID_ORDER.map((procedure) => {
             const isSelected = selected === procedure;
+            const isDisabled = procedure === "fresh_start_fund" && !freshStartFundEligible;
             return (
               <button
                 key={procedure}
                 type="button"
-                onClick={() => setSelected(procedure)}
+                onClick={() => {
+                  if (!isDisabled) setSelected(procedure);
+                }}
+                disabled={isDisabled}
                 aria-pressed={isSelected}
+                aria-describedby={isDisabled ? "fresh-start-fund-disabled-message" : undefined}
                 className={`h-12 cursor-pointer rounded-lg text-[16px] tracking-[-0.02em] transition-colors ${
                   isSelected
                     ? "bg-neutral-90 font-semibold text-neutral-20"
-                    : "border border-neutral-30 bg-card font-medium text-foreground hover:bg-neutral-20/50"
+                    : isDisabled
+                      ? "cursor-not-allowed border border-neutral-30 bg-neutral-20 font-medium text-neutral-50"
+                      : "border border-neutral-30 bg-card font-medium text-foreground hover:bg-neutral-20/50"
                 }`}
               >
                 {RECOMMENDED_PROCEDURE_LABEL[procedure]}
               </button>
             );
           })}
+          {!freshStartFundEligible ? (
+            <p
+              id="fresh-start-fund-disabled-message"
+              className="col-span-2 -mt-1 text-left text-[13px] font-medium leading-5 text-danger-60"
+            >
+              기타사항 - 사업 영위 이력을 확인해 주세요.
+            </p>
+          ) : null}
         </div>
       </div>
 

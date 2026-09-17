@@ -198,7 +198,7 @@ export type CustomerLinkedAnalysis = {
   gender?: string | null;
   ageGroup?: string | null;
   employmentType?: string | null;
-  /** 총 채무액 (만원) */
+  /** 총 채무액 (원) */
   totalDebt: number;
   procedure: AnalysisProcedureType | null;
   /** 현재 진행 절차의 성공 가능성 점수 (0~100). 백엔드 반영 전이라 응답에 없을 수 있어 옵셔널 */

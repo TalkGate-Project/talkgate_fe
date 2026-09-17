@@ -239,14 +239,14 @@ export default function DiagnosisTable({
                     {item.region}
                   </td>
                   <td className="px-4 py-2 align-middle whitespace-nowrap">
-                    <DebtAmountText manwon={item.totalDebtManwon} />
+                    <DebtAmountText won={item.totalDebtWon} />
                   </td>
                   <td
                     className={`px-4 py-2 align-middle text-[14px] font-medium leading-[17px] whitespace-nowrap opacity-80 ${
-                      item.monthlyAvailableIncomeManwon < 0 ? "text-danger-40" : "text-neutral-90"
+                      item.monthlyAvailableIncomeWon < 0 ? "text-danger-40" : "text-neutral-90"
                     }`}
                   >
-                    {formatAvailableIncome(item.monthlyAvailableIncomeManwon)}
+                    {formatAvailableIncome(item.monthlyAvailableIncomeWon)}
                   </td>
                   <td className="px-4 py-2 align-middle">
                     <div className="flex items-center gap-1.5">

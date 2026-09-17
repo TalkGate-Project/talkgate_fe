@@ -4,7 +4,7 @@ import {
   type RecommendedProcedure,
   type RepaymentPlan,
 } from "@/types/debtRelief";
-import { formatManwonComma } from "@/components/debt-relief/format";
+import { formatDebtWonParts, formatWonAsManwon } from "@/components/debt-relief/format";
 import { isDebtCollateralLoan } from "@/types/analysis";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 
@@ -36,37 +36,37 @@ export function shouldShowRepaymentRate(procedure: RecommendedProcedure): boolea
 }
 
 export function calculateRepaymentRate(
-  totalPaymentManwon: number,
-  totalDebtManwon: number
+  totalPaymentWon: number,
+  totalDebtWon: number
 ): number | null {
   if (
-    !Number.isFinite(totalPaymentManwon) ||
-    !Number.isFinite(totalDebtManwon) ||
-    totalDebtManwon <= 0
+    !Number.isFinite(totalPaymentWon) ||
+    !Number.isFinite(totalDebtWon) ||
+    totalDebtWon <= 0
   ) {
     return null;
   }
 
   return Math.min(
     100,
-    Math.max(0, Math.floor((totalPaymentManwon / totalDebtManwon) * 100))
+    Math.max(0, Math.floor((totalPaymentWon / totalDebtWon) * 100))
   );
 }
 
 export function formatRepaymentRate(
-  totalPaymentManwon: number,
-  totalDebtManwon: number
+  totalPaymentWon: number,
+  totalDebtWon: number
 ): string {
-  const repaymentRate = calculateRepaymentRate(totalPaymentManwon, totalDebtManwon);
+  const repaymentRate = calculateRepaymentRate(totalPaymentWon, totalDebtWon);
   return repaymentRate == null ? "-" : `${repaymentRate}%`;
 }
 
-export function resolveUnsecuredDebtManwon(detail: DiagnosisDetail): number {
+export function resolveUnsecuredDebtWon(detail: DiagnosisDetail): number {
   return (
     detail.collateralBreakdown?.unsecuredDebt ??
     detail.inputData.debts
       .filter((debt) => !debt.isExcludedFromAnalysis && !isDebtCollateralLoan(debt))
-      .reduce((sum, debt) => sum + debt.currentBalanceWon / 10_000, 0)
+      .reduce((sum, debt) => sum + debt.currentBalanceWon, 0)
   );
 }
 
@@ -199,12 +199,12 @@ export function formatYearsLabel(months: number): string {
 
 function RepaymentTimeline({
   months,
-  monthlyPaymentManwon,
+  monthlyPaymentWon,
   consultedAt,
   centerVertically = false,
 }: {
   months: number;
-  monthlyPaymentManwon: number;
+  monthlyPaymentWon: number;
   consultedAt: string;
   centerVertically?: boolean;
 }) {
@@ -212,7 +212,7 @@ function RepaymentTimeline({
   const endDate = startDate ? addMonths(startDate, months) : null;
   const startLabel = startDate ? formatYearMonth(startDate) : "—";
   const endLabel = endDate ? formatYearMonth(endDate) : "—";
-  const monthlyLabel = formatManwonComma(monthlyPaymentManwon);
+  const monthlyLabel = formatWonAsManwon(monthlyPaymentWon);
   const yearsLabel = formatYearsLabel(months);
   const timelineGraphic = (
     <div className="relative mx-auto w-full md:max-w-[446px] h-[50px]">
@@ -291,24 +291,24 @@ function AdjustmentsIcon() {
 function PlanRowsPanel({
   plan,
   selectedProcedure,
-  unsecuredDebtManwon,
+  unsecuredDebtWon,
 }: {
   plan: RepaymentPlan;
   selectedProcedure: RecommendedProcedure;
-  unsecuredDebtManwon: number;
+  unsecuredDebtWon: number;
 }) {
-  const isUnpayable = plan.monthlyPaymentManwon === 0;
+  const isUnpayable = plan.monthlyPaymentWon === 0;
   return (
     // pad 32×17, 행 간격 16
     <div className="rounded-[12px] border border-neutral-30 px-5 md:px-8 py-[17px] flex flex-col gap-4 lg:min-h-[118px]">
       <PlanRow
         label="월 변제액"
-        value={isUnpayable ? "산정 불가" : formatManwonComma(plan.monthlyPaymentManwon)}
+        value={isUnpayable ? "산정 불가" : formatWonAsManwon(plan.monthlyPaymentWon)}
       />
       <PlanRow label="변제 기간" value={isUnpayable ? "-" : `${plan.months}개월 (${plan.years}년)`} />
       <PlanRow
         label="총 변제액"
-        value={isUnpayable ? "-" : formatManwonComma(plan.totalPaymentManwon)}
+        value={isUnpayable ? "-" : formatWonAsManwon(plan.totalPaymentWon)}
       />
       {shouldShowRepaymentRate(selectedProcedure) && (
         <PlanRow
@@ -316,7 +316,7 @@ function PlanRowsPanel({
           value={
             isUnpayable
               ? "-"
-              : formatRepaymentRate(plan.totalPaymentManwon, unsecuredDebtManwon)
+              : formatRepaymentRate(plan.totalPaymentWon, unsecuredDebtWon)
           }
         />
       )}
@@ -340,14 +340,15 @@ function SummaryInfoCard({ content }: { content: BucketSummaryContent }) {
   );
 }
 
-/** 금액 + 만원 단위 — 피그마 Frame 1000001015 (숫자 Montserrat 28 / 단위 Pretendard 14) */
-function ExemptionAmount({ manwon }: { manwon: number }) {
+/** 원 단위 원본을 만원으로 표시 — 피그마 Frame 1000001015 */
+function ExemptionAmount({ won }: { won: number }) {
+  const { amount, unit } = formatDebtWonParts(won);
   return (
     <p className="flex items-end gap-1">
       <span className="font-montserrat text-[20px] font-extrabold leading-6 tracking-[-0.03em] text-neutral-70 lg:text-[28px] lg:leading-7">
-        약 {manwon.toLocaleString("ko-KR")}
+        약 {amount}
       </span>
-      <span className="text-[14px] font-semibold leading-[17px] text-neutral-60">만원</span>
+      <span className="text-[14px] font-semibold leading-[17px] text-neutral-60">{unit}</span>
     </p>
   );
 }
@@ -375,7 +376,7 @@ function PrincipalOnlyExemptionBoxes({
 
         <div className="mt-3 flex h-6 items-end justify-between">
           <span className="text-[13px] font-medium leading-4 text-neutral-60">원금 기준</span>
-          <ExemptionAmount manwon={plan.exemptedDebtManwon} />
+          <ExemptionAmount won={plan.exemptedDebtWon} />
         </div>
 
         <div className="my-4 h-[2px] bg-neutral-30" aria-hidden />
@@ -391,7 +392,7 @@ function PrincipalOnlyExemptionBoxes({
           )}
         </div>
         <div className="mt-3 flex h-6 items-end justify-end">
-          <ExemptionAmount manwon={plan.totalPaymentManwon} />
+          <ExemptionAmount won={plan.totalPaymentWon} />
         </div>
       </div>
 
@@ -405,7 +406,7 @@ function PrincipalOnlyExemptionBoxes({
             <span className="shrink-0 text-[13px] font-medium leading-4 text-neutral-60">
               원금 기준
             </span>
-            <ExemptionAmount manwon={plan.exemptedDebtManwon} />
+            <ExemptionAmount won={plan.exemptedDebtWon} />
           </div>
           <p className="mt-3 text-[13px] font-medium leading-4 text-neutral-50">
             변제 완료 후 탕감되는 금액
@@ -422,7 +423,7 @@ function PrincipalOnlyExemptionBoxes({
             예상 잔여 채무
           </p>
           <div className="mt-4 flex min-w-0 items-end">
-            <ExemptionAmount manwon={plan.totalPaymentManwon} />
+            <ExemptionAmount won={plan.totalPaymentWon} />
           </div>
           {remainingSubtitle && (
             <p className="mt-3 text-[13px] font-medium leading-4 text-neutral-50">
@@ -459,11 +460,11 @@ function InterestIncludedExemptionBoxes({
         <div className="mt-3 flex flex-col gap-3">
           <div className="flex h-6 items-end justify-between">
             <span className="text-[13px] font-medium leading-4 text-neutral-60">이자 포함</span>
-            <ExemptionAmount manwon={plan.exemptedDebtWithInterestManwon!} />
+            <ExemptionAmount won={plan.exemptedDebtWithInterestWon!} />
           </div>
           <div className="flex h-6 items-end justify-between">
             <span className="text-[13px] font-medium leading-4 text-neutral-60">원금 기준</span>
-            <ExemptionAmount manwon={plan.exemptedDebtManwon} />
+            <ExemptionAmount won={plan.exemptedDebtWon} />
           </div>
         </div>
 
@@ -480,7 +481,7 @@ function InterestIncludedExemptionBoxes({
           )}
         </div>
         <div className="mt-3 flex h-6 items-end justify-end">
-          <ExemptionAmount manwon={plan.totalPaymentManwon} />
+          <ExemptionAmount won={plan.totalPaymentWon} />
         </div>
       </div>
 
@@ -500,13 +501,13 @@ function InterestIncludedExemptionBoxes({
             <span className="w-[49px] shrink-0 text-[13px] font-medium leading-4 text-neutral-60">
               이자 포함
             </span>
-            <ExemptionAmount manwon={plan.exemptedDebtWithInterestManwon!} />
+            <ExemptionAmount won={plan.exemptedDebtWithInterestWon!} />
           </div>
           <div className="ml-[76px] flex min-w-0 items-end gap-2">
             <span className="w-[49px] shrink-0 text-[13px] font-medium leading-4 text-neutral-60">
               원금 기준
             </span>
-            <ExemptionAmount manwon={plan.exemptedDebtManwon} />
+            <ExemptionAmount won={plan.exemptedDebtWon} />
           </div>
         </div>
 
@@ -516,7 +517,7 @@ function InterestIncludedExemptionBoxes({
           <p className="w-[80px] shrink-0 text-[14px] font-semibold leading-[17px] text-neutral-90">
             예상 잔여 채무
           </p>
-          <ExemptionAmount manwon={plan.totalPaymentManwon} />
+          <ExemptionAmount won={plan.totalPaymentWon} />
           {remainingSubtitle && (
             <p className="justify-self-end text-right text-[13px] font-medium leading-4 text-neutral-50">
               {remainingSubtitle}
@@ -537,7 +538,7 @@ function ExemptionBoxes({
 }) {
   // 이자 포함 값은 채무 상세입력 모드 건에만 존재 — 있으면 이자 포함·원금 기준을
   // gap 16px로 나란히 병기. 없으면 원금 기준만 표시(2026-08 피그마).
-  const hasInterest = plan.exemptedDebtWithInterestManwon != null;
+  const hasInterest = plan.exemptedDebtWithInterestWon != null;
 
   if (!hasInterest) {
     return <PrincipalOnlyExemptionBoxes plan={plan} remainingSubtitle={remainingSubtitle} />;
@@ -628,17 +629,17 @@ export default function SectionRepaymentPlan({
           <PlanRowsPanel
             plan={plan}
             selectedProcedure={selectedProcedure}
-            unsecuredDebtManwon={resolveUnsecuredDebtManwon(detail)}
+            unsecuredDebtWon={resolveUnsecuredDebtWon(detail)}
           />
-          {plan.monthlyPaymentManwon > 0 && (
+          {plan.monthlyPaymentWon > 0 && (
             <RepaymentTimeline
               months={plan.months}
-              monthlyPaymentManwon={plan.monthlyPaymentManwon}
+              monthlyPaymentWon={plan.monthlyPaymentWon}
               consultedAt={detail.consultedAt}
               centerVertically={shouldShowRepaymentRate(selectedProcedure)}
             />
           )}
-          {plan.monthlyPaymentManwon > 0 && (
+          {plan.monthlyPaymentWon > 0 && (
             <ExemptionBoxes plan={plan} remainingSubtitle={REMAINING_DEBT_SUBTITLE.full} />
           )}
           <PrecautionsList notes={detail.repaymentNotes} />

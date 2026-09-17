@@ -14,8 +14,8 @@ export type AdjustedRepaymentValue = { monthlyPayment: number; periodMonths: num
 type Props = {
   open: boolean;
   procedure: AnalysisAdjustedRepaymentProcedure | null;
-  unsecuredDebtManwon: number;
-  disposableIncomeManwon: number;
+  unsecuredDebtWon: number;
+  disposableIncomeWon: number;
   initialValue?: AdjustedRepaymentValue | null;
   /** 상세 화면처럼 초기값은 있지만 아직 조정안을 저장하지 않은 경우를 구분한다. */
   adjustmentApplied?: boolean;
@@ -37,8 +37,8 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function calculateRepaymentAmount(unsecuredDebtManwon: number, ratePercent: number) {
-  return Math.round((unsecuredDebtManwon * clamp(ratePercent, 0, 100)) / 100);
+function calculateRepaymentAmount(unsecuredDebtWon: number, ratePercent: number) {
+  return Math.round((unsecuredDebtWon * clamp(ratePercent, 0, 100)) / 100);
 }
 
 function CloseIcon() {
@@ -63,8 +63,8 @@ function RefreshIcon() {
   );
 }
 
-function formatManwon(value: number) {
-  return `${Math.round(value).toLocaleString("ko-KR")}만원`;
+function formatWon(value: number) {
+  return `${Math.round(value).toLocaleString("ko-KR")}원`;
 }
 
 function buildRangeStyle(value: number, min: number, max: number): CSSProperties {
@@ -78,8 +78,8 @@ const RANGE_CLASS_NAME =
 export default function AnalysisAdjustedRepaymentModal({
   open,
   procedure,
-  unsecuredDebtManwon,
-  disposableIncomeManwon,
+  unsecuredDebtWon,
+  disposableIncomeWon,
   initialValue,
   adjustmentApplied,
   submitting = false,
@@ -95,48 +95,48 @@ export default function AnalysisAdjustedRepaymentModal({
   const initialMonthlyPayment = initialValue?.monthlyPayment;
   const initialPeriodMonths = initialValue?.periodMonths;
 
-  const [repaymentAmountManwon, setRepaymentAmountManwon] = useState(0);
+  const [repaymentAmountWon, setRepaymentAmountWon] = useState(0);
   const [periodYears, setPeriodYears] = useState(maxYears);
   const [rateInputValue, setRateInputValue] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open || !range) return;
     setRateInputValue(null);
-    if (initialMonthlyPayment != null && initialPeriodMonths != null && unsecuredDebtManwon > 0) {
+    if (initialMonthlyPayment != null && initialPeriodMonths != null && unsecuredDebtWon > 0) {
       const repaymentAmount = Math.round(initialMonthlyPayment * initialPeriodMonths);
-      setRepaymentAmountManwon(clamp(repaymentAmount, 0, unsecuredDebtManwon));
+      setRepaymentAmountWon(clamp(repaymentAmount, 0, unsecuredDebtWon));
       setPeriodYears(Math.min(range.maxMonths, Math.max(range.minMonths, initialPeriodMonths)) / 12);
       return;
     }
-    setRepaymentAmountManwon(calculateRepaymentAmount(unsecuredDebtManwon, DEFAULT_RATE_PERCENT));
+    setRepaymentAmountWon(calculateRepaymentAmount(unsecuredDebtWon, DEFAULT_RATE_PERCENT));
     setPeriodYears(range.maxMonths / 12);
-  }, [initialMonthlyPayment, initialPeriodMonths, open, range, unsecuredDebtManwon]);
+  }, [initialMonthlyPayment, initialPeriodMonths, open, range, unsecuredDebtWon]);
 
   const derived = useMemo(() => {
     if (!range) return null;
-    const ratePercent = unsecuredDebtManwon > 0 ? (repaymentAmountManwon / unsecuredDebtManwon) * 100 : 0;
-    const exemptAmountManwon = Math.max(0, unsecuredDebtManwon - repaymentAmountManwon);
+    const ratePercent = unsecuredDebtWon > 0 ? (repaymentAmountWon / unsecuredDebtWon) * 100 : 0;
+    const exemptAmountWon = Math.max(0, unsecuredDebtWon - repaymentAmountWon);
     const periodMonths = periodYears * 12;
-    // 이 값은 화면 표시(formatManwon이 정수로 반올림)뿐 아니라 onConfirm으로 서버에 그대로
+    // 이 값은 화면 표시(formatWon이 정수로 반올림)뿐 아니라 onConfirm으로 서버에 그대로
     // 전송된다. 여기서 미리 반올림해 보내면, 재진입 시 initialValue(monthlyPayment*periodMonths)로
-    // repaymentAmountManwon을 역산할 때 손실이 누적돼 방금 입력한 금액과 달라져 "값이 튕기는"
-    // 것처럼 보인다(예: 5,000만원 입력 → 저장 → 재진입 시 4,998만원). 반올림 없이 그대로 두면
+    // repaymentAmountWon을 역산할 때 손실이 누적돼 방금 입력한 금액과 달라져 "값이 튕기는"
+    // 것처럼 보인다. 반올림 없이 그대로 두면
     // Math.round(monthlyPayment * periodMonths)가 원래 정수 금액을 정확히 복원한다.
-    const monthlyPaymentManwon = periodMonths > 0 ? repaymentAmountManwon / periodMonths : 0;
-    const monthlyPaymentAtMinPeriod = Math.round((repaymentAmountManwon / range.minMonths) * 10) / 10;
-    const monthlyPaymentAtMaxPeriod = Math.round((repaymentAmountManwon / range.maxMonths) * 10) / 10;
-    const excessIncomeManwon = Math.max(0, monthlyPaymentManwon - disposableIncomeManwon);
+    const monthlyPaymentWon = periodMonths > 0 ? repaymentAmountWon / periodMonths : 0;
+    const monthlyPaymentAtMinPeriod = Math.round((repaymentAmountWon / range.minMonths) * 10) / 10;
+    const monthlyPaymentAtMaxPeriod = Math.round((repaymentAmountWon / range.maxMonths) * 10) / 10;
+    const excessIncomeWon = Math.max(0, monthlyPaymentWon - disposableIncomeWon);
     return {
-      repaymentAmountManwon,
+      repaymentAmountWon,
       ratePercent,
-      exemptAmountManwon,
+      exemptAmountWon,
       periodMonths,
-      monthlyPaymentManwon,
+      monthlyPaymentWon,
       monthlyPaymentAtMinPeriod,
       monthlyPaymentAtMaxPeriod,
-      excessIncomeManwon,
+      excessIncomeWon,
     };
-  }, [range, unsecuredDebtManwon, repaymentAmountManwon, periodYears, disposableIncomeManwon]);
+  }, [range, unsecuredDebtWon, repaymentAmountWon, periodYears, disposableIncomeWon]);
 
   if (!open || !procedure || !range || !derived) return null;
 
@@ -155,7 +155,7 @@ export default function AnalysisAdjustedRepaymentModal({
       <div className="relative px-7 pb-[26px] pt-6">
         <h2 className="text-[18px] font-semibold leading-[21px] text-foreground">변제 계획 조정</h2>
         <p className="mt-1 text-[13px] font-medium leading-4 text-neutral-60">
-          {RECOMMENDED_PROCEDURE_LABEL[procedure]} · {formatManwon(unsecuredDebtManwon)} (무담보 채무 기준)
+          {RECOMMENDED_PROCEDURE_LABEL[procedure]} · {formatWon(unsecuredDebtWon)} (무담보 채무 기준)
         </p>
         <div className="absolute right-7 top-5 flex items-center gap-2">
           {hasSavedAdjustment && onReset ? (
@@ -191,16 +191,16 @@ export default function AnalysisAdjustedRepaymentModal({
                   type="text"
                   inputMode="numeric"
                   aria-label="변제금액"
-                  value={derived.repaymentAmountManwon.toLocaleString("ko-KR")}
+                  value={derived.repaymentAmountWon.toLocaleString("ko-KR")}
                   disabled={submitting}
                   onChange={(event) => {
                     const digits = event.target.value.replace(/\D/g, "");
                     setRateInputValue(null);
-                    setRepaymentAmountManwon(clamp(Number(digits || 0), 0, unsecuredDebtManwon));
+                    setRepaymentAmountWon(clamp(Number(digits || 0), 0, unsecuredDebtWon));
                   }}
-                  className="w-[82px] bg-transparent text-left outline-none"
+                  className="w-[132px] bg-transparent text-left outline-none"
                 />
-                <span>만원</span>
+                <span>원</span>
               </label>
               <label className="mt-1 flex w-fit items-center border-b border-dashed border-neutral-40 text-[14px] font-medium leading-[17px] text-neutral-60">
                 <input
@@ -217,12 +217,12 @@ export default function AnalysisAdjustedRepaymentModal({
                       : rawValue.replace(/^0+(?=\d)/, "");
                     setRateInputValue(normalizedValue);
                     if (normalizedValue === "" || normalizedValue === "0.") {
-                      setRepaymentAmountManwon(0);
+                      setRepaymentAmountWon(0);
                       return;
                     }
                     const nextRatePercent = Number(normalizedValue);
                     if (Number.isNaN(nextRatePercent)) return;
-                    setRepaymentAmountManwon(calculateRepaymentAmount(unsecuredDebtManwon, nextRatePercent));
+                    setRepaymentAmountWon(calculateRepaymentAmount(unsecuredDebtWon, nextRatePercent));
                   }}
                   onBlur={() => setRateInputValue(null)}
                   className="w-[36px] bg-transparent text-left outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
@@ -233,7 +233,7 @@ export default function AnalysisAdjustedRepaymentModal({
             <div className="text-right">
               <span className="block text-[14px] font-medium leading-[17px] text-neutral-60">면책</span>
               <span className="mt-3 block font-montserrat text-[20px] font-bold leading-7 tracking-[-0.03em] text-neutral-90">
-                {formatManwon(derived.exemptAmountManwon)}
+                {formatWon(derived.exemptAmountWon)}
               </span>
               <span className="mt-1 block text-[14px] font-medium leading-[17px] text-neutral-60">
                 {(100 - derived.ratePercent).toFixed(1)}%
@@ -249,7 +249,7 @@ export default function AnalysisAdjustedRepaymentModal({
             disabled={submitting}
             onChange={(event) => {
               setRateInputValue(null);
-              setRepaymentAmountManwon(calculateRepaymentAmount(unsecuredDebtManwon, Number(event.target.value)));
+              setRepaymentAmountWon(calculateRepaymentAmount(unsecuredDebtWon, Number(event.target.value)));
             }}
             className={`mt-0.5 ${RANGE_CLASS_NAME}`}
             style={buildRangeStyle(derived.ratePercent, 0, 100)}
@@ -264,10 +264,10 @@ export default function AnalysisAdjustedRepaymentModal({
             <div>
               <span className="block text-[14px] font-medium leading-[17px] text-neutral-60">월 변제액</span>
               <span className="mt-3 block font-montserrat text-[20px] font-bold leading-7 tracking-[-0.03em] text-danger-60">
-                {formatManwon(derived.monthlyPaymentManwon)}
+                {formatWon(derived.monthlyPaymentWon)}
               </span>
               <span className="mt-1 block text-[12px] font-medium leading-[14px] text-neutral-60">
-                월 {derived.monthlyPaymentAtMinPeriod.toLocaleString("ko-KR")}만
+                월 {Math.round(derived.monthlyPaymentAtMinPeriod).toLocaleString("ko-KR")}원
               </span>
             </div>
             <div className="text-right">
@@ -276,7 +276,7 @@ export default function AnalysisAdjustedRepaymentModal({
                 {periodYears}년
               </span>
               <span className="mt-1 block text-[12px] font-medium leading-[14px] text-neutral-60">
-                월 {derived.monthlyPaymentAtMaxPeriod.toLocaleString("ko-KR")}만
+                월 {Math.round(derived.monthlyPaymentAtMaxPeriod).toLocaleString("ko-KR")}원
               </span>
             </div>
           </div>
@@ -298,12 +298,12 @@ export default function AnalysisAdjustedRepaymentModal({
         </div>
 
         <p
-          aria-hidden={derived.excessIncomeManwon <= 0}
+          aria-hidden={derived.excessIncomeWon <= 0}
           className={`absolute bottom-3 left-6 text-[14px] font-semibold leading-[17px] tracking-[0.2px] text-danger-60 ${
-            derived.excessIncomeManwon > 0 ? "visible" : "invisible"
+            derived.excessIncomeWon > 0 ? "visible" : "invisible"
           }`}
         >
-          가용소득 {derived.excessIncomeManwon.toLocaleString("ko-KR")}만원 초과
+          가용소득 {Math.round(derived.excessIncomeWon).toLocaleString("ko-KR")}원 초과
         </p>
       </div>
 
@@ -330,7 +330,7 @@ export default function AnalysisAdjustedRepaymentModal({
           </button>
           <button
             type="button"
-            onClick={() => onConfirm({ monthlyPayment: derived.monthlyPaymentManwon, periodMonths: derived.periodMonths })}
+            onClick={() => onConfirm({ monthlyPayment: derived.monthlyPaymentWon, periodMonths: derived.periodMonths })}
             disabled={submitting}
             className="h-[34px] cursor-pointer rounded-[5px] bg-neutral-90 px-3 text-[14px] font-semibold tracking-[-0.02em] text-neutral-20 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >

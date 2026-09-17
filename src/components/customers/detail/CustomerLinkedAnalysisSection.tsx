@@ -9,7 +9,7 @@ import {
   DebtAmountText,
   FeePlanCell,
 } from "@/components/debt-relief/DiagnosisBadges";
-import { formatDebtManwonParts } from "@/components/debt-relief/format";
+import { formatDebtWonParts } from "@/components/debt-relief/format";
 import { useDebtReliefMenu } from "@/hooks/useDebtReliefMenu";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { normalizeProcedureType } from "@/types/analysis";
@@ -152,7 +152,7 @@ function MobileLinkedAnalysisCard({
   const progressPercent = isProgressKnown ? Math.round((current / total) * 100) : 0;
   const hasScore = linkedAnalysis.currentProcedureScore != null;
   const score = Math.min(100, Math.max(0, Math.round(linkedAnalysis.currentProcedureScore ?? 0)));
-  const { amount: debtAmount, unit: debtUnit } = formatDebtManwonParts(linkedAnalysis.totalDebt);
+  const { amount: debtAmount, unit: debtUnit } = formatDebtWonParts(linkedAnalysis.totalDebt);
   const meta = formatBasicInfoMeta(linkedAnalysis);
 
   return (
@@ -255,7 +255,7 @@ function DesktopLinkedAnalysisCard({
           {formatBasicInfoMeta(linkedAnalysis)}
         </p>
       </div>
-      <DebtAmountText manwon={linkedAnalysis.totalDebt} />
+      <DebtAmountText won={linkedAnalysis.totalDebt} />
       <div className="flex-1 flex items-center gap-2 min-w-0">
         <ProcedureNameText procedure={procedure} />
         {status && (

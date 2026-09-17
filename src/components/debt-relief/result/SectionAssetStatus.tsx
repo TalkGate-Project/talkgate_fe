@@ -1,15 +1,24 @@
 import { ASSET_CATEGORY_OPTIONS, type DiagnosisDetail } from "@/types/debtRelief";
 import type { AnalysisAssetCategory } from "@/types/analysis";
-import { formatManwonComma } from "@/components/debt-relief/format";
+import { formatDebtWonParts, formatWonAsManwon } from "@/components/debt-relief/format";
 
 type AssetCompositionItem = {
   category: AnalysisAssetCategory;
   label: string;
-  amountManwon: number;
+  amountWon: number;
   percent: number;
 };
 
-function AssetMetric({ label, value }: { label: string; value: string }) {
+function AssetMetric({
+  label,
+  won,
+  showPositiveSign = false,
+}: {
+  label: string;
+  won: number;
+  showPositiveSign?: boolean;
+}) {
+  const { amount, unit } = formatDebtWonParts(won);
   return (
     <div className="flex min-w-0 flex-col gap-2 md:gap-3">
       <p className="text-[13px] font-medium leading-4 text-neutral-60 md:text-[14px] md:leading-[17px]">
@@ -17,10 +26,10 @@ function AssetMetric({ label, value }: { label: string; value: string }) {
       </p>
       <div className="flex items-baseline gap-1">
         <span className="font-montserrat text-[24px] font-extrabold leading-7 tracking-[-0.03em] text-neutral-90 md:text-[28px]">
-          {value}
+          {showPositiveSign && won >= 0 ? "+" : ""}{amount}
         </span>
         <span className="text-[13px] font-semibold leading-4 text-neutral-60 md:text-[14px] md:leading-[17px]">
-          만원
+          {unit}
         </span>
       </div>
     </div>
@@ -33,22 +42,22 @@ function buildAssetComposition(detail: DiagnosisDetail): AssetCompositionItem[] 
   const assets = assetDetails?.length ? assetDetails : detail.inputData.assets;
 
   for (const asset of assets) {
-    const amountManwon = "netValue" in asset ? asset.netValue : asset.marketValue;
-    if (!Number.isFinite(amountManwon) || amountManwon <= 0) continue;
-    amounts.set(asset.category, (amounts.get(asset.category) ?? 0) + amountManwon);
+    const amountWon = "netValue" in asset ? asset.netValue : asset.marketValue;
+    if (!Number.isFinite(amountWon) || amountWon <= 0) continue;
+    amounts.set(asset.category, (amounts.get(asset.category) ?? 0) + amountWon);
   }
 
   const totalAmount = Array.from(amounts.values()).reduce((sum, amount) => sum + amount, 0);
   if (totalAmount <= 0) return [];
 
   return ASSET_CATEGORY_OPTIONS.flatMap((option) => {
-    const amountManwon = amounts.get(option.value) ?? 0;
-    if (amountManwon <= 0) return [];
+    const amountWon = amounts.get(option.value) ?? 0;
+    if (amountWon <= 0) return [];
     return [{
       category: option.value,
       label: option.label,
-      amountManwon,
-      percent: Math.round((amountManwon / totalAmount) * 100),
+      amountWon,
+      percent: Math.round((amountWon / totalAmount) * 100),
     }];
   });
 }
@@ -76,11 +85,12 @@ export default function SectionAssetStatus({ detail }: { detail: DiagnosisDetail
           <div className="grid min-w-0 grid-cols-2 gap-5 md:pl-3 md:gap-x-12">
             <AssetMetric
               label="총 자산"
-              value={detail.debtStatus.totalAssetManwon.toLocaleString("ko-KR")}
+              won={detail.debtStatus.totalAssetWon}
             />
             <AssetMetric
               label="월 가용 소득"
-              value={`${detail.debtStatus.monthlyAvailableIncomeManwon >= 0 ? "+" : ""}${detail.debtStatus.monthlyAvailableIncomeManwon.toLocaleString("ko-KR")}`}
+              won={detail.debtStatus.monthlyAvailableIncomeWon}
+              showPositiveSign
             />
           </div>
 
@@ -102,7 +112,7 @@ export default function SectionAssetStatus({ detail }: { detail: DiagnosisDetail
                     {item.percent}%
                   </span>
                   <span className="min-w-[85px] shrink-0 whitespace-nowrap text-right text-[14px] font-medium leading-[17px] tabular-nums text-neutral-60">
-                    {formatManwonComma(item.amountManwon)}
+                    {formatWonAsManwon(item.amountWon)}
                   </span>
                 </div>
               ))}
