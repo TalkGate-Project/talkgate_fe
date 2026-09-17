@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { DebtStatusSummary, DiagnosisDetail } from "@/types/debtRelief";
-import { formatWon } from "@/components/debt-relief/format";
+import { formatDebtWonParts, formatWonAsManwon } from "@/components/debt-relief/format";
 import DebtDetailModal from "./DebtDetailModal";
 import { isDebtCollateralLoan } from "@/types/analysis";
 
@@ -40,6 +40,11 @@ function Metric({
       </div>
     </div>
   );
+}
+
+function AmountMetric({ label, won }: { label: string; won: number }) {
+  const { amount, unit } = formatDebtWonParts(won);
+  return <Metric label={label} value={amount} unit={unit} />;
 }
 
 export default function SectionDebtStatus({
@@ -94,29 +99,19 @@ export default function SectionDebtStatus({
             hasInterest ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2"
           }`}
         >
-          <Metric
+          <AmountMetric
             label={hasInterest ? "총 채무 (원금)" : "총 채무"}
-            value={debt.totalDebtWon.toLocaleString("ko-KR")}
-            unit="원"
+            won={debt.totalDebtWon}
           />
           {hasInterest && (
-            <Metric
+            <AmountMetric
               label="총 상환 예정 (이자 포함)"
-              value={debt.totalDebtWithInterestWon!.toLocaleString("ko-KR")}
-              unit="원"
+              won={debt.totalDebtWithInterestWon!}
             />
           )}
           <Metric label="연체 기간" value={String(debt.overdueMonths)} unit="개월" />
-          <Metric
-            label="담보"
-            value={securedDebtWon.toLocaleString("ko-KR")}
-            unit="원"
-          />
-          <Metric
-            label="무담보"
-            value={unsecuredDebtWon.toLocaleString("ko-KR")}
-            unit="원"
-          />
+          <AmountMetric label="담보" won={securedDebtWon} />
+          <AmountMetric label="무담보" won={unsecuredDebtWon} />
         </div>
 
         {/* 우: 채무 구성 */}
@@ -138,7 +133,7 @@ export default function SectionDebtStatus({
                   {item.percent}%
                 </span>
                 <span className="min-w-[85px] shrink-0 whitespace-nowrap text-right text-[14px] font-medium leading-[17px] tabular-nums text-neutral-60">
-                  {formatWon(item.amountWon)}
+                  {formatWonAsManwon(item.amountWon)}
                 </span>
               </div>
             ))}

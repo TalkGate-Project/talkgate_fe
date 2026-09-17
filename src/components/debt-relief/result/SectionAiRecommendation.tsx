@@ -1,5 +1,5 @@
 import type { DiagnosisDetail } from "@/types/debtRelief";
-import { formatDateTimeDisplay } from "@/components/debt-relief/format";
+import { formatDateTimeDisplay, formatDebtWon, wonToManwon } from "@/components/debt-relief/format";
 import AnimatedBriefingAmount from "./AnimatedBriefingAmount";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 
@@ -14,8 +14,12 @@ function formatDecimal(value: number, maximumFractionDigits = 1): string {
   return value.toLocaleString("ko-KR", { maximumFractionDigits });
 }
 
-function formatDebtMetric(won: number): BriefingMetric {
-  return { label: "총 채무", value: won, unit: "원", maximumFractionDigits: 0 };
+function formatAmountMetric(label: string, won: number): BriefingMetric {
+  const manwon = wonToManwon(won);
+  if (Math.abs(manwon) >= 10_000) {
+    return { label, value: manwon / 10_000, unit: "억원", maximumFractionDigits: 1 };
+  }
+  return { label, value: manwon, unit: "만원" };
 }
 
 function describeOccupation(occupation: string): string {
@@ -29,9 +33,9 @@ function describeOccupation(occupation: string): string {
 
 function buildBriefing(detail: DiagnosisDetail): string {
   const { totalDebtWon, totalAssetWon, monthlyAvailableIncomeWon, overdueMonths, composition } = detail.debtStatus;
-  const debt = `${formatDecimal(totalDebtWon, 0)}원`;
-  const asset = `${formatDecimal(totalAssetWon, 0)}원`;
-  const availableIncome = `${formatDecimal(monthlyAvailableIncomeWon, 0)}원`;
+  const debt = formatDebtWon(totalDebtWon);
+  const asset = formatDebtWon(totalAssetWon);
+  const availableIncome = formatDebtWon(monthlyAvailableIncomeWon);
   const overdue = overdueMonths > 0
     ? `연체 ${formatDecimal(overdueMonths, 0)}개월이 확인됩니다.`
     : "현재 연체는 확인되지 않습니다.";
@@ -80,9 +84,9 @@ export default function SectionAiRecommendation({
 }) {
   const { totalDebtWon, totalAssetWon, monthlyAvailableIncomeWon, overdueMonths } = detail.debtStatus;
   const metrics: BriefingMetric[] = [
-    formatDebtMetric(totalDebtWon),
-    { label: "총 자산", value: totalAssetWon, unit: "원" },
-    { label: "월 가용소득", value: monthlyAvailableIncomeWon, unit: "원" },
+    formatAmountMetric("총 채무", totalDebtWon),
+    formatAmountMetric("총 자산", totalAssetWon),
+    formatAmountMetric("월 가용소득", monthlyAvailableIncomeWon),
     { label: "연체 기간", value: overdueMonths, unit: "개월" },
   ];
 

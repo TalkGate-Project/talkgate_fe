@@ -4,7 +4,7 @@ import {
   type RecommendedProcedure,
   type RepaymentPlan,
 } from "@/types/debtRelief";
-import { formatWon } from "@/components/debt-relief/format";
+import { formatDebtWonParts, formatWonAsManwon } from "@/components/debt-relief/format";
 import { isDebtCollateralLoan } from "@/types/analysis";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 
@@ -212,7 +212,7 @@ function RepaymentTimeline({
   const endDate = startDate ? addMonths(startDate, months) : null;
   const startLabel = startDate ? formatYearMonth(startDate) : "—";
   const endLabel = endDate ? formatYearMonth(endDate) : "—";
-  const monthlyLabel = formatWon(monthlyPaymentWon);
+  const monthlyLabel = formatWonAsManwon(monthlyPaymentWon);
   const yearsLabel = formatYearsLabel(months);
   const timelineGraphic = (
     <div className="relative mx-auto w-full md:max-w-[446px] h-[50px]">
@@ -303,12 +303,12 @@ function PlanRowsPanel({
     <div className="rounded-[12px] border border-neutral-30 px-5 md:px-8 py-[17px] flex flex-col gap-4 lg:min-h-[118px]">
       <PlanRow
         label="월 변제액"
-        value={isUnpayable ? "산정 불가" : formatWon(plan.monthlyPaymentWon)}
+        value={isUnpayable ? "산정 불가" : formatWonAsManwon(plan.monthlyPaymentWon)}
       />
       <PlanRow label="변제 기간" value={isUnpayable ? "-" : `${plan.months}개월 (${plan.years}년)`} />
       <PlanRow
         label="총 변제액"
-        value={isUnpayable ? "-" : formatWon(plan.totalPaymentWon)}
+        value={isUnpayable ? "-" : formatWonAsManwon(plan.totalPaymentWon)}
       />
       {shouldShowRepaymentRate(selectedProcedure) && (
         <PlanRow
@@ -340,14 +340,15 @@ function SummaryInfoCard({ content }: { content: BucketSummaryContent }) {
   );
 }
 
-/** 원 단위 금액 — 피그마 Frame 1000001015 (숫자 Montserrat 28 / 단위 Pretendard 14) */
+/** 원 단위 원본을 만원으로 표시 — 피그마 Frame 1000001015 */
 function ExemptionAmount({ won }: { won: number }) {
+  const { amount, unit } = formatDebtWonParts(won);
   return (
     <p className="flex items-end gap-1">
       <span className="font-montserrat text-[20px] font-extrabold leading-6 tracking-[-0.03em] text-neutral-70 lg:text-[28px] lg:leading-7">
-        약 {Math.round(won).toLocaleString("ko-KR")}
+        약 {amount}
       </span>
-      <span className="text-[14px] font-semibold leading-[17px] text-neutral-60">원</span>
+      <span className="text-[14px] font-semibold leading-[17px] text-neutral-60">{unit}</span>
     </p>
   );
 }

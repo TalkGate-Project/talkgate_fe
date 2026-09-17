@@ -19,6 +19,7 @@ import {
   type DebtCause,
   type DebtType,
 } from "@/types/debtRelief";
+import { formatDebtWon } from "@/components/debt-relief/format";
 
 // 「고객정보」 모달(DiagnosisCustomerInfoModal)과 모바일 PDF(AnalysisPdfDocument)가 공유하는
 // 순수 뷰모델. UI 컴포넌트(BaseModal, DebtDetailModal 등)를 참조하지 않아야 한다 — PDF는
@@ -91,14 +92,19 @@ function formatWon(value: number | null | undefined): string {
   return `${Math.round(value).toLocaleString("ko-KR")}원`;
 }
 
+function formatManwon(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value)) return "-";
+  return formatDebtWon(value);
+}
+
 function formatDate(value: string | null | undefined): string {
   return value ? value.replaceAll("-", ".") : "-";
 }
 
 /** 법정 생계비처럼 월소득에서 차감되는 항목 표시용 — Figma가 "-" 부호를 붙여 보여준다. */
-function formatDeductedWon(value: number | null | undefined): string {
+function formatDeductedManwon(value: number | null | undefined): string {
   if (value == null || Number.isNaN(value)) return "-";
-  return `-${Math.round(value).toLocaleString("ko-KR")}원`;
+  return `-${formatDebtWon(value)}`;
 }
 
 function formatDependents(count: number | null | undefined): string {
@@ -185,24 +191,24 @@ export function buildSections(input: AnalysisInputData) {
   ];
 
   const assetRows: DisplayRow[] = [
-    { label: "보유 자산", value: assets.length ? assets.map((asset) => `${optionLabel(ASSET_CATEGORY_OPTIONS, asset.category)} ${formatWon(asset.marketValue)}`).join(", ") : "없음" },
-    { label: "자산 시가 합계", value: formatWon(assets.reduce((sum, asset) => sum + asset.marketValue, 0)) },
-    { label: "배우자 재산", value: formatWon(input.spouseHousingAssetValue) },
+    { label: "보유 자산", value: assets.length ? assets.map((asset) => `${optionLabel(ASSET_CATEGORY_OPTIONS, asset.category)} ${formatManwon(asset.marketValue)}`).join(", ") : "없음" },
+    { label: "자산 시가 합계", value: formatManwon(assets.reduce((sum, asset) => sum + asset.marketValue, 0)) },
+    { label: "배우자 재산", value: formatManwon(input.spouseHousingAssetValue) },
     { label: "2년 내 재산처분", value: yesNo(input.hasRecentAssetDisposal) },
   ];
 
   const debtLeftRows: DisplayRow[] = [
     { label: "채무종류", value: debtTypesLabel(debtBreakdown) },
-    { label: "은행대출", value: formatWon(bank) },
-    { label: "카드론", value: formatWon(card) },
-    { label: "캐피탈/저축은행", value: formatWon(capital) },
-    { label: "총 채무합계", value: formatWon(input.totalDebt), emphasize: true },
+    { label: "은행대출", value: formatManwon(bank) },
+    { label: "카드론", value: formatManwon(card) },
+    { label: "캐피탈/저축은행", value: formatManwon(capital) },
+    { label: "총 채무합계", value: formatManwon(input.totalDebt), emphasize: true },
   ];
 
   const collateralDebtWon = debts.filter(isDebtCollateralLoan).reduce((sum, debt) => sum + debt.currentBalanceWon, 0);
   const debtRightRows: DisplayRow[] = [
     { label: "채무 건수", value: `${debts.length}건` },
-    { label: "담보부채무", value: formatWon(collateralDebtWon) },
+    { label: "담보부채무", value: formatManwon(collateralDebtWon) },
     { label: "연체기간", value: `${input.overdueMonths ?? 0}개월` },
     { label: "채무발생원인", value: debtCausesLabel(input.debtCauses ?? []) },
   ];
@@ -224,22 +230,22 @@ export function buildSections(input: AnalysisInputData) {
   // 폼의 "입력 필드"와 "월 가용 소득" 계산 박스, 두 블록을 그대로 옮겨온 구성.
   const incomeLeftRows: DisplayRow[] = [
     { label: "고용형태", value: input.employmentType || "-" },
-    { label: "월 소득 (세후)", value: formatWon(input.monthlyIncome) },
+    { label: "월 소득 (세후)", value: formatManwon(input.monthlyIncome) },
     { label: "주거형태", value: optionLabel(HOUSING_TYPE_OPTIONS, input.housingType) },
     { label: "부양가족", value: formatDependents(input.dependents) },
     { label: "배우자 소득", value: yesNo(input.hasSpouseIncome) },
   ];
 
   const incomeRightRows: DisplayRow[] = [
-    { label: "월 소득", value: formatWon(input.monthlyIncome) },
-    { label: "법정 생계비", value: isLegacyIncomeData ? "-" : formatDeductedWon(minimumLivingCostWon) },
+    { label: "월 소득", value: formatManwon(input.monthlyIncome) },
+    { label: "법정 생계비", value: isLegacyIncomeData ? "-" : formatDeductedManwon(minimumLivingCostWon) },
     {
       label: "추가 필수지출",
-      value: isLegacyIncomeData ? "-" : formatWon(input.additionalFixedExpense),
+      value: isLegacyIncomeData ? "-" : formatManwon(input.additionalFixedExpense),
     },
     {
       label: "월 가용소득",
-      value: formatWon(input.disposableIncome),
+      value: formatManwon(input.disposableIncome),
       emphasize: true,
     },
   ];
@@ -247,19 +253,19 @@ export function buildSections(input: AnalysisInputData) {
   const incomeRows: DisplayRow[] = [...incomeLeftRows, ...incomeRightRows];
 
   const incomeSummaryRows: DisplayRow[] = [
-    { label: "월소득 (세후)", value: formatWon(input.monthlyIncome) },
+    { label: "월소득 (세후)", value: formatManwon(input.monthlyIncome) },
     { label: "주거형태", value: optionLabel(HOUSING_TYPE_OPTIONS, input.housingType) },
     {
       label: "법정 생계비",
-      value: isLegacyIncomeData ? "-" : formatDeductedWon(minimumLivingCostWon),
+      value: isLegacyIncomeData ? "-" : formatDeductedManwon(minimumLivingCostWon),
     },
     {
       label: "추가 필수지출",
-      value: isLegacyIncomeData ? "-" : formatWon(input.additionalFixedExpense),
+      value: isLegacyIncomeData ? "-" : formatManwon(input.additionalFixedExpense),
     },
     {
       label: "월 가용소득",
-      value: formatWon(input.disposableIncome),
+      value: formatManwon(input.disposableIncome),
       emphasize: true,
     },
   ];
@@ -344,7 +350,7 @@ export function buildCustomerInfoViewModel(
         return {
           key: asset.id || `${asset.category}-${index}`,
           label: optionLabel(ASSET_CATEGORY_OPTIONS, asset.category),
-          title: formatWon(asset.marketValue),
+          title: formatManwon(asset.marketValue),
           description,
         };
       })
@@ -354,7 +360,7 @@ export function buildCustomerInfoViewModel(
     {
       key: "spouse-property",
       label: "배우자 재산",
-      title: formatWon(input.spouseHousingAssetValue),
+      title: formatManwon(input.spouseHousingAssetValue),
     },
     {
       key: "recent-asset-disposal",
@@ -387,7 +393,7 @@ export function buildCustomerInfoViewModel(
           key,
           label: index === 0 ? "채무내역" : "",
           title: DEBT_TYPE_OPTIONS.find((option) => option.value === debtType)?.label ?? key,
-          description: formatWon(input.debtBreakdown[key]),
+          description: formatManwon(input.debtBreakdown[key]),
         };
       });
     if (debtRows.length === 0) {

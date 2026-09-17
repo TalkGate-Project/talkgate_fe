@@ -17,7 +17,7 @@ import {
   type ProcedureStep,
   type RecommendedProcedure,
 } from "@/types/debtRelief";
-import { formatDateTimeDisplay, formatWon } from "@/components/debt-relief/format";
+import { formatDateTimeDisplay, formatWonAsManwon } from "@/components/debt-relief/format";
 import {
   buildCustomerInfoViewModel,
   type DisplayRow,
@@ -509,20 +509,20 @@ export default function AnalysisPdfDocument({
             rows={[
               {
                 label: "총 채무 (원금)",
-                value: formatWon(detail.debtStatus.totalDebtWon),
+                value: formatWonAsManwon(detail.debtStatus.totalDebtWon),
               },
               ...(detail.debtStatus.totalDebtWithInterestWon != null
                 ? [
                     {
                       label: "총 상환 예정 (이자 포함)",
-                      value: formatWon(detail.debtStatus.totalDebtWithInterestWon),
+                      value: formatWonAsManwon(detail.debtStatus.totalDebtWithInterestWon),
                     },
                   ]
                 : []),
-              { label: "총 자산", value: formatWon(detail.debtStatus.totalAssetWon) },
+              { label: "총 자산", value: formatWonAsManwon(detail.debtStatus.totalAssetWon) },
               {
                 label: "월 가용소득",
-                value: formatWon(detail.debtStatus.monthlyAvailableIncomeWon),
+                value: formatWonAsManwon(detail.debtStatus.monthlyAvailableIncomeWon),
               },
               { label: "연체 기간", value: `${detail.debtStatus.overdueMonths}개월` },
             ]}
@@ -535,7 +535,7 @@ export default function AnalysisPdfDocument({
                 rows={debtComposition.map((item) => [
                   item.label,
                   `${item.percent}%`,
-                  formatWon(item.amountWon),
+                  formatWonAsManwon(item.amountWon),
                 ])}
               />
             </View>
@@ -552,7 +552,7 @@ export default function AnalysisPdfDocument({
                     value:
                       plan.monthlyPaymentWon === 0
                         ? "산정 불가"
-                        : formatWon(plan.monthlyPaymentWon),
+                        : formatWonAsManwon(plan.monthlyPaymentWon),
                     emphasize: true,
                   },
                   {
@@ -567,7 +567,7 @@ export default function AnalysisPdfDocument({
                     value:
                       plan.monthlyPaymentWon === 0
                         ? "-"
-                        : formatWon(plan.totalPaymentWon),
+                        : formatWonAsManwon(plan.totalPaymentWon),
                   },
                   ...(shouldShowRepaymentRate(selectedProcedure)
                     ? [
@@ -587,7 +587,7 @@ export default function AnalysisPdfDocument({
               />
               {plan.monthlyPaymentWon > 0 ? (
                 <Text style={[styles.paragraph, { marginTop: 7 }]}>
-                  앞으로 {formatYearsLabel(plan.months)}년간 {formatWon(plan.monthlyPaymentWon)}씩
+                  앞으로 {formatYearsLabel(plan.months)}년간 {formatWonAsManwon(plan.monthlyPaymentWon)}씩
                   변제 예정입니다
                   {startDate && endDate
                     ? ` (${formatYearMonth(startDate)} ~ ${formatYearMonth(endDate)})`
@@ -611,13 +611,13 @@ export default function AnalysisPdfDocument({
                   ? [
                       {
                         label: "예상 면책 채무 (이자 포함)",
-                        value: formatWon(plan.exemptedDebtWithInterestWon),
+                        value: formatWonAsManwon(plan.exemptedDebtWithInterestWon),
                       },
                     ]
                   : []),
                 {
                   label: "예상 면책 채무 (원금 기준)",
-                  value: formatWon(plan.exemptedDebtWon),
+                  value: formatWonAsManwon(plan.exemptedDebtWon),
                 },
                 {
                   label: `예상 잔여 채무${
@@ -625,7 +625,7 @@ export default function AnalysisPdfDocument({
                       ? ` (${REMAINING_DEBT_SUBTITLE[repaymentKind]})`
                       : ""
                   }`,
-                  value: formatWon(plan.totalPaymentWon),
+                  value: formatWonAsManwon(plan.totalPaymentWon),
                   emphasize: true,
                 },
               ]}
