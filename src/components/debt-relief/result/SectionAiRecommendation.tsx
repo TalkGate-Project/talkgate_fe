@@ -1,5 +1,5 @@
 import type { DiagnosisDetail } from "@/types/debtRelief";
-import { formatDateTimeDisplay, formatDebtWon, wonToManwon } from "@/components/debt-relief/format";
+import { formatDateTimeDisplay, formatWon } from "@/components/debt-relief/format";
 import AnimatedBriefingAmount from "./AnimatedBriefingAmount";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 
@@ -15,11 +15,7 @@ function formatDecimal(value: number, maximumFractionDigits = 1): string {
 }
 
 function formatAmountMetric(label: string, won: number): BriefingMetric {
-  const manwon = wonToManwon(won);
-  if (Math.abs(manwon) >= 10_000) {
-    return { label, value: manwon / 10_000, unit: "억원", maximumFractionDigits: 1 };
-  }
-  return { label, value: manwon, unit: "만원" };
+  return { label, value: won, unit: "원", maximumFractionDigits: 0 };
 }
 
 function describeOccupation(occupation: string): string {
@@ -33,9 +29,9 @@ function describeOccupation(occupation: string): string {
 
 function buildBriefing(detail: DiagnosisDetail): string {
   const { totalDebtWon, totalAssetWon, monthlyAvailableIncomeWon, overdueMonths, composition } = detail.debtStatus;
-  const debt = formatDebtWon(totalDebtWon);
-  const asset = formatDebtWon(totalAssetWon);
-  const availableIncome = formatDebtWon(monthlyAvailableIncomeWon);
+  const debt = formatWon(totalDebtWon);
+  const asset = formatWon(totalAssetWon);
+  const availableIncome = formatWon(monthlyAvailableIncomeWon);
   const overdue = overdueMonths > 0
     ? `연체 ${formatDecimal(overdueMonths, 0)}개월이 확인됩니다.`
     : "현재 연체는 확인되지 않습니다.";
