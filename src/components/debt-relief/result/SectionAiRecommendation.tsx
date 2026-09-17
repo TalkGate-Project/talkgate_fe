@@ -1,5 +1,5 @@
 import type { DiagnosisDetail } from "@/types/debtRelief";
-import { formatDateTimeDisplay, formatWon } from "@/components/debt-relief/format";
+import { formatDateTimeDisplay } from "@/components/debt-relief/format";
 import AnimatedBriefingAmount from "./AnimatedBriefingAmount";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 
@@ -10,47 +10,8 @@ type BriefingMetric = {
   maximumFractionDigits?: number;
 };
 
-function formatDecimal(value: number, maximumFractionDigits = 1): string {
-  return value.toLocaleString("ko-KR", { maximumFractionDigits });
-}
-
 function formatAmountMetric(label: string, won: number): BriefingMetric {
   return { label, value: won, unit: "원", maximumFractionDigits: 0 };
-}
-
-function describeOccupation(occupation: string): string {
-  const descriptions: Record<string, string> = {
-    자영업: "자영업자",
-    프리랜서: "프리랜서",
-    무직: "무직",
-  };
-  return descriptions[occupation] ?? `${occupation} 근로자`;
-}
-
-function buildBriefing(detail: DiagnosisDetail): string {
-  const { totalDebtWon, totalAssetWon, monthlyAvailableIncomeWon, overdueMonths, composition } = detail.debtStatus;
-  const debt = formatWon(totalDebtWon);
-  const asset = formatWon(totalAssetWon);
-  const availableIncome = formatWon(monthlyAvailableIncomeWon);
-  const overdue = overdueMonths > 0
-    ? `연체 ${formatDecimal(overdueMonths, 0)}개월이 확인됩니다.`
-    : "현재 연체는 확인되지 않습니다.";
-  const basicSummary = `${detail.customerName} 고객은 ${describeOccupation(detail.occupation)}로, 총 채무 ${debt}, 월 가용소득 ${availableIncome}, ${overdue}`;
-  const privateDebt = composition.find((item) => /사채|대부|개인차용/.test(item.label));
-  const incomeEvidence = /자영업|프리랜서/.test(detail.occupation)
-    ? `${describeOccupation(detail.occupation)} 소득 증빙`
-    : "소득의 지속 가능성";
-  const decisionVariables = `${privateDebt ? `${privateDebt.label}가 포함된 채권 구성` : "채권 구성"}과 ${incomeEvidence}`;
-
-  if (totalAssetWon <= 0) {
-    return `${basicSummary} 확인 가능한 자산이 없어 채무 전액이 자산을 초과하며, ${decisionVariables}이 이후 절차 판단의 핵심 변수입니다.`;
-  }
-
-  const debtToAssetRatio = totalDebtWon / totalAssetWon;
-  const assetAssessment = debtToAssetRatio > 1
-    ? `채무가 자산의 약 ${formatDecimal(debtToAssetRatio)}배에 달해 채무초과 상태에 해당하며`
-    : `자산 대비 채무 비율은 약 ${formatDecimal(debtToAssetRatio)}배이며`;
-  return `${basicSummary} 자산 ${asset}으로 ${assetAssessment}, ${decisionVariables}이 이후 절차 판단의 핵심 변수입니다.`;
 }
 
 function BriefingMetricItem({ metric, index }: { metric: BriefingMetric; index: number }) {
@@ -102,7 +63,7 @@ export default function SectionAiRecommendation({
         </div>
 
         <p className="mt-4 px-2 text-[14px] font-semibold leading-6 tracking-[-0.02em] text-neutral-90 lg:px-4 lg:text-[16px]">
-          {buildBriefing(detail)}
+          {detail.recommendation.description}
         </p>
 
         <div className="mt-7 grid grid-cols-2 overflow-hidden rounded-[14px] bg-card py-2 lg:mt-10 lg:grid-cols-4 lg:py-6">
