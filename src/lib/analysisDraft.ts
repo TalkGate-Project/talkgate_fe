@@ -6,7 +6,9 @@ import {
 const ANALYSIS_DRAFT_STORAGE_PREFIX = "tg_analysis_new_draft:";
 export const ANALYSIS_DRAFTS_CLEARED_EVENT = "tg-analysis-drafts-cleared";
 export const ANALYSIS_DRAFTS_CLEARED_AT_KEY = "tg_analysis_drafts_cleared_at";
-const ANALYSIS_DRAFT_VERSION = 1;
+// v2: 분석 금액 상태를 만원에서 원 단위로 전환했다. v1을 그대로 복원하면 금액이 1/10,000로
+// 제출되므로 이전 로컬 초안은 호환하지 않는다(서버 draft는 상세 조회 시 원 단위로 복원됨).
+const ANALYSIS_DRAFT_VERSION = 2;
 const ANALYSIS_DRAFT_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 
 export type AnalysisDraftScope = {

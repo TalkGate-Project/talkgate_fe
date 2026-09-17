@@ -206,11 +206,11 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   const adjustableProcedure = isAdjustableRepaymentProcedure(activeProcedure)
     ? activeProcedure
     : null;
-  const unsecuredDebtManwon =
+  const unsecuredDebtWon =
     detail.collateralBreakdown?.unsecuredDebt ??
     detail.inputData.debts
       .filter((debt) => !debt.isExcludedFromAnalysis && !isDebtCollateralLoan(debt))
-      .reduce((sum, debt) => sum + debt.currentBalanceWon / 10_000, 0);
+      .reduce((sum, debt) => sum + debt.currentBalanceWon, 0);
   const activeAdjustment = adjustableProcedure
     ? detail.adjustedRepayment[adjustableProcedure] ?? null
     : null;
@@ -221,7 +221,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     activeAdjustment ??
     (activeRepaymentPlan
       ? {
-          monthlyPayment: activeRepaymentPlan.monthlyPaymentManwon,
+          monthlyPayment: activeRepaymentPlan.monthlyPaymentWon,
           periodMonths: activeRepaymentPlan.months,
         }
       : null);
@@ -581,8 +581,8 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
       <AnalysisAdjustedRepaymentModal
         open={adjustedRepaymentModalOpen}
         procedure={adjustableProcedure}
-        unsecuredDebtManwon={unsecuredDebtManwon}
-        disposableIncomeManwon={detail.debtStatus.monthlyAvailableIncomeManwon}
+        unsecuredDebtWon={unsecuredDebtWon}
+        disposableIncomeWon={detail.debtStatus.monthlyAvailableIncomeWon}
         initialValue={adjustedRepaymentInitialValue}
         adjustmentApplied={activeAdjustment != null}
         submitting={adjustedRepaymentSubmitting}

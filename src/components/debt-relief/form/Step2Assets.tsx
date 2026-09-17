@@ -1,7 +1,7 @@
 "use client";
 
 import { ASSET_CATEGORY_OPTIONS, createEmptyAssetItem, createEmptyDebtItem, type AssetItemFormState, type DebtItemFormState, type DiagnosisFormState } from "@/types/debtRelief";
-import { FormField, FormSectionTitle, ManwonInput } from "./FormControls";
+import { FormField, FormSectionTitle, WonAmountInput } from "./FormControls";
 import FormToggle from "./FormToggle";
 import DebtItemsTable from "./DebtItemsTable";
 import { DebtModeToggle } from "./DebtHistoryCard";
@@ -92,7 +92,7 @@ export default function Step2Assets({ form, update }: Props) {
         return <section key={asset.id} className="overflow-hidden rounded-[14px] border border-neutral-30 bg-card">
           <div className="flex min-h-14 flex-wrap items-center gap-3 bg-neutral-10 px-5 py-2.5 lg:px-6">
             <div className="flex min-w-[130px] flex-1 items-center gap-2"><AssetIcon category={asset.category} /><strong className="text-[16px] font-semibold text-foreground">{category?.label}</strong></div>
-            <div className="w-[152px] shrink-0"><ManwonInput value={asset.marketValue} onChange={(marketValue) => updateAsset(asset.id, { marketValue })} /></div>
+            <div className="w-[152px] shrink-0"><WonAmountInput value={asset.marketValue} onChange={(marketValue) => updateAsset(asset.id, { marketValue })} /></div>
             <button type="button" onClick={() => toggleAsset(asset.category)} aria-label={`${category?.label} 삭제`} className="grid h-8 w-8 cursor-pointer place-items-center text-neutral-50 hover:text-neutral-70"><RemoveIcon /></button>
           </div>
           <>
@@ -118,10 +118,10 @@ export default function Step2Assets({ form, update }: Props) {
               />
             </div>}
           </>
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-30 bg-neutral-10 px-5 py-3 text-[14px] lg:px-6"><span className="font-medium text-neutral-60">시가 {asset.marketValue.toLocaleString("ko-KR")} - 담보 {Math.round(collateralValueWon / 10_000).toLocaleString("ko-KR")}</span><strong className="text-[16px] text-foreground">순 자산 {(asset.marketValue - Math.round(collateralValueWon / 10_000)).toLocaleString("ko-KR")}만원</strong></div>
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-30 bg-neutral-10 px-5 py-3 text-[14px] lg:px-6"><span className="font-medium text-neutral-60">시가 {asset.marketValue.toLocaleString("ko-KR")}원 - 담보 {collateralValueWon.toLocaleString("ko-KR")}원</span><strong className="text-[16px] text-foreground">순 자산 {(asset.marketValue - collateralValueWon).toLocaleString("ko-KR")}원</strong></div>
         </section>;
       })}
-      <div className="flex items-center justify-between gap-4 rounded-xl bg-neutral-10 px-5 py-4 lg:px-6"><span className="text-[14px] font-medium text-neutral-60">등록된 자산 {form.assets.length}건</span><div className="flex items-baseline gap-1"><strong className="text-[20px] font-bold tracking-[-0.03em] text-foreground">{totalAssetValue.toLocaleString("ko-KR")}</strong><span className="text-[13px] font-semibold text-neutral-60">만원</span></div></div>
+      <div className="flex items-center justify-between gap-4 rounded-xl bg-neutral-10 px-5 py-4 lg:px-6"><span className="text-[14px] font-medium text-neutral-60">등록된 자산 {form.assets.length}건</span><div className="flex items-baseline gap-1"><strong className="text-[20px] font-bold tracking-[-0.03em] text-foreground">{totalAssetValue.toLocaleString("ko-KR")}</strong><span className="text-[13px] font-semibold text-neutral-60">원</span></div></div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10">
         <FormField
           label="배우자 명의 주택 또는 전세보증금 있음"
@@ -145,7 +145,7 @@ export default function Step2Assets({ form, update }: Props) {
             />
             {form.hasSpouseHousingAsset && (
               <div className="w-[164px]">
-                <ManwonInput
+                <WonAmountInput
                   value={form.spouseHousingAssetValue}
                   onChange={(value) => update("spouseHousingAssetValue", value)}
                 />

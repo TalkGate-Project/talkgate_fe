@@ -127,7 +127,7 @@ export function getMissingRequiredFieldLabelsForStep(
  * 값 때문에 상세모드에서 오탐이 뜨는 걸 방지). */
 export function isRecentAndSecuredDebtOverTotal(
   form: DiagnosisFormState,
-  totalDebtManwon: number
+  totalDebtWon: number
 ): boolean {
   if (form.debtInputMode === "detailed") return false;
   const sum =
@@ -135,7 +135,7 @@ export function isRecentAndSecuredDebtOverTotal(
     form.recentDebtWithin3Months +
     form.recentDebtWithin6Months +
     form.recentDebtWithin1Year;
-  return sum > totalDebtManwon;
+  return sum > totalDebtWon;
 }
 
 export type OverLimitDebtField =
@@ -152,9 +152,9 @@ export type OverLimitDebtField =
  */
 export function getOverLimitDebtFields(
   form: DiagnosisFormState,
-  totalDebtManwon: number
+  totalDebtWon: number
 ): OverLimitDebtField[] {
-  if (!isRecentAndSecuredDebtOverTotal(form, totalDebtManwon)) return [];
+  if (!isRecentAndSecuredDebtOverTotal(form, totalDebtWon)) return [];
 
   const fields: { key: OverLimitDebtField; value: number }[] = [
     { key: "securedDebt", value: form.securedDebt },
@@ -163,7 +163,7 @@ export function getOverLimitDebtFields(
     { key: "recentDebtWithin1Year", value: form.recentDebtWithin1Year },
   ];
   const individuallyOverLimit = fields
-    .filter((field) => field.value > totalDebtManwon)
+    .filter((field) => field.value > totalDebtWon)
     .map((field) => field.key);
 
   return individuallyOverLimit.length > 0 ? individuallyOverLimit : fields.map((field) => field.key);

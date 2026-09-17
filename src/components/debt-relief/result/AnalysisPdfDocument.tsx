@@ -17,7 +17,7 @@ import {
   type ProcedureStep,
   type RecommendedProcedure,
 } from "@/types/debtRelief";
-import { formatDateTimeDisplay, formatManwonComma } from "@/components/debt-relief/format";
+import { formatDateTimeDisplay, formatWon } from "@/components/debt-relief/format";
 import {
   buildCustomerInfoViewModel,
   type DisplayRow,
@@ -34,7 +34,7 @@ import {
   formatYearsLabel,
   parseConsultedAt,
   resolveSectionKind,
-  resolveUnsecuredDebtManwon,
+  resolveUnsecuredDebtWon,
   shouldShowRepaymentRate,
 } from "./SectionRepaymentPlan";
 import { TYPE_LABEL as MESSAGE_TYPE_LABEL } from "./SectionDeliveryMessages";
@@ -509,20 +509,20 @@ export default function AnalysisPdfDocument({
             rows={[
               {
                 label: "총 채무 (원금)",
-                value: formatManwonComma(detail.debtStatus.totalDebtManwon),
+                value: formatWon(detail.debtStatus.totalDebtWon),
               },
-              ...(detail.debtStatus.totalDebtWithInterestManwon != null
+              ...(detail.debtStatus.totalDebtWithInterestWon != null
                 ? [
                     {
                       label: "총 상환 예정 (이자 포함)",
-                      value: formatManwonComma(detail.debtStatus.totalDebtWithInterestManwon),
+                      value: formatWon(detail.debtStatus.totalDebtWithInterestWon),
                     },
                   ]
                 : []),
-              { label: "총 자산", value: formatManwonComma(detail.debtStatus.totalAssetManwon) },
+              { label: "총 자산", value: formatWon(detail.debtStatus.totalAssetWon) },
               {
                 label: "월 가용소득",
-                value: formatManwonComma(detail.debtStatus.monthlyAvailableIncomeManwon),
+                value: formatWon(detail.debtStatus.monthlyAvailableIncomeWon),
               },
               { label: "연체 기간", value: `${detail.debtStatus.overdueMonths}개월` },
             ]}
@@ -535,7 +535,7 @@ export default function AnalysisPdfDocument({
                 rows={debtComposition.map((item) => [
                   item.label,
                   `${item.percent}%`,
-                  formatManwonComma(item.amountManwon),
+                  formatWon(item.amountWon),
                 ])}
               />
             </View>
@@ -550,44 +550,44 @@ export default function AnalysisPdfDocument({
                   {
                     label: "월 변제액",
                     value:
-                      plan.monthlyPaymentManwon === 0
+                      plan.monthlyPaymentWon === 0
                         ? "산정 불가"
-                        : formatManwonComma(plan.monthlyPaymentManwon),
+                        : formatWon(plan.monthlyPaymentWon),
                     emphasize: true,
                   },
                   {
                     label: "변제 기간",
                     value:
-                      plan.monthlyPaymentManwon === 0
+                      plan.monthlyPaymentWon === 0
                         ? "-"
                         : `${plan.months}개월 (${plan.years}년)`,
                   },
                   {
                     label: "총 변제액",
                     value:
-                      plan.monthlyPaymentManwon === 0
+                      plan.monthlyPaymentWon === 0
                         ? "-"
-                        : formatManwonComma(plan.totalPaymentManwon),
+                        : formatWon(plan.totalPaymentWon),
                   },
                   ...(shouldShowRepaymentRate(selectedProcedure)
                     ? [
                         {
                           label: "변제율 (무담보 채무 기준)",
                           value:
-                            plan.monthlyPaymentManwon === 0
+                            plan.monthlyPaymentWon === 0
                               ? "-"
                               : formatRepaymentRate(
-                                  plan.totalPaymentManwon,
-                                  resolveUnsecuredDebtManwon(detail)
+                                  plan.totalPaymentWon,
+                                  resolveUnsecuredDebtWon(detail)
                                 ),
                         },
                       ]
                     : []),
                 ]}
               />
-              {plan.monthlyPaymentManwon > 0 ? (
+              {plan.monthlyPaymentWon > 0 ? (
                 <Text style={[styles.paragraph, { marginTop: 7 }]}>
-                  앞으로 {formatYearsLabel(plan.months)}년간 {formatManwonComma(plan.monthlyPaymentManwon)}씩
+                  앞으로 {formatYearsLabel(plan.months)}년간 {formatWon(plan.monthlyPaymentWon)}씩
                   변제 예정입니다
                   {startDate && endDate
                     ? ` (${formatYearMonth(startDate)} ~ ${formatYearMonth(endDate)})`
@@ -604,20 +604,20 @@ export default function AnalysisPdfDocument({
               </Text>
             </>
           ) : null}
-          {plan && plan.monthlyPaymentManwon > 0 ? (
+          {plan && plan.monthlyPaymentWon > 0 ? (
             <InfoRows
               rows={[
-                ...(plan.exemptedDebtWithInterestManwon != null
+                ...(plan.exemptedDebtWithInterestWon != null
                   ? [
                       {
                         label: "예상 면책 채무 (이자 포함)",
-                        value: formatManwonComma(plan.exemptedDebtWithInterestManwon),
+                        value: formatWon(plan.exemptedDebtWithInterestWon),
                       },
                     ]
                   : []),
                 {
                   label: "예상 면책 채무 (원금 기준)",
-                  value: formatManwonComma(plan.exemptedDebtManwon),
+                  value: formatWon(plan.exemptedDebtWon),
                 },
                 {
                   label: `예상 잔여 채무${
@@ -625,7 +625,7 @@ export default function AnalysisPdfDocument({
                       ? ` (${REMAINING_DEBT_SUBTITLE[repaymentKind]})`
                       : ""
                   }`,
-                  value: formatManwonComma(plan.totalPaymentManwon),
+                  value: formatWon(plan.totalPaymentWon),
                   emphasize: true,
                 },
               ]}
