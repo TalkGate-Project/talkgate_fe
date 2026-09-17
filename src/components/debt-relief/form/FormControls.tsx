@@ -56,12 +56,12 @@ export function FormField({
 const INPUT_CLASS =
   "w-full h-[34px] px-3 py-2 rounded-[5px] border border-neutral-30 bg-card text-[14px] font-medium tracking-[-0.02em] text-foreground placeholder:text-neutral-50 focus:outline-none focus:border-neutral-50";
 
-/** ManwonQuickInput 전용 — w-full을 빼서 고정 폭이 Tailwind 충돌로 무시되지 않게 한다 */
+/** WonQuickInput 전용 — w-full을 빼서 고정 폭이 Tailwind 충돌로 무시되지 않게 한다 */
 const QUICK_INPUT_CLASS =
   "h-[34px] px-3 py-2 rounded-[5px] border border-neutral-30 bg-neutral-10 text-[14px] font-medium tracking-[-0.02em] text-foreground placeholder:text-neutral-50 focus:outline-none focus:border-neutral-50";
 
-/** ManwonInput의 suffixOutside 모드 전용 — 위와 같은 이유로 w-full을 뺀다 */
-const MANWON_INPUT_COMPACT_CLASS =
+/** WonAmountInput의 compact 모드 전용 — w-full을 빼서 고정 폭을 유지한다 */
+const WON_INPUT_COMPACT_CLASS =
   "h-[34px] px-3 py-2 rounded-[5px] border border-neutral-30 bg-card text-[14px] font-medium tracking-[-0.02em] text-foreground placeholder:text-neutral-50 focus:outline-none focus:border-neutral-50";
 
 export function TextInput({
@@ -86,18 +86,16 @@ export function TextInput({
   );
 }
 
-// 최대 9자리(999,999,999만원 = 약 10조원) — 이보다 길면 Number.MAX_SAFE_INTEGER를 넘어
-// parseInt 결과가 부정확해지고 toLocaleString 표시가 깨진다. 개인 채무/자산 입력 범위로는
-// 충분히 넉넉해 실사용에는 제약이 되지 않는다.
-const MANWON_MAX_DIGITS = 9;
+// 개인 채무/자산 입력에서 사용하는 원 단위 최대 자릿수.
+const WON_AMOUNT_MAX_DIGITS = 13;
 
-// 만원 단위 숫자 입력. 값은 콤마 포맷, 우측에 "만원" 접미사
-export function ManwonInput({
+// 원 단위 숫자 입력. 값은 콤마 포맷, 우측에 "원" 접미사
+export function WonAmountInput({
   value,
   onChange,
   placeholder = "0",
   invalid = false,
-  suffixOutside = false,
+  compact = false,
 }: {
   value: number;
   onChange: (value: number) => void;
@@ -105,42 +103,25 @@ export function ManwonInput({
   // true면 border를 danger 색으로 표시 (예: 제출 시점에 발견된 채무 금액 합계 초과).
   // 호출부에서 값이 다시 유효해지는 순간 false로 넘겨주면 즉시 해제된다.
   invalid?: boolean;
-  /** true면 "만원"을 input 안이 아니라 바깥 오른쪽에 별도 배치하고 input 폭을 좁힌다 —
-   * 값 자릿수가 크지 않은 걸 아는 필드(예: 추가 필수지출)에서 input이 불필요하게 넓어
-   * 보이는 걸 막는다. */
-  suffixOutside?: boolean;
+  /** 좁은 계산표 셀에서 사용하는 고정 폭 입력 */
+  compact?: boolean;
 }) {
-  const inputEl = (
-    <input
-      inputMode="numeric"
-      value={value ? value.toLocaleString("ko-KR") : ""}
-      onChange={(e) => {
-        const digits = e.target.value.replace(/[^0-9]/g, "").slice(0, MANWON_MAX_DIGITS);
-        onChange(digits ? parseInt(digits, 10) : 0);
-      }}
-      placeholder={placeholder}
-      className={
-        suffixOutside
-          ? `${MANWON_INPUT_COMPACT_CLASS} w-[76px] text-right ${invalid ? "!border-danger-40 dark:!border-danger-40" : ""}`
-          : `${INPUT_CLASS} pr-12 ${invalid ? "!border-danger-40 dark:!border-danger-40" : ""}`
-      }
-    />
-  );
-
-  if (suffixOutside) {
-    return (
-      <div className="flex items-center gap-2">
-        {inputEl}
-        <span className="shrink-0 text-[14px] font-medium tracking-[-0.02em] text-neutral-60">만원</span>
-      </div>
-    );
-  }
-
   return (
-    <div className="relative">
-      {inputEl}
+    <div className={`relative ${compact ? "w-[148px]" : "w-full"}`}>
+      <input
+        inputMode="numeric"
+        value={value ? value.toLocaleString("ko-KR") : ""}
+        onChange={(e) => {
+          const digits = e.target.value.replace(/[^0-9]/g, "").slice(0, WON_AMOUNT_MAX_DIGITS);
+          onChange(digits ? parseInt(digits, 10) : 0);
+        }}
+        placeholder={placeholder}
+        className={`${
+          compact ? `${WON_INPUT_COMPACT_CLASS} w-full` : INPUT_CLASS
+        } pr-9 text-right ${invalid ? "!border-danger-40 dark:!border-danger-40" : ""}`}
+      />
       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[14px] font-medium tracking-[-0.02em] text-neutral-60 pointer-events-none">
-        만원
+        원
       </span>
     </div>
   );
@@ -148,7 +129,7 @@ export function ManwonInput({
 
 /** 직접 입력 + 퀵버튼 프리셋. 월 소득/금융 자산/차량 보유용.
  * null=미선택(퀵버튼 미선택·입력 비움). 0은 "없음"을 명시한 유효값이라 0 버튼이 선택된다. */
-export function ManwonQuickInput({
+export function WonQuickInput({
   value,
   onChange,
   presets,
@@ -159,29 +140,35 @@ export function ManwonQuickInput({
   presets: readonly number[];
   placeholder?: string;
 }) {
+  const formatPresetLabel = (preset: number) => {
+    if (preset === 0) return "0";
+    if (preset % 10_000 === 0) return `${(preset / 10_000).toLocaleString("ko-KR")}만`;
+    return preset.toLocaleString("ko-KR");
+  };
+
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="flex items-center gap-2">
+      <div className="relative min-w-[180px] max-w-[260px] flex-1">
         <input
           inputMode="numeric"
           value={value === null ? "" : value.toLocaleString("ko-KR")}
           onChange={(e) => {
-            const digits = e.target.value.replace(/[^0-9]/g, "").slice(0, MANWON_MAX_DIGITS);
+            const digits = e.target.value.replace(/[^0-9]/g, "").slice(0, WON_AMOUNT_MAX_DIGITS);
             onChange(digits ? parseInt(digits, 10) : null);
           }}
           placeholder={placeholder}
-          className={`${QUICK_INPUT_CLASS} w-[148px] lg:w-[180px] text-right`}
-          aria-label="금액(만원)"
+          className={`${QUICK_INPUT_CLASS} w-full pr-9 text-right`}
+          aria-label="금액(원)"
         />
-        <span className="shrink-0 text-[14px] font-medium tracking-[-0.02em] text-neutral-60">
-          만원
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[14px] font-medium tracking-[-0.02em] text-neutral-60">
+          원
         </span>
       </div>
       <div className="flex flex-wrap gap-2">
         {presets.map((preset) => (
           <PillButton
             key={preset}
-            label={preset.toLocaleString("ko-KR")}
+            label={formatPresetLabel(preset)}
             selected={value === preset}
             onClick={() => onChange(preset)}
           />
@@ -224,7 +211,7 @@ export function MonthsInput({
   );
 }
 
-/** 원 단위 금액 입력 — 상세 채무입력 전용(다른 금액 필드는 전부 만원 단위) */
+/** 접미사 없는 원 단위 금액 입력 — 상세 채무입력 전용 */
 const WON_MAX_DIGITS = 13;
 
 export function WonInput({

@@ -12,7 +12,7 @@ import {
   type ProcedureStep,
   type RecommendedProcedure,
 } from "@/types/debtRelief";
-import { formatDateTimeDisplay, formatManwonComma } from "@/components/debt-relief/format";
+import { formatDateTimeDisplay, formatWon } from "@/components/debt-relief/format";
 import type { DebtReliefChatUiMessage } from "./useDebtReliefAiChat";
 import {
   buildCustomerInfoViewModel,
@@ -30,7 +30,7 @@ import {
   formatYearsLabel,
   parseConsultedAt,
   resolveSectionKind,
-  resolveUnsecuredDebtManwon,
+  resolveUnsecuredDebtWon,
   shouldShowRepaymentRate,
 } from "./SectionRepaymentPlan";
 import { TYPE_LABEL as MESSAGE_TYPE_LABEL } from "./SectionDeliveryMessages";
@@ -376,12 +376,12 @@ export default function AnalysisPrintDocument({
         <PrintSection number={sectionNumber++} title="채무 현황">
           <InfoTable
             rows={[
-              { label: "총 채무 (원금)", value: formatManwonComma(detail.debtStatus.totalDebtManwon) },
-              ...(detail.debtStatus.totalDebtWithInterestManwon != null
-                ? [{ label: "총 상환 예정 (이자 포함)", value: formatManwonComma(detail.debtStatus.totalDebtWithInterestManwon) }]
+              { label: "총 채무 (원금)", value: formatWon(detail.debtStatus.totalDebtWon) },
+              ...(detail.debtStatus.totalDebtWithInterestWon != null
+                ? [{ label: "총 상환 예정 (이자 포함)", value: formatWon(detail.debtStatus.totalDebtWithInterestWon) }]
                 : []),
-              { label: "총 자산", value: formatManwonComma(detail.debtStatus.totalAssetManwon) },
-              { label: "월 가용소득", value: formatManwonComma(detail.debtStatus.monthlyAvailableIncomeManwon) },
+              { label: "총 자산", value: formatWon(detail.debtStatus.totalAssetWon) },
+              { label: "월 가용소득", value: formatWon(detail.debtStatus.monthlyAvailableIncomeWon) },
               { label: "연체 기간", value: `${detail.debtStatus.overdueMonths}개월` },
             ]}
           />
@@ -400,7 +400,7 @@ export default function AnalysisPrintDocument({
                     <tr key={item.label}>
                       <td>{item.label}</td>
                       <td className="print-num">{item.percent}%</td>
-                      <td className="print-num">{formatManwonComma(item.amountManwon)}</td>
+                      <td className="print-num">{formatWon(item.amountWon)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -416,43 +416,43 @@ export default function AnalysisPrintDocument({
                 rows={[
                   {
                     label: "월 변제액",
-                    value: plan.monthlyPaymentManwon === 0 ? "산정 불가" : formatManwonComma(plan.monthlyPaymentManwon),
+                    value: plan.monthlyPaymentWon === 0 ? "산정 불가" : formatWon(plan.monthlyPaymentWon),
                     emphasize: true,
                   },
-                  { label: "변제 기간", value: plan.monthlyPaymentManwon === 0 ? "-" : `${plan.months}개월 (${plan.years}년)` },
-                  { label: "총 변제액", value: plan.monthlyPaymentManwon === 0 ? "-" : formatManwonComma(plan.totalPaymentManwon) },
+                  { label: "변제 기간", value: plan.monthlyPaymentWon === 0 ? "-" : `${plan.months}개월 (${plan.years}년)` },
+                  { label: "총 변제액", value: plan.monthlyPaymentWon === 0 ? "-" : formatWon(plan.totalPaymentWon) },
                   ...(shouldShowRepaymentRate(selectedProcedure)
                     ? [
                         {
                           label: "변제율 (무담보 채무 기준)",
                           value:
-                            plan.monthlyPaymentManwon === 0
+                            plan.monthlyPaymentWon === 0
                               ? "-"
                               : formatRepaymentRate(
-                                  plan.totalPaymentManwon,
-                                  resolveUnsecuredDebtManwon(detail)
+                                  plan.totalPaymentWon,
+                                  resolveUnsecuredDebtWon(detail)
                                 ),
                         },
                       ]
                     : []),
                 ]}
               />
-              {plan.monthlyPaymentManwon > 0 && (
+              {plan.monthlyPaymentWon > 0 && (
                 <p className="print-paragraph">
-                  앞으로 {formatYearsLabel(plan.months)}년간 {formatManwonComma(plan.monthlyPaymentManwon)}씩 변제 예정입니다
+                  앞으로 {formatYearsLabel(plan.months)}년간 {formatWon(plan.monthlyPaymentWon)}씩 변제 예정입니다
                   {startDate && endDate ? ` (${formatYearMonth(startDate)} ~ ${formatYearMonth(endDate)})` : ""}.
                 </p>
               )}
-              {plan.monthlyPaymentManwon > 0 && (
+              {plan.monthlyPaymentWon > 0 && (
                 <InfoTable
                   rows={[
-                    ...(plan.exemptedDebtWithInterestManwon != null
-                      ? [{ label: "예상 면책 채무 (이자 포함)", value: formatManwonComma(plan.exemptedDebtWithInterestManwon) }]
+                    ...(plan.exemptedDebtWithInterestWon != null
+                      ? [{ label: "예상 면책 채무 (이자 포함)", value: formatWon(plan.exemptedDebtWithInterestWon) }]
                       : []),
-                    { label: "예상 면책 채무 (원금 기준)", value: formatManwonComma(plan.exemptedDebtManwon) },
+                    { label: "예상 면책 채무 (원금 기준)", value: formatWon(plan.exemptedDebtWon) },
                     {
                       label: `예상 잔여 채무${REMAINING_DEBT_SUBTITLE.full ? ` (${REMAINING_DEBT_SUBTITLE.full})` : ""}`,
-                      value: formatManwonComma(plan.totalPaymentManwon),
+                      value: formatWon(plan.totalPaymentWon),
                       emphasize: true,
                     },
                   ]}
@@ -470,13 +470,13 @@ export default function AnalysisPrintDocument({
               {plan && (
                 <InfoTable
                   rows={[
-                    ...(plan.exemptedDebtWithInterestManwon != null
-                      ? [{ label: "예상 면책 채무 (이자 포함)", value: formatManwonComma(plan.exemptedDebtWithInterestManwon) }]
+                    ...(plan.exemptedDebtWithInterestWon != null
+                      ? [{ label: "예상 면책 채무 (이자 포함)", value: formatWon(plan.exemptedDebtWithInterestWon) }]
                       : []),
-                    { label: "예상 면책 채무 (원금 기준)", value: formatManwonComma(plan.exemptedDebtManwon) },
+                    { label: "예상 면책 채무 (원금 기준)", value: formatWon(plan.exemptedDebtWon) },
                     {
                       label: `예상 잔여 채무${REMAINING_DEBT_SUBTITLE[repaymentKind] ? ` (${REMAINING_DEBT_SUBTITLE[repaymentKind]})` : ""}`,
-                      value: formatManwonComma(plan.totalPaymentManwon),
+                      value: formatWon(plan.totalPaymentWon),
                       emphasize: true,
                     },
                   ]}

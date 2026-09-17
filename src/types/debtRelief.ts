@@ -135,8 +135,8 @@ export type DiagnosisListItem = {
   gender?: CustomerGender;
   occupation?: string; // 표시용: 자영업, 프리랜서 등
   region: string; // 표시용: 서울, 경기·인천 등
-  totalDebtManwon: number; // 총 채무 (만원)
-  monthlyAvailableIncomeManwon: number; // 월 가용 소득 (만원, 음수 가능)
+  totalDebtWon: number; // 총 채무 (원)
+  monthlyAvailableIncomeWon: number; // 월 가용 소득 (원, 음수 가능)
   status: AnalysisStatus;
   // 절차진행중이면 현재 추적 절차, 그 이전 단계에서는 AI 추천 절차. 아직 알 수 없는 경우도 있어
   // optional로 정직하게 표현.
@@ -387,12 +387,12 @@ export const REAL_ESTATE_SELECT_OPTIONS: PillOption<RealEstateSelectValue>[] = [
   ...REAL_ESTATE_OPTIONS,
 ];
 
-// 2026-08-07 스펙: 구간 선택형(FinancialAssetRange/VehicleRange) 폐지, 만원 단위 직접 입력으로 변경.
+// 구간 선택형(FinancialAssetRange/VehicleRange) 폐지, 원 단위 직접 입력으로 변경.
 // DiagnosisFormState.financialAssetValue/vehicleValue(number) 참고.
-/** 금융 자산 퀵버튼 프리셋(만원) — 구 구간 경계(없음/500/2천/5천) 기준 */
-export const FINANCIAL_ASSET_QUICK_PRESETS = [0, 500, 1000, 2000, 5000] as const;
-/** 차량 보유 가액 퀵버튼 프리셋(만원) */
-export const VEHICLE_VALUE_QUICK_PRESETS = [0, 500, 1000, 2000, 5000] as const;
+/** 금융 자산 퀵버튼 프리셋(원) — 구 구간 경계(없음/500만/1천만/2천만/5천만) 기준 */
+export const FINANCIAL_ASSET_QUICK_PRESETS = [0, 5_000_000, 10_000_000, 20_000_000, 50_000_000] as const;
+/** 차량 보유 가액 퀵버튼 프리셋(원) */
+export const VEHICLE_VALUE_QUICK_PRESETS = [0, 5_000_000, 10_000_000, 20_000_000, 50_000_000] as const;
 
 // ── 3. 채무현황 ──────────────────────────────────────────────
 // 실 API(debtBreakdown.capitalLoan)가 캐피탈/저축은행을 슬롯 하나로만 받아, 원본이 어느 쪽이었는지
@@ -514,10 +514,10 @@ export const DEBT_CAUSE_OPTIONS: PillOption<DebtCause>[] = [
 ];
 
 // ── 4. 소득/지출 ─────────────────────────────────────────────
-// 2026-08-07 스펙: 구간 선택형(MonthlyIncomeRange) 폐지, 만원 단위 실수령액 직접 입력으로 변경.
+// 구간 선택형(MonthlyIncomeRange) 폐지, 원 단위 실수령액 직접 입력으로 변경.
 // DiagnosisFormState.monthlyIncome(number) 참고.
-/** 월 소득 퀵버튼 프리셋(만원) — 구 구간 경계(0/100/200/300/400) 기준 */
-export const MONTHLY_INCOME_QUICK_PRESETS = [0, 100, 200, 300, 400] as const;
+/** 월 소득 퀵버튼 프리셋(원) — 구 구간 경계(0/100만/200만/300만/400만) 기준 */
+export const MONTHLY_INCOME_QUICK_PRESETS = [0, 1_000_000, 2_000_000, 3_000_000, 4_000_000] as const;
 
 export type HousingType = "owned" | "jeonse" | "monthly_rent" | "living_with_family";
 export const HOUSING_TYPE_OPTIONS: PillOption<HousingType>[] = [
@@ -596,14 +596,14 @@ export type DiagnosisFormState = {
   /** "없음" 선택도 realEstateTypes=[]로 저장되어 미선택과 구분이 안 되므로, 필수 검증용으로
    * 사용자가 이 필드를 한 번이라도 명시적으로 조작했는지 별도로 추적한다. */
   realEstateStatusConfirmed: boolean;
-  realEstateAmounts: Partial<Record<RealEstateType, number>>; // 만원, 선택된 종류만
-  /** 만원 단위(예·적금+주식 등 합계). null=미선택, 0=미보유(명시) */
+  realEstateAmounts: Partial<Record<RealEstateType, number>>; // 원, 선택된 종류만
+  /** 원 단위(예·적금+주식 등 합계). null=미선택, 0=미보유(명시) */
   financialAssetValue: number | null;
-  /** 만원 단위. null=미선택, 0=미보유(명시) */
+  /** 원 단위. null=미선택, 0=미보유(명시) */
   vehicleValue: number | null;
   /** 배우자 명의 주택 또는 전세보증금 보유 여부. null은 아직 선택하지 않은 상태. */
   hasSpouseHousingAsset: boolean | null;
-  /** 배우자 명의 주택 또는 전세보증금 가액 — API `spouseHousingAssetValue`, 만원 단위 */
+  /** 배우자 명의 주택 또는 전세보증금 가액 — API `spouseHousingAssetValue`, 원 단위 */
   spouseHousingAssetValue: number;
   /** 최근 2년 내 부동산·차량 등 재산 처분 이력 — null은 아직 선택하지 않은 상태. */
   hasRecentAssetDisposal: boolean | null;
@@ -612,7 +612,7 @@ export type DiagnosisFormState = {
   /** 간편(simple) / 상세(detailed) 입력 모드. 두 모드는 서로 다른 필드 집합을 쓴다 */
   debtInputMode: AnalysisDebtInputMode;
   debtTypes: DebtType[]; // 간편모드 전용
-  debtAmounts: Partial<Record<DebtType, number>>; // 간편모드 전용. 만원, 선택된 종류만 (캐피탈·저축은행은 capital 키)
+  debtAmounts: Partial<Record<DebtType, number>>; // 간편모드 전용. 원, 선택된 종류만 (캐피탈·저축은행은 capital 키)
   debts: DebtItemFormState[]; // 상세모드 전용. 금액은 원 단위
   /** 자산 현황에서 생성된 담보대출 행 ID. API에는 보내지 않는 화면 간 출처 추적 상태다. */
   assetOriginDebtIds: string[];
@@ -624,16 +624,16 @@ export type DiagnosisFormState = {
   // 2026-07-24 피드백 추가 항목. API collateralDebt/debtIncurredLast3Months/debtIncurredLast1Year에
   // 대응(services/debtRelief.ts 참고). 간편모드 전용 — 상세모드에서는 입력받지 않고 제출 시 0으로
   // 고정한다(API 스펙상 optional이 아니라 값 자체는 항상 보내야 함).
-  securedDebt: number; // 담보부채무 (만원)
-  recentDebtWithin3Months: number; // 최근 3개월 내 채무액 (만원)
-  recentDebtWithin6Months: number; // 최근 6개월 내 채무액 (만원). 2026-08-06 스펙 추가
-  recentDebtWithin1Year: number; // 최근 1년 내 채무액 (만원)
+  securedDebt: number; // 담보부채무 (원)
+  recentDebtWithin3Months: number; // 최근 3개월 내 채무액 (원)
+  recentDebtWithin6Months: number; // 최근 6개월 내 채무액 (원). 2026-08-06 스펙 추가
+  recentDebtWithin1Year: number; // 최근 1년 내 채무액 (원)
 
   // 4. 소득/지출
-  /** 만원 단위 세후 실수령액. null=미선택, 0=소득 없음(명시) */
+  /** 원 단위 세후 실수령액. null=미선택, 0=소득 없음(명시) */
   monthlyIncome: number | null;
   housingType: HousingType | null;
-  /** 법원 인정 최저생계비를 넘어서 추가로 인정받아야 할 금액(만원). 해당 없으면 0
+  /** 법원 인정 최저생계비를 넘어서 추가로 인정받아야 할 금액(원). 해당 없으면 0
    * (2026-08-07 스펙 — 주거비/식비/교육비/교통비/기타 5개 필드 폐지) */
   additionalFixedExpense: number;
 
@@ -719,12 +719,12 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
 
 // 폼에서 파생되는 요약 값 (좌측 사이드바 · 소득/지출 계산)
 export type DiagnosisDerivedValues = {
-  totalDebtManwon: number; // 선택한 채무 금액 합
-  monthlyIncomeManwon: number; // 입력한 월 소득 그대로(2026-08-07 스펙부터 "추정치"가 아님)
-  minimumLivingCostManwon: number; // 가구원수별 법원 인정 최저생계비
+  totalDebtWon: number; // 선택한 채무 금액 합(원)
+  monthlyIncomeWon: number; // 입력한 월 소득(원)
+  minimumLivingCostWon: number; // 가구원수별 법원 인정 최저생계비(원)
   householdSize: number; // 부양가족수 + 1. 법정 생계비 카드의 "가구원 n인 기준" 표시에 사용
   // 월소득 − 법원 인정 최저생계비 − additionalFixedExpense (법원 인정 기준, 서버 disposableIncome과 동일 공식)
-  monthlyAvailableIncomeManwon: number;
+  monthlyAvailableIncomeWon: number; // 원
 };
 
 export type CreateDiagnosisResult = { id: string };
@@ -760,14 +760,14 @@ export const CONDITION_STATUS_LABEL: Record<ConditionStatus, string> = {
 export type ConditionItem = { status: ConditionStatus; text: string };
 
 // 채무 현황
-export type DebtComposition = { label: string; amountManwon: number; percent: number };
+export type DebtComposition = { label: string; amountWon: number; percent: number };
 
 export type DebtStatusSummary = {
-  totalDebtManwon: number;
-  /** 총 상환 예정·이자 포함 (만원). 채무 상세입력 모드 건에만 존재 — 없으면 "총 상환 예정" 지표 자체를 숨긴다 */
-  totalDebtWithInterestManwon?: number;
-  totalAssetManwon: number;
-  monthlyAvailableIncomeManwon: number;
+  totalDebtWon: number;
+  /** 총 상환 예정·이자 포함 (원). 채무 상세입력 모드 건에만 존재 — 없으면 "총 상환 예정" 지표 자체를 숨긴다 */
+  totalDebtWithInterestWon?: number;
+  totalAssetWon: number;
+  monthlyAvailableIncomeWon: number;
   overdueMonths: number;
   composition: DebtComposition[];
 };
@@ -776,13 +776,13 @@ export type DebtStatusSummary = {
 // 않고 DiagnosisDetail.repaymentNotes로 별도 둔다(어떤 절차를 선택해도 항상 접근 가능해야
 // 하는데, 신용회복 일부 절차는 이 타입 자체가 아예 없기 때문 — 아래 주석 참고).
 export type RepaymentPlan = {
-  monthlyPaymentManwon: number;
+  monthlyPaymentWon: number;
   months: number;
   years: number;
-  totalPaymentManwon: number;
-  exemptedDebtManwon: number;
-  /** 이자 포함 예상 면책 채무 (만원). 상세입력 모드 건에만 존재 — 없으면 병기 자체를 숨긴다 */
-  exemptedDebtWithInterestManwon?: number;
+  totalPaymentWon: number;
+  exemptedDebtWon: number;
+  /** 이자 포함 예상 면책 채무 (원). 상세입력 모드 건에만 존재 — 없으면 병기 자체를 숨긴다 */
+  exemptedDebtWithInterestWon?: number;
 };
 
 // 상담 포인트

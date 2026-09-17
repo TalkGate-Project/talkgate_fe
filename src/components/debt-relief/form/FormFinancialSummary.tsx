@@ -1,6 +1,6 @@
 import type { DiagnosisDerivedValues } from "@/types/debtRelief";
 
-function formatManwon(value: number): string {
+function formatWon(value: number): string {
   return value.toLocaleString("ko-KR");
 }
 
@@ -43,17 +43,17 @@ export default function FormFinancialSummary({
 }) {
   return (
     <div className={`rounded-[12px] px-4 py-4 flex flex-col gap-3 ${className}`}>
-      <SummaryRow label="총 채무" value={formatManwon(derived.totalDebtManwon)} unit="만원" />
+      <SummaryRow label="총 채무" value={formatWon(derived.totalDebtWon)} unit="원" />
       <SummaryRow
         label="월 소득"
-        value={formatManwon(derived.monthlyIncomeManwon)}
-        unit="만원"
+        value={formatWon(derived.monthlyIncomeWon)}
+        unit="원"
       />
       <SummaryRow
         label="월 가용소득"
-        value={formatManwon(derived.monthlyAvailableIncomeManwon)}
-        unit="만원"
-        highlight={derived.monthlyAvailableIncomeManwon < 0 ? "danger" : "default"}
+        value={formatWon(derived.monthlyAvailableIncomeWon)}
+        unit="원"
+        highlight={derived.monthlyAvailableIncomeWon < 0 ? "danger" : "default"}
       />
     </div>
   );

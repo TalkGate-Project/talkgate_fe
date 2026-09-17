@@ -35,7 +35,6 @@ import {
 } from "@/types/debtRelief";
 import { AnalysisService } from "@/services/analysis";
 import { CustomersService } from "@/services/customers";
-import { wonToManwon, manwonToWon } from "@/components/debt-relief/format";
 import type {
   AnalysisDebtBreakdown,
   AnalysisDebtCause,
@@ -59,6 +58,8 @@ import type {
   AnalysisSpecialEligibility,
   AnalysisStatus,
   AnalysisDraftFormInput,
+  AnalysisAdjustedRepaymentInputMap,
+  AnalysisAdjustedRepaymentMap,
   AnalysisAdjustedRepaymentProcedure,
   CreateAnalysisInput,
   CreateAnalysisDraftInput,
@@ -127,14 +128,14 @@ export function resolveHouseholdSize(dependents: DependentCount | null): number 
   return (dependents ? DEPENDENTS_TO_ANALYSIS[dependents] : 0) + 1;
 }
 
-/** "희망 변제율 설정" 모달의 기준 금액(무담보 채무 합계, 만원). 채무현황선택 모달에서 제외
+/** "희망 변제율 설정" 모달의 기준 금액(무담보 채무 합계, 원). 채무현황선택 모달에서 제외
  * 체크한 건과 담보부 채무는 빼고 계산한다 — 담보부는 담보 처분으로 별도 정리되는 채무라
  * 변제율/면책 개념(무담보 채무 대상)에 포함되지 않는다. */
-export function getUnsecuredDebtManwon(form: DiagnosisFormState): number {
+export function getUnsecuredDebtWon(form: DiagnosisFormState): number {
   const includedWon = form.debts
     .filter((debt) => !debt.isExcludedFromAnalysis && !isDebtCollateralLoan(debt))
     .reduce((sum, debt) => sum + (debt.currentBalanceWon || 0), 0);
-  return wonToManwon(includedWon);
+  return includedWon;
 }
 
 const DEBT_CAUSE_TO_ANALYSIS: Record<DebtCause, AnalysisDebtCause> = {
@@ -193,12 +194,7 @@ const DEBT_ITEM_TYPE_TO_BREAKDOWN_KEY: Record<
   personal_borrowing: "personalBorrowing",
 };
 
-// wonToManwon/manwonToWon 구현은 순수 포맷 유틸(@/components/debt-relief/format)에 있다 —
-// AnalysisPdfDocument가 Worker에서 이 서비스 파일 대신 그쪽만 import해 apiClient 등 무거운
-// 의존성 없이 변환식만 재사용한다.
-export { wonToManwon, manwonToWon };
-
-/** 상세모드 채무 항목들을 간편모드의 종류별 잔액(만원)으로 집계 — 모드 전환/합계 표시용 */
+/** 상세모드 채무 항목들을 간편모드의 종류별 잔액(원)으로 집계 — 모드 전환/합계 표시용 */
 export function aggregateDebtsToBreakdown(debts: AnalysisDebtItem[]): AnalysisDebtBreakdown {
   const breakdown: AnalysisDebtBreakdown = {
     bankLoan: 0,
@@ -209,7 +205,7 @@ export function aggregateDebtsToBreakdown(debts: AnalysisDebtItem[]): AnalysisDe
   };
   for (const debt of debts) {
     const key = DEBT_ITEM_TYPE_TO_BREAKDOWN_KEY[debt.debtType];
-    breakdown[key] = (breakdown[key] ?? 0) + wonToManwon(debt.currentBalanceWon);
+    breakdown[key] = (breakdown[key] ?? 0) + debt.currentBalanceWon;
   }
   return breakdown;
 }
@@ -366,8 +362,29 @@ function toAnalysisDebtInput(debt: DebtItemFormState, isDetailed: boolean): Anal
   };
 }
 
+/**
+ * 상세 응답의 adjustedRepayment에는 서버 계산값(totalPayment/expectedExemption)이 포함된다.
+ * 생성·재진단 요청 DTO는 monthlyPayment/periodMonths만 허용하므로 응답 객체를 그대로
+ * 재전송하지 않고 요청 필드만 새 객체로 만든다.
+ */
+function sanitizeAdjustedRepayment(
+  adjustedRepayment: AnalysisAdjustedRepaymentMap
+): AnalysisAdjustedRepaymentInputMap {
+  return Object.fromEntries(
+    Object.entries(adjustedRepayment).flatMap(([procedure, repayment]) =>
+      repayment
+        ? [[procedure, {
+            monthlyPayment: repayment.monthlyPayment,
+            periodMonths: repayment.periodMonths,
+          }]]
+        : []
+    )
+  ) as AnalysisAdjustedRepaymentInputMap;
+}
+
 function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
   const isDetailed = form.debtInputMode === "detailed";
+  const adjustedRepayment = sanitizeAdjustedRepayment(form.adjustedRepayment);
 
   return {
     customerName: form.customerName.trim(),
@@ -381,8 +398,8 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
     // 대상 절차(개인회생·개인워크아웃·새출발기금)만 담긴 맵. 생략하면(재분석 시) 기존 수정안이
     // 초기화된다는 스펙이 있어(analysis.ts AnalysisFormInput.adjustedRepayment 주석 참고),
     // 빈 객체({})라도 값이 있으면 그대로 보낸다.
-    ...(Object.keys(form.adjustedRepayment).length > 0
-      ? { adjustedRepayment: form.adjustedRepayment }
+    ...(Object.keys(adjustedRepayment).length > 0
+      ? { adjustedRepayment }
       : {}),
     employmentType: optionLabel(EMPLOYMENT_TYPE_OPTIONS, form.employmentType!),
     dependents: DEPENDENTS_TO_ANALYSIS[form.dependents!],
@@ -630,8 +647,8 @@ function toDiagnosisListItem(item: AnalysisListItem): DiagnosisListItem {
     region: item.region,
     // totalDebt/disposableIncome이 null/undefined로 내려오는 목록 건이 있어 방어(2026-08-08 런타임
     // 에러 확인 — disposableIncome undefined로 formatAvailableIncome이 크래시).
-    totalDebtManwon: item.totalDebt ?? 0,
-    monthlyAvailableIncomeManwon: item.disposableIncome ?? 0,
+    totalDebtWon: item.totalDebt ?? 0,
+    monthlyAvailableIncomeWon: item.disposableIncome ?? 0,
     status: item.status,
     recommendedProcedure: item.procedure ? normalizeProcedureType(item.procedure) : undefined,
     feePlanSummary: item.feePlan,
@@ -661,7 +678,7 @@ export function scoreToGrade(score: number): ProcedureGrade {
 }
 
 // 연체기간은 2026-08-04 스펙부터 정확한 개월 수(정수)로 내려와 근사가 필요 없다.
-// 금융자산/차량가액도 2026-08-07 스펙부터 구간이 아니라 실제 금액(만원)으로 내려와 근사가 필요 없다
+// 금융자산/차량가액도 구간이 아니라 실제 금액(원)으로 내려와 근사가 필요 없다
 // (부동산은 이전부터 inputData.totalRealEstateValue로 정확한 값을 받았음).
 
 const BREAKDOWN_LABEL: Record<keyof AnalysisDebtBreakdown, string> = {
@@ -685,14 +702,14 @@ function buildDebtComposition(
   ];
   return keys
     .map((key) => {
-      const amountManwon = debtBreakdown[key] ?? 0;
+      const amountWon = debtBreakdown[key] ?? 0;
       return {
         label: BREAKDOWN_LABEL[key],
-        amountManwon,
-        percent: totalDebt > 0 ? Math.round((amountManwon / totalDebt) * 100) : 0,
+        amountWon,
+        percent: totalDebt > 0 ? Math.round((amountWon / totalDebt) * 100) : 0,
       };
     })
-    .filter((item) => item.amountManwon > 0);
+    .filter((item) => item.amountWon > 0);
 }
 
 function buildConditionAnalysis(conditions: AnalysisProcedureConditions): ConditionItem[] {
@@ -784,15 +801,14 @@ function buildProcedureGuide(
 }
 
 function toRepaymentPlan(repayment: AnalysisExpectedRepayment): RepaymentPlan {
-  // 금액은 모두 만원 단위로 내려온다(2026-07-20 실 응답 확인: monthlyPayment 125 ×
-  // periodMonths 40 = totalPayment 5000, totalDebt와 동일 스케일).
+  // 변제계획 금액은 API의 다른 분석 금액과 동일하게 원 단위로 내려온다.
   return {
-    monthlyPaymentManwon: repayment.monthlyPayment,
+    monthlyPaymentWon: repayment.monthlyPayment,
     months: repayment.periodMonths,
     years: Math.round((repayment.periodMonths / 12) * 10) / 10,
-    totalPaymentManwon: repayment.totalPayment,
-    exemptedDebtManwon: repayment.expectedExemption,
-    exemptedDebtWithInterestManwon: repayment.expectedExemptionWithInterest,
+    totalPaymentWon: repayment.totalPayment,
+    exemptedDebtWon: repayment.expectedExemption,
+    exemptedDebtWithInterestWon: repayment.expectedExemptionWithInterest,
   };
 }
 
@@ -1005,14 +1021,14 @@ export const DebtReliefService = {
       const typedProcedure = procedure as AnalysisAdjustedRepaymentProcedure;
       const totalPayment = adjustment.totalPayment ?? adjustment.monthlyPayment * adjustment.periodMonths;
       repaymentPlanByProcedure[typedProcedure] = {
-        monthlyPaymentManwon: adjustment.monthlyPayment,
+        monthlyPaymentWon: adjustment.monthlyPayment,
         months: adjustment.periodMonths,
         years: Math.round((adjustment.periodMonths / 12) * 10) / 10,
-        totalPaymentManwon: totalPayment,
-        exemptedDebtManwon:
+        totalPaymentWon: totalPayment,
+        exemptedDebtWon:
           adjustment.expectedExemption ?? Math.max(0, unsecuredDebt - totalPayment),
         // 조정 API는 원금 기준 면책액만 계산한다. 기존 분석의 이자 포함 값을 섞지 않는다.
-        exemptedDebtWithInterestManwon: undefined,
+        exemptedDebtWithInterestWon: undefined,
       };
     }
     // 공유(납품)받은 건 판별 — source(원본 출처) 필드로만 판단한다. deliveryStatus는 공유 연결의
@@ -1072,19 +1088,19 @@ export const DebtReliefService = {
         ? buildConditionAnalysisByProcedure(analysis.analysisResult.procedureConditions)
         : {},
       debtStatus: {
-        totalDebtManwon: totalDebt,
+        totalDebtWon: totalDebt,
         // 간편모드 건에는 이자 데이터 자체가 없어 undefined — UI에서 항목을 숨긴다.
         // 상세→간편 전환 후에도 서버가 이전 상세입력 값을 그대로 들려줄 수 있어, debtInputMode로
         // 한 번 더 걸러 간편모드에서는 남아있는 값이 있어도 항상 무시한다.
-        totalDebtWithInterestManwon:
+        totalDebtWithInterestWon:
           inputData.debtInputMode === "detailed" ? inputData.totalDebtWithInterest : undefined,
         // 레거시(마이그레이션 안 된) 분석 건은 financialAssetValue/vehicleValue가 응답에 없을 수
-        // 있다 — 폴백 없이 더하면 NaN이 되어 "NaN만원"으로 표시된다(types/analysis.ts
+        // 있다 — 폴백 없이 더하면 NaN으로 표시된다(types/analysis.ts
         // AnalysisInputData 주석 참고).
-        totalAssetManwon:
+        totalAssetWon:
           analysis.collateralBreakdown?.liquidationValue ??
           inputData.assets.reduce((sum, asset) => sum + asset.marketValue, 0),
-        monthlyAvailableIncomeManwon: inputData.disposableIncome,
+        monthlyAvailableIncomeWon: inputData.disposableIncome,
         overdueMonths: inputData.overdueMonths ?? 0,
         composition: buildDebtComposition(inputData.debtBreakdown, totalDebt),
       },
