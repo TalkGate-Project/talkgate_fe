@@ -7,8 +7,12 @@
   },
   "scripts": {
     "dev": "next dev --turbopack --port 3000",
+    "predev": "npm run build:analysis-pdf-worker",
     "build": "next build",
+    "prebuild": "npm run build:analysis-pdf-worker",
     "build:no-turbo": "next build",
+    "prebuild:no-turbo": "npm run build:analysis-pdf-worker",
+    "build:analysis-pdf-worker": "node scripts/build-analysis-pdf-worker.mjs",
     "start": "next start",
     "lint": "eslint",
     "convert:webp:auth-dashboard": "node scripts/convert-png-to-webp.mjs",
