@@ -5,6 +5,7 @@ import {
   type AnalysisDebtItem,
   type AnalysisFreshStartFundInsolvencyReason,
   type AnalysisInputData,
+  type AnalysisSpecialEligibility,
 } from "@/types/analysis";
 import {
   BUSINESS_OPERATION_STATUS_OPTIONS,
@@ -70,6 +71,13 @@ const BREAKDOWN_TO_DEBT: Record<keyof AnalysisDebtBreakdown, DebtType> = {
   personalBorrowing: "personal_borrowing",
 };
 
+const SPECIAL_ELIGIBILITY_LABELS: Record<AnalysisSpecialEligibility, string> = {
+  under_29: "만 29세 이하",
+  over_65: "만 65세 이상",
+  severe_disability: "중증 장애인",
+  jeonse_fraud_victim: "전세사기 피해자",
+};
+
 function optionLabel<T extends string>(
   options: { value: T; label: string }[],
   value: string | null | undefined
@@ -95,6 +103,11 @@ function formatWon(value: number | null | undefined): string {
 function formatManwon(value: number | null | undefined): string {
   if (value == null || Number.isNaN(value)) return "-";
   return formatDebtWon(value);
+}
+
+function formatOptionalAssetValue(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value)) return "-";
+  return value > 0 ? formatManwon(value) : "없음";
 }
 
 function formatDate(value: string | null | undefined): string {
@@ -133,6 +146,15 @@ function debtCausesLabel(causes: string[]): string {
       const mapped = DEBT_CAUSE_FROM[cause];
       return mapped ? DEBT_CAUSE_LABELS[mapped] : cause;
     })
+    .join(", ");
+}
+
+function specialEligibilitiesLabel(
+  specialEligibilities: AnalysisSpecialEligibility[] | null | undefined
+): string {
+  if (!specialEligibilities?.length) return "없음";
+  return specialEligibilities
+    .map((specialEligibility) => SPECIAL_ELIGIBILITY_LABELS[specialEligibility] ?? specialEligibility)
     .join(", ");
 }
 
@@ -193,7 +215,7 @@ export function buildSections(input: AnalysisInputData) {
   const assetRows: DisplayRow[] = [
     { label: "보유 자산", value: assets.length ? assets.map((asset) => `${optionLabel(ASSET_CATEGORY_OPTIONS, asset.category)} ${formatManwon(asset.marketValue)}`).join(", ") : "없음" },
     { label: "자산 시가 합계", value: formatManwon(assets.reduce((sum, asset) => sum + asset.marketValue, 0)) },
-    { label: "배우자 재산", value: formatManwon(input.spouseHousingAssetValue) },
+    { label: "배우자 재산", value: formatOptionalAssetValue(input.spouseHousingAssetValue) },
     { label: "2년 내 재산처분", value: yesNo(input.hasRecentAssetDisposal) },
   ];
 
@@ -253,8 +275,11 @@ export function buildSections(input: AnalysisInputData) {
   const incomeRows: DisplayRow[] = [...incomeLeftRows, ...incomeRightRows];
 
   const incomeSummaryRows: DisplayRow[] = [
+    { label: "고용형태", value: input.employmentType || "-" },
     { label: "월소득 (세후)", value: formatManwon(input.monthlyIncome) },
     { label: "주거형태", value: optionLabel(HOUSING_TYPE_OPTIONS, input.housingType) },
+    { label: "부양가족", value: formatDependents(input.dependents) },
+    { label: "배우자 소득", value: yesNo(input.hasSpouseIncome) },
     {
       label: "법정 생계비",
       value: isLegacyIncomeData ? "-" : formatDeductedManwon(minimumLivingCostWon),
@@ -360,7 +385,7 @@ export function buildCustomerInfoViewModel(
     {
       key: "spouse-property",
       label: "배우자 재산",
-      title: formatManwon(input.spouseHousingAssetValue),
+      title: formatOptionalAssetValue(input.spouseHousingAssetValue),
     },
     {
       key: "recent-asset-disposal",
@@ -400,6 +425,19 @@ export function buildCustomerInfoViewModel(
       debtRows = [{ key: "no-debts", label: "채무내역", title: "없음" }];
     }
   }
+
+  debtRows.push(
+    {
+      key: "tax-arrears",
+      label: "체납이력",
+      title: yesNo(input.hasTaxArrears),
+    },
+    {
+      key: "debt-causes",
+      label: "채무발생 원인",
+      title: debtCausesLabel(input.debtCauses ?? []),
+    }
+  );
 
   const includedDebts = debts.filter((debt) => !debt.isExcludedFromAnalysis);
   const collateralDebtWon = includedDebts
@@ -480,6 +518,10 @@ export function buildCustomerInfoViewModel(
     {
       label: `현재 진행 중인 소송 / 압류 ${input.hasActiveLawsuit ? "있음" : "없음"}`,
       value: input.hasActiveLawsuit ? input.lawsuitNote?.trim() || undefined : undefined,
+    },
+    {
+      label: "특례 대상",
+      value: specialEligibilitiesLabel(input.specialEligibilities),
     },
   ];
 

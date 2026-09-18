@@ -47,6 +47,17 @@ const nextConfig: NextConfig = {
     
     return [
       {
+        // 정적 PDF 워커는 소스와 별도로 미리 번들링된다. 새 배포 뒤에도 브라우저가 이전
+        // 렌더링 코드를 재사용하지 않도록 매 요청 시 최신 파일 여부를 확인한다.
+        source: "/workers/analysis-pdf-worker.js",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, must-revalidate",
+          },
+        ],
+      },
+      {
         // 모든 API 라우트 및 페이지에 CORS 헤더 적용
         source: "/:path*",
         headers: [
