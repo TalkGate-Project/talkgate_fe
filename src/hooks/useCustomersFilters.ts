@@ -12,7 +12,7 @@ const PERSISTABLE_FILTER_KEYS: (keyof CustomerFilters)[] = [
   "apiKeyId",
   "projectPartnerId",
   "teamId",
-  "memberId",
+  "memberIds",
   "applicationRoute",
   "mediaCompany",
   "site",
@@ -22,6 +22,8 @@ const PERSISTABLE_FILTER_KEYS: (keyof CustomerFilters)[] = [
   "applicationDateTo",
   "assignedAtFrom",
   "assignedAtTo",
+  "lastNoteDateFrom",
+  "lastNoteDateTo",
   "keyword",
   "ipAddress",
   "salesMemo",
@@ -35,7 +37,7 @@ export type CustomerFilters = {
   apiKeyId?: number;
   projectPartnerId?: number;
   teamId?: number;
-  memberId?: number;
+  memberIds?: number[];
   applicationRoute?: string;
   mediaCompany?: string;
   site?: string;
@@ -45,12 +47,27 @@ export type CustomerFilters = {
   applicationDateTo?: string;
   assignedAtFrom?: string;
   assignedAtTo?: string;
+  lastNoteDateFrom?: string;
+  lastNoteDateTo?: string;
   keyword?: string;
   ipAddress?: string;
   salesMemo?: string;
 };
 export type CustomerSortType = "applicationDate" | "assignedMember" | "lastNoteDate";
 export type CustomerSortOrder = "ASC" | "DESC";
+
+export type DateRangeFilterType = "application" | "assigned" | "lastNote";
+
+const DATE_RANGE_FILTER_KEYS: Record<DateRangeFilterType, [keyof CustomerFilters, keyof CustomerFilters]> = {
+  application: ["applicationDateFrom", "applicationDateTo"],
+  assigned: ["assignedAtFrom", "assignedAtTo"],
+  lastNote: ["lastNoteDateFrom", "lastNoteDateTo"],
+};
+
+function emptyDateRange(type: DateRangeFilterType): CustomerFilters {
+  const [fromKey, toKey] = DATE_RANGE_FILTER_KEYS[type];
+  return { [fromKey]: undefined, [toKey]: undefined };
+}
 
 function isBrowser(): boolean {
   return typeof window !== "undefined";
@@ -108,6 +125,11 @@ function readPersistedFilters(projectId: string): CustomerFilters | null {
       return null;
     }
 
+    // 단일 담당자(memberId) 시절 저장값을 memberIds로 옮긴다.
+    const legacyMemberId = (parsed as { memberId?: unknown }).memberId;
+    if (typeof legacyMemberId === "number" && !Array.isArray(parsed.memberIds)) {
+      parsed.memberIds = [legacyMemberId];
+    }
     const persistedFilters = extractPersistableFilters(parsed as Partial<CustomerFilters>);
     return hasPersistableFilters(persistedFilters) ? persistedFilters : null;
   } catch (error) {
@@ -180,7 +202,13 @@ export function useCustomersFilters(projectId: string | null) {
     obj.apiKeyId = gi("apiKeyId");
     obj.projectPartnerId = gi("projectPartnerId");
     obj.teamId = gi("teamId");
-    obj.memberId = gi("memberId");
+    {
+      // 이전 URL(memberId=)도 그대로 열리도록 memberIds에 합친다.
+      const ids = [...searchParams.getAll("memberIds"), ...searchParams.getAll("memberId")]
+        .map(Number)
+        .filter((n) => Number.isInteger(n) && n > 0);
+      obj.memberIds = ids.length ? [...new Set(ids)] : undefined;
+    }
     obj.applicationRoute = g("applicationRoute");
     obj.mediaCompany = g("mediaCompany");
     obj.site = g("site");
@@ -189,6 +217,8 @@ export function useCustomersFilters(projectId: string | null) {
     obj.applicationDateTo = g("applicationDateTo");
     obj.assignedAtFrom = g("assignedAtFrom");
     obj.assignedAtTo = g("assignedAtTo");
+    obj.lastNoteDateFrom = g("lastNoteDateFrom");
+    obj.lastNoteDateTo = g("lastNoteDateTo");
     obj.keyword = g("keyword");
     obj.ipAddress = g("ipAddress");
     obj.salesMemo = g("salesMemo");
@@ -223,7 +253,7 @@ export function useCustomersFilters(projectId: string | null) {
     setIf("apiKeyId", filterValues.apiKeyId);
     setIf("projectPartnerId", filterValues.projectPartnerId);
     setIf("teamId", filterValues.teamId);
-    setIf("memberId", filterValues.memberId);
+    filterValues.memberIds?.forEach((id) => params.append("memberIds", String(id)));
     setIf("applicationRoute", filterValues.applicationRoute);
     setIf("mediaCompany", filterValues.mediaCompany);
     setIf("site", filterValues.site);
@@ -241,6 +271,8 @@ export function useCustomersFilters(projectId: string | null) {
     }
     setIf("assignedAtFrom", filterValues.assignedAtFrom);
     setIf("assignedAtTo", filterValues.assignedAtTo);
+    setIf("lastNoteDateFrom", filterValues.lastNoteDateFrom);
+    setIf("lastNoteDateTo", filterValues.lastNoteDateTo);
     setIf("keyword", filterValues.keyword);
     setIf("ipAddress", filterValues.ipAddress);
     setIf("salesMemo", filterValues.salesMemo);
@@ -292,7 +324,7 @@ export function useCustomersFilters(projectId: string | null) {
         apiKeyId: applied.apiKeyId,
         projectPartnerId: applied.projectPartnerId,
         teamId: applied.teamId,
-        memberId: applied.memberId,
+        memberIds: applied.memberIds,
         applicationRoute: applied.applicationRoute,
         mediaCompany: applied.mediaCompany,
         site: applied.site,
@@ -302,6 +334,8 @@ export function useCustomersFilters(projectId: string | null) {
         applicationDateTo: applied.applicationDateTo,
         assignedAtFrom: applied.assignedAtFrom,
         assignedAtTo: applied.assignedAtTo,
+        lastNoteDateFrom: applied.lastNoteDateFrom,
+        lastNoteDateTo: applied.lastNoteDateTo,
         keyword: applied.keyword,
         ipAddress: applied.ipAddress,
         salesMemo: applied.salesMemo,
@@ -339,7 +373,7 @@ export function useCustomersFilters(projectId: string | null) {
             apiKeyId: applied.apiKeyId,
             projectPartnerId: applied.projectPartnerId,
             teamId: applied.teamId,
-            memberId: applied.memberId,
+            memberIds: applied.memberIds,
             applicationRoute: applied.applicationRoute,
             mediaCompany: applied.mediaCompany,
             site: applied.site,
@@ -357,6 +391,8 @@ export function useCustomersFilters(projectId: string | null) {
                 : undefined,
             assignedAtFrom: applied.assignedAtFrom,
             assignedAtTo: applied.assignedAtTo,
+            lastNoteDateFrom: applied.lastNoteDateFrom,
+            lastNoteDateTo: applied.lastNoteDateTo,
             keyword: applied.keyword,
             ipAddress: applied.ipAddress,
             salesMemo: applied.salesMemo,
@@ -406,6 +442,24 @@ export function useCustomersFilters(projectId: string | null) {
     router.push(`/customers?${params.toString()}`, { scroll: false });
   }
 
+  /** 정렬 기준/방향을 지정한다. column이 null이면 기본 정렬로 되돌린다. */
+  function setSort(column: CustomerSortType | null, order: CustomerSortOrder = "DESC") {
+    const params = new URLSearchParams(searchParams?.toString());
+    params.delete("filterByLatestCategory");
+
+    if (column) {
+      params.set("sortType", column);
+      params.set("sortOrder", order);
+    } else {
+      params.delete("sortType");
+      params.delete("sortOrder");
+    }
+
+    params.set("page", "1");
+    params.set("limit", String(applied.limit || limit));
+    router.push(`/customers?${params.toString()}`, { scroll: false });
+  }
+
   function removeFilter(key: keyof CustomerFilters) {
     setFilters((f) => ({ ...f, [key]: undefined }));
   }
@@ -417,20 +471,8 @@ export function useCustomersFilters(projectId: string | null) {
     }));
   }
 
-  function removeDateRangeFilter(type: "application" | "assigned") {
-    if (type === "application") {
-      setFilters((f) => ({
-        ...f,
-        applicationDateFrom: undefined,
-        applicationDateTo: undefined,
-      }));
-    } else {
-      setFilters((f) => ({
-        ...f,
-        assignedAtFrom: undefined,
-        assignedAtTo: undefined,
-      }));
-    }
+  function removeDateRangeFilter(type: DateRangeFilterType) {
+    setFilters((f) => ({ ...f, ...emptyDateRange(type) }));
   }
 
   function removeFilterAndApply(key: keyof CustomerFilters) {
@@ -448,19 +490,8 @@ export function useCustomersFilters(projectId: string | null) {
     applyFilters(updated);
   }
 
-  function removeDateRangeFilterAndApply(type: "application" | "assigned") {
-    const updated =
-      type === "application"
-        ? {
-            ...filters,
-            applicationDateFrom: undefined,
-            applicationDateTo: undefined,
-          }
-        : {
-            ...filters,
-            assignedAtFrom: undefined,
-            assignedAtTo: undefined,
-          };
+  function removeDateRangeFilterAndApply(type: DateRangeFilterType) {
+    const updated = { ...filters, ...emptyDateRange(type) };
     setFilters(updated);
     applyFilters(updated);
   }
@@ -477,6 +508,7 @@ export function useCustomersFilters(projectId: string | null) {
     sortType: applied.sortType as CustomerSortType | undefined,
     sortOrder: applied.sortOrder as CustomerSortOrder | undefined,
     toggleSort,
+    setSort,
     pushPage,
     applyFilters,
     removeFilter,

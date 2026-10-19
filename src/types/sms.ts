@@ -25,7 +25,7 @@ export type SendSmsFilters = {
   assignType?: "all" | "assigned" | "unassigned";
   apiKeyId?: number;
   teamId?: number;
-  memberId?: number;
+  memberIds?: number[];
   applicationRoute?: string;
   mediaCompany?: string;
   site?: string;
@@ -34,6 +34,8 @@ export type SendSmsFilters = {
   applicationDateTo?: string;
   assignedAtFrom?: string;
   assignedAtTo?: string;
+  lastNoteDateFrom?: string;
+  lastNoteDateTo?: string;
 };
 
 export type SendSmsInput = {

@@ -20,6 +20,7 @@ import { sanitizeContactFilterInput } from "@/utils/format";
 import { getBadgeStyle } from "@/utils/categoryBadge";
 import { NO_CATEGORY_LABEL } from "@/utils/customerCategory";
 import { getBodyZoom } from "@/utils/zoom";
+import { useAnchoredPanel } from "@/hooks/useAnchoredPanel";
 import {
   DateRange,
   LabeledSelect,
@@ -36,7 +37,7 @@ export type FilterValues = {
     contact1?: string;
     apiKeyId?: number;
     teamId?: number;
-    memberId?: number;
+    memberIds?: number[];
     applicationRoute?: string;
     mediaCompany?: string;
     site?: string;
@@ -48,6 +49,8 @@ export type FilterValues = {
     applicationDateTo?: string;
     assignedAtFrom?: string;
     assignedAtTo?: string;
+    lastNoteDateFrom?: string;
+    lastNoteDateTo?: string;
     /** 키워드 */
     keyword?: string;
     /** IP 주소 */
@@ -577,7 +580,7 @@ export default function FilterModal({
 
                             {/* 담당팀 / 담당자 */}
                             <LabeledSelect label="담당팀" options={teamOptions} placeholder="전체" value={form.teamId ? String(form.teamId) : ""} onChange={(v) => setForm((f) => ({ ...f, teamId: v ? Number(v) : undefined }))} />
-                            <LabeledSelect label="담당자" options={memberOptions} placeholder="전체" value={form.memberId ? String(form.memberId) : ""} onChange={(v) => setForm((f) => ({ ...f, memberId: v ? Number(v) : undefined }))} />
+                            <MemberMultiSelect options={memberOptions} value={form.memberIds ?? []} onChange={(ids) => setForm((f) => ({ ...f, memberIds: ids.length ? ids : undefined }))} />
 
                             {/* 신청경로 / 매체사 */}
                             <SearchableLabeledCombobox
@@ -688,6 +691,19 @@ export default function FilterModal({
                                     />
                                 </div>
                             </div>
+                            {!isDataProvider && (
+                                <div>
+                                    <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">최근메모</label>
+                                    <div className="flex items-center gap-3">
+                                        <DateRange
+                                            startValue={stringToDate(form.lastNoteDateFrom)}
+                                            endValue={stringToDate(form.lastNoteDateTo)}
+                                            onStartChange={(date) => setForm((f) => ({ ...f, lastNoteDateFrom: dateToString(date) }))}
+                                            onEndChange={(date) => setForm((f) => ({ ...f, lastNoteDateTo: dateToString(date) }))}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -729,6 +745,118 @@ function arraysEqual(a: (number | null)[], b: (number | null)[]) {
     if (a.length !== b.length) return false;
     for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
     return true;
+}
+
+const MEMBER_PANEL_WIDTH = 360;
+
+/** 담당자 다중 선택. 선택한 담당자 중 한 명에게라도 배정된 고객을 찾는다(OR). */
+function MemberMultiSelect({
+    options,
+    value,
+    onChange,
+}: {
+    options: Option[];
+    value: number[];
+    onChange: (ids: number[]) => void;
+}) {
+    const [open, setOpen] = useState(false);
+    const [query, setQuery] = useState("");
+    const { rootRef, anchorRef, panelRef, panelPos } = useAnchoredPanel<HTMLButtonElement>({
+        open,
+        onClose: () => setOpen(false),
+        panelWidth: MEMBER_PANEL_WIDTH,
+        estimatedPanelHeight: 300,
+    });
+
+    const labelById = useMemo(
+        () => new Map(options.map((o) => [Number(o.value), o.label])),
+        [options]
+    );
+    const filtered = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        return q ? options.filter((o) => o.label.toLowerCase().includes(q)) : options;
+    }, [options, query]);
+
+    const toggle = (id: number, checked: boolean) => {
+        onChange(checked ? [...value, id] : value.filter((x) => x !== id));
+    };
+
+    const firstLabel = value.length ? labelById.get(value[0]) ?? "알 수 없음" : "";
+    const summaryLabel =
+        value.length === 0 ? "전체" : value.length === 1 ? firstLabel : `${firstLabel} 외 ${value.length - 1}명`;
+
+    return (
+        <div ref={rootRef} className="relative">
+            <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">담당자</label>
+            <button
+                ref={anchorRef}
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                className="w-full border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] h-[34px] px-3 relative text-left flex items-center justify-between bg-white dark:bg-neutral-20"
+            >
+                <span className="truncate text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80 opacity-80">{summaryLabel}</span>
+                <svg className="pointer-events-none shrink-0" width="8" height="6" viewBox="0 0 8 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4.40544 5.4382C4.20587 5.71473 3.79413 5.71473 3.59456 5.4382L0.241885 0.792604C0.00323535 0.461921 0.239523 0 0.647327 0L7.35267 0C7.76048 0 7.99676 0.461922 7.75812 0.792604L4.40544 5.4382Z" fill="currentColor" className="text-[#000] dark:text-neutral-70" />
+                </svg>
+            </button>
+
+            {value.length > 0 && (
+                <div className="w-full mt-2 overflow-x-auto no-scrollbar">
+                    <div className="flex items-center gap-2 w-max">
+                        {value.map((id) => (
+                            <Pill key={id} label={labelById.get(id) ?? "알 수 없음"} onRemove={() => toggle(id, false)} />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {open && panelPos && createPortal(
+                <div
+                    ref={panelRef}
+                    data-anchored-panel
+                    className="fixed z-[1000] border border-[#E2E2E2] dark:border-[#444444] rounded-[8px] bg-white dark:bg-neutral-20 shadow-[0_8px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.4)]"
+                    style={{ top: panelPos.top, left: panelPos.left, width: MEMBER_PANEL_WIDTH }}
+                >
+                    <div className="p-2 border-b border-[#E2E2E2] dark:border-[#444444] flex items-center gap-2">
+                        <input
+                            autoFocus
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="담당자 이름 검색"
+                            className="flex-1 min-w-0 h-[30px] px-2 rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] bg-transparent text-[14px] outline-none placeholder:text-[#808080] text-[#000] dark:text-neutral-80"
+                        />
+                        {value.length > 0 && (
+                            <button type="button" onClick={() => onChange([])} className="cursor-pointer shrink-0 text-[12px] text-[#808080] hover:text-[#000] dark:hover:text-neutral-80">
+                                선택 해제
+                            </button>
+                        )}
+                    </div>
+                    <div className="max-h-[240px] overflow-auto py-1">
+                        {filtered.length === 0 && (
+                            <div className="h-[40px] px-4 flex items-center text-[13px] text-[#808080]">검색 결과가 없습니다</div>
+                        )}
+                        {filtered.map((o) => {
+                            const id = Number(o.value);
+                            const checked = value.includes(id);
+                            return (
+                                <label
+                                    key={id}
+                                    className={`w-full h-[40px] px-4 flex items-center gap-3 cursor-pointer ${checked
+                                            ? "bg-primary-10/30 dark:bg-primary-40/20"
+                                            : "hover:bg-neutral-10 dark:hover:bg-neutral-30"
+                                        }`}
+                                >
+                                    <Checkbox checked={checked} onChange={(next) => toggle(id, next)} ariaLabel={o.label} />
+                                    <span className="text-[14px] text-[#000] dark:text-neutral-80 truncate">{o.label}</span>
+                                </label>
+                            );
+                        })}
+                    </div>
+                </div>,
+                document.body
+            )}
+        </div>
+    );
 }
 
 function CategorySelector({

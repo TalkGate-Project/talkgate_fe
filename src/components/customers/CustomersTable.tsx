@@ -6,7 +6,7 @@ import {
 } from "@/types/customers";
 import Checkbox from "@/components/common/Checkbox";
 import CustomersHoverPopover from "./CustomersHoverPopover";
-import { formatDateTime } from "@/utils/datetime";
+import { formatDateTime, formatRelativeTime } from "@/utils/datetime";
 import { formatContactForDisplay } from "@/utils/format";
 import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -16,6 +16,7 @@ import { CustomersService } from "@/services/customers";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { useMyMember } from "@/hooks/useMyMember";
 import CustomerProcedureBadge from "./CustomerProcedureBadge";
+import ApplicationTimeSortMenu from "./ApplicationTimeSortMenu";
 import { useHorizontalDragScroll } from "@/hooks/useHorizontalDragScroll";
 import { getBodyZoom } from "@/utils/zoom";
 
@@ -40,10 +41,75 @@ type CustomersTableProps = {
   isDataProvider?: boolean;
   /** 데이터 제공자 여부가 확정되었는지 (헤더 안정화용) */
   isDataProviderReady?: boolean;
-  sortType?: "applicationDate" | "assignedMember" | "lastNoteDate";
+  sortType?: SortKey;
   sortOrder?: "ASC" | "DESC";
-  onToggleSort?: (column: "applicationDate" | "assignedMember" | "lastNoteDate") => void;
+  onToggleSort?: (column: SortKey) => void;
+  onSetSort?: (column: SortKey | null, order?: "ASC" | "DESC") => void;
 };
+
+type SortKey = "applicationDate" | "assignedMember" | "lastNoteDate";
+
+function SortableHeaderLabel({
+  label,
+  sortKey,
+  sortType,
+  sortOrder,
+  onToggleSort,
+}: {
+  label: string;
+  sortKey: SortKey;
+  sortType?: SortKey;
+  sortOrder?: "ASC" | "DESC";
+  onToggleSort?: (column: SortKey) => void;
+}) {
+  const isActive = sortType === sortKey;
+  return (
+    <button
+      type="button"
+      className="cursor-pointer inline-flex items-center gap-1 hover:text-neutral-90"
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggleSort?.(sortKey);
+      }}
+      aria-label={`${label} 정렬 토글`}
+    >
+      <span>{label}</span>
+      <svg width="10" height="12" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 1L8 4H2L5 1Z" fill={isActive && sortOrder === "ASC" ? "#111111" : "#B0B0B0"} />
+        <path d="M5 11L2 8H8L5 11Z" fill={isActive && sortOrder === "DESC" ? "#111111" : "#B0B0B0"} />
+      </svg>
+    </button>
+  );
+}
+
+function ApplicationTimeCell({
+  customer,
+  showLastNote,
+  sortType,
+}: {
+  customer: CustomerListItem;
+  showLastNote: boolean;
+  sortType?: SortKey;
+}) {
+  const applicationTime = formatDateTime(customer.applicationDate || customer.createdAt);
+  if (!showLastNote) return <>{applicationTime}</>;
+
+  // recentNotes는 BE에서 작성시간 내림차순으로 내려온다.
+  const lastNoteAt = customer.recentNotes?.[0]?.createdAt;
+  // 최근메모 기준으로 정렬 중이면 메모 줄을 본문 색으로 올리고 신청시간 줄을 낮춘다.
+  const isLastNoteSort = sortType === "lastNoteDate";
+  return (
+    <div className="flex flex-col leading-[16px]">
+      <span className={isLastNoteSort ? "text-neutral-60" : undefined}>{applicationTime}</span>
+      <span
+        className={`text-[12px] ${isLastNoteSort ? "text-neutral-90 font-semibold" : "text-neutral-60"}`}
+        title={lastNoteAt ? `최근메모 ${formatDateTime(lastNoteAt)}` : undefined}
+      >
+        {lastNoteAt ? `메모 ${formatRelativeTime(lastNoteAt)}` : "메모 없음"}
+      </span>
+    </div>
+  );
+}
 
 function TruncateWithTooltip({
   text,
@@ -130,6 +196,7 @@ export default function CustomersTable({
   sortType,
   sortOrder,
   onToggleSort,
+  onSetSort,
 }: CustomersTableProps) {
   const [hoverInfo, setHoverInfo] = useState<{
     name: string;
@@ -575,54 +642,25 @@ export default function CustomersTable({
                   onClick={!isDataProvider && h === "전체확인" ? handleConfirmAll : undefined}
                 >
                   {(() => {
-                    const sortKeyByHeader: Record<
-                      string,
-                      "applicationDate" | "assignedMember" | "lastNoteDate"
-                    > = {
-                      "담당자": "assignedMember",
-                      "신청시간": "applicationDate",
-                      "카테고리": "lastNoteDate",
-                    };
-                    const currentKey = sortKeyByHeader[h];
-                    if (!isDataProvider && currentKey) {
+                    if (isDataProvider) return h;
+                    if (h === "담당자") {
                       return (
-                        <div className="inline-flex items-center justify-center gap-1">
-                          <span>{h}</span>
-                          <button
-                            type="button"
-                            className="cursor-pointer inline-flex items-center justify-center w-4 h-4 text-neutral-60 hover:text-neutral-90"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onToggleSort?.(currentKey);
-                            }}
-                            aria-label={`${h} 정렬 토글`}
-                          >
-                            <svg
-                              width="10"
-                              height="12"
-                              viewBox="0 0 10 12"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M5 1L8 4H2L5 1Z"
-                                fill={
-                                  sortType === currentKey && sortOrder === "ASC"
-                                    ? "#111111"
-                                    : "#B0B0B0"
-                                }
-                              />
-                              <path
-                                d="M5 11L2 8H8L5 11Z"
-                                fill={
-                                  sortType === currentKey && sortOrder === "DESC"
-                                    ? "#111111"
-                                    : "#B0B0B0"
-                                }
-                              />
-                            </svg>
-                          </button>
-                        </div>
+                        <SortableHeaderLabel
+                          label={h}
+                          sortKey="assignedMember"
+                          sortType={sortType}
+                          sortOrder={sortOrder}
+                          onToggleSort={onToggleSort}
+                        />
+                      );
+                    }
+                    if (h === "신청시간") {
+                      return (
+                        <ApplicationTimeSortMenu
+                          sortType={sortType}
+                          sortOrder={sortOrder}
+                          onSetSort={onSetSort}
+                        />
                       );
                     }
                     return h;
@@ -864,7 +902,7 @@ export default function CustomersTable({
                         </>
                       )}
                       <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                        {formatDateTime(c.applicationDate || c.createdAt)}
+                        <ApplicationTimeCell customer={c} showLastNote={!isDataProvider} sortType={sortType} />
                       </td>
                       {!isDataProvider && (
                         <td className="table-cell px-2 md:px-4 h-[48px] align-middle whitespace-nowrap">
@@ -1059,7 +1097,7 @@ export default function CustomersTable({
                               </>
                             )}
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              {formatDateTime(item.applicationDate || item.createdAt)}
+                              <ApplicationTimeCell customer={item} showLastNote={!isDataProvider} sortType={sortType} />
                             </td>
                             {!isDataProvider && (
                               <td className="table-cell px-2 md:px-4 h-[44px] align-middle whitespace-nowrap" />

@@ -94,7 +94,7 @@ export type CustomersListQuery = {
   apiKeyId?: number;
   projectPartnerId?: number;
   teamId?: number; // -1: 할당 대기 중
-  memberId?: number;
+  memberIds?: number[];
   applicationRoute?: string;
   mediaCompany?: string;
   site?: string;
@@ -103,6 +103,8 @@ export type CustomersListQuery = {
   applicationDateTo?: string;   // YYYY-MM-DD
   assignedAtFrom?: string;      // YYYY-MM-DD
   assignedAtTo?: string;        // YYYY-MM-DD
+  lastNoteDateFrom?: string;        // YYYY-MM-DD
+  lastNoteDateTo?: string;        // YYYY-MM-DD
   keyword?: string;
   ipAddress?: string;
   salesMemo?: string;
@@ -296,7 +298,7 @@ export type DeleteCustomersFilterConditions = {
   assignType?: "all" | string;
   apiKeyId?: number;
   teamId?: number;
-  memberId?: number;
+  memberIds?: number[];
   applicationRoute?: string;
   mediaCompany?: string;
   site?: string;
@@ -305,6 +307,8 @@ export type DeleteCustomersFilterConditions = {
   applicationDateTo?: string;
   assignedAtFrom?: string;
   assignedAtTo?: string;
+  lastNoteDateFrom?: string;
+  lastNoteDateTo?: string;
   projectPartnerId?: number;
 };
 
@@ -326,7 +330,7 @@ export type AssignCustomersFilterConditions = {
   apiKeyId?: number;
   projectPartnerId?: number;
   teamId?: number;
-  memberId?: number;
+  memberIds?: number[];
   applicationRoute?: string;
   mediaCompany?: string;
   site?: string;
@@ -335,6 +339,8 @@ export type AssignCustomersFilterConditions = {
   applicationDateTo?: string;
   assignedAtFrom?: string;
   assignedAtTo?: string;
+  lastNoteDateFrom?: string;
+  lastNoteDateTo?: string;
   ipAddress?: string;
   keyword?: string;
   salesMemo?: string;
@@ -387,7 +393,7 @@ export type CopyToPartnerFilterConditions = {
   assignType?: "all" | string;
   apiKeyId?: number;
   teamId?: number;
-  memberId?: number;
+  memberIds?: number[];
   applicationRoute?: string;
   mediaCompany?: string;
   site?: string;
@@ -396,6 +402,8 @@ export type CopyToPartnerFilterConditions = {
   applicationDateTo?: string;
   assignedAtFrom?: string;
   assignedAtTo?: string;
+  lastNoteDateFrom?: string;
+  lastNoteDateTo?: string;
 };
 
 export type CopyToPartnerInput = {
@@ -516,7 +524,7 @@ export type BulkCreateSchedulesFilterConditions = {
   noteContent?: string;
   assignType?: "all" | string;
   teamId?: number;
-  memberId?: number;
+  memberIds?: number[];
   applicationRoute?: string;
   mediaCompany?: string;
   site?: string;
@@ -525,6 +533,8 @@ export type BulkCreateSchedulesFilterConditions = {
   applicationDateTo?: string;
   assignedAtFrom?: string;
   assignedAtTo?: string;
+  lastNoteDateFrom?: string;
+  lastNoteDateTo?: string;
   projectPartnerId?: number;
   apiKeyId?: number;
   ipAddress?: string;

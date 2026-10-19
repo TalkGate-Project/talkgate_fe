@@ -12,7 +12,7 @@ type FilterChipsProps = {
   filters: CustomerFilters;
   onRemove: (key: keyof CustomerFilters) => void;
   onRemoveCategory: (id: number | null) => void;
-  onRemoveDateRange: (type: "application" | "assigned") => void;
+  onRemoveDateRange: (type: "application" | "assigned" | "lastNote") => void;
   onResetAll: () => void;
   teamOptions?: { label: string; value: number }[];
   memberOptions?: { label: string; value: number }[];
@@ -176,7 +176,7 @@ export default function FilterChips({
     Boolean(filters.name) ||
     Boolean(filters.contact1) ||
     Boolean(filters.teamId) ||
-    Boolean(filters.memberId) ||
+    Boolean(filters.memberIds?.length) ||
     Boolean(filters.applicationRoute) ||
     Boolean(filters.mediaCompany) ||
     Boolean(filters.site) ||
@@ -187,6 +187,7 @@ export default function FilterChips({
     Boolean(Array.isArray(filters.categoryIds) && filters.categoryIds.length > 0) ||
     Boolean(filters.applicationDateFrom && filters.applicationDateTo) ||
     Boolean(filters.assignedAtFrom || filters.assignedAtTo) ||
+    Boolean(filters.lastNoteDateFrom || filters.lastNoteDateTo) ||
     Boolean(filters.keyword) ||
     Boolean(filters.ipAddress) ||
     Boolean(filters.salesMemo);
@@ -226,8 +227,11 @@ export default function FilterChips({
       {filters.teamId && (
         <Chip label={`담당팀: ${getTeamName(filters.teamId)}`} onRemove={() => onRemove("teamId")} />
       )}
-      {filters.memberId && (
-        <Chip label={`담당자: ${getMemberName(filters.memberId)}`} onRemove={() => onRemove("memberId")} />
+      {filters.memberIds && filters.memberIds.length > 0 && (
+        <Chip
+          label={`담당자: ${getMemberName(filters.memberIds[0])}${filters.memberIds.length > 1 ? ` 외 ${filters.memberIds.length - 1}명` : ""}`}
+          onRemove={() => onRemove("memberIds")}
+        />
       )}
       {filters.applicationRoute && (
         <Chip label={`신청경로: ${filters.applicationRoute}`} onRemove={() => onRemove("applicationRoute")} />
@@ -280,6 +284,12 @@ export default function FilterChips({
         <Chip
           label={`배정시간: ${formatDateForChip(filters.assignedAtFrom || "")} - ${formatDateForChip(filters.assignedAtTo || "")}`}
           onRemove={() => onRemoveDateRange("assigned")}
+        />
+      )}
+      {(filters.lastNoteDateFrom || filters.lastNoteDateTo) && (
+        <Chip
+          label={`최근메모: ${formatDateForChip(filters.lastNoteDateFrom || "")} - ${formatDateForChip(filters.lastNoteDateTo || "")}`}
+          onRemove={() => onRemoveDateRange("lastNote")}
         />
       )}
       {filters.keyword && (

@@ -41,7 +41,7 @@ function buildFilterConditions(
   if (f.assignType != null) conditions.assignType = String(f.assignType);
   if (typeof f.apiKeyId === "number") conditions.apiKeyId = f.apiKeyId;
   if (typeof f.teamId === "number") conditions.teamId = f.teamId;
-  if (typeof f.memberId === "number") conditions.memberId = f.memberId;
+  if (Array.isArray(f.memberIds) && f.memberIds.length > 0) conditions.memberIds = f.memberIds;
   if (typeof f.applicationRoute === "string")
     conditions.applicationRoute = f.applicationRoute;
   if (typeof f.mediaCompany === "string")
@@ -57,6 +57,10 @@ function buildFilterConditions(
     conditions.assignedAtFrom = f.assignedAtFrom;
   if (typeof f.assignedAtTo === "string")
     conditions.assignedAtTo = f.assignedAtTo;
+  if (typeof f.lastNoteDateFrom === "string")
+    conditions.lastNoteDateFrom = f.lastNoteDateFrom;
+  if (typeof f.lastNoteDateTo === "string")
+    conditions.lastNoteDateTo = f.lastNoteDateTo;
 
   return Object.keys(conditions).length > 0 ? conditions : undefined;
 }

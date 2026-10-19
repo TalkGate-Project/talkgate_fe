@@ -50,7 +50,7 @@ function buildAssignmentFilterConditions(
         : undefined,
     apiKeyId: typeof appliedFilters.apiKeyId === "number" ? appliedFilters.apiKeyId : undefined,
     teamId: typeof appliedFilters.teamId === "number" ? appliedFilters.teamId : undefined,
-    memberId: typeof appliedFilters.memberId === "number" ? appliedFilters.memberId : undefined,
+    memberIds: Array.isArray(appliedFilters.memberIds) && appliedFilters.memberIds.length > 0 ? appliedFilters.memberIds : undefined,
     applicationRoute:
       typeof appliedFilters.applicationRoute === "string"
         ? appliedFilters.applicationRoute
@@ -74,6 +74,14 @@ function buildAssignmentFilterConditions(
     assignedAtTo:
       typeof appliedFilters.assignedAtTo === "string"
         ? appliedFilters.assignedAtTo
+        : undefined,
+    lastNoteDateFrom:
+      typeof appliedFilters.lastNoteDateFrom === "string"
+        ? appliedFilters.lastNoteDateFrom
+        : undefined,
+    lastNoteDateTo:
+      typeof appliedFilters.lastNoteDateTo === "string"
+        ? appliedFilters.lastNoteDateTo
         : undefined,
     projectPartnerId:
       typeof appliedFilters.projectPartnerId === "number"
@@ -112,6 +120,7 @@ function CustomersPageContentInner() {
     sortType,
     sortOrder,
     toggleSort,
+    setSort,
     pushPage,
     applyFilters,
     removeFilterAndApply,
@@ -481,6 +490,7 @@ function CustomersPageContentInner() {
           sortType={sortType}
           sortOrder={sortOrder}
           onToggleSort={toggleSort}
+          onSetSort={setSort}
         />
         </div>
         <CustomersPagination

@@ -77,7 +77,7 @@ function buildDeleteFilterConditions(
   if (f.assignType != null) conditions.assignType = String(f.assignType);
   if (typeof f.apiKeyId === "number") conditions.apiKeyId = f.apiKeyId;
   if (typeof f.teamId === "number") conditions.teamId = f.teamId;
-  if (typeof f.memberId === "number") conditions.memberId = f.memberId;
+  if (Array.isArray(f.memberIds) && f.memberIds.length > 0) conditions.memberIds = f.memberIds;
   if (typeof f.applicationRoute === "string") conditions.applicationRoute = f.applicationRoute;
   if (typeof f.mediaCompany === "string") conditions.mediaCompany = f.mediaCompany;
   if (typeof f.site === "string") conditions.site = f.site;
@@ -91,6 +91,8 @@ function buildDeleteFilterConditions(
   if (typeof f.applicationDateTo === "string") conditions.applicationDateTo = f.applicationDateTo;
   if (typeof f.assignedAtFrom === "string") conditions.assignedAtFrom = f.assignedAtFrom;
   if (typeof f.assignedAtTo === "string") conditions.assignedAtTo = f.assignedAtTo;
+  if (typeof f.lastNoteDateFrom === "string") conditions.lastNoteDateFrom = f.lastNoteDateFrom;
+  if (typeof f.lastNoteDateTo === "string") conditions.lastNoteDateTo = f.lastNoteDateTo;
   if (typeof f.projectPartnerId === "number") conditions.projectPartnerId = f.projectPartnerId;
 
   return Object.keys(conditions).length > 0 ? conditions : {};
@@ -208,8 +210,8 @@ export default function CustomersActions({
       if (appliedForExport.apiKeyId)
         exportQuery.apiKeyId = appliedForExport.apiKeyId;
       if (appliedForExport.teamId) exportQuery.teamId = appliedForExport.teamId;
-      if (appliedForExport.memberId)
-        exportQuery.memberId = appliedForExport.memberId;
+      if (Array.isArray(appliedForExport.memberIds) && appliedForExport.memberIds.length > 0)
+        exportQuery.memberIds = appliedForExport.memberIds;
       if (appliedForExport.applicationRoute)
         exportQuery.applicationRoute = appliedForExport.applicationRoute;
       if (appliedForExport.mediaCompany)
@@ -233,6 +235,10 @@ export default function CustomersActions({
         exportQuery.assignedAtFrom = appliedForExport.assignedAtFrom;
       if (appliedForExport.assignedAtTo)
         exportQuery.assignedAtTo = appliedForExport.assignedAtTo;
+      if (appliedForExport.lastNoteDateFrom)
+        exportQuery.lastNoteDateFrom = appliedForExport.lastNoteDateFrom;
+      if (appliedForExport.lastNoteDateTo)
+        exportQuery.lastNoteDateTo = appliedForExport.lastNoteDateTo;
 
       const blobRes = await CustomersBulkService.exportExcel({
         projectId,

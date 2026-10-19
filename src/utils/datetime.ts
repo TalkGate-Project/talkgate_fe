@@ -29,6 +29,28 @@ export function formatDateTime(dateInput?: string | Date | number | null): strin
 }
 
 /**
+ * 날짜를 현재 기준 상대시간으로 포맷합니다. 30일 이상 지난 날짜는 "YYYY-MM-DD"로 표시합니다.
+ * @param dateInput - 날짜 문자열, Date 객체, 또는 타임스탬프
+ * @returns 포맷된 문자열 (예: "방금 전", "5분 전", "3시간 전", "2일 전", "2025-09-15")
+ */
+export function formatRelativeTime(dateInput?: string | Date | number | null): string {
+  if (!dateInput) return "-";
+
+  const date = dayjs(dateInput);
+  if (!date.isValid()) return "-";
+
+  const now = dayjs();
+  const minutes = now.diff(date, "minute");
+  if (minutes < 1) return "방금 전";
+  if (minutes < 60) return `${minutes}분 전`;
+  const hours = now.diff(date, "hour");
+  if (hours < 24) return `${hours}시간 전`;
+  const days = now.diff(date, "day");
+  if (days < 30) return `${days}일 전`;
+  return date.format("YYYY-MM-DD");
+}
+
+/**
  * 날짜를 한국어 형식 "YYYY. MM. DD." 형식으로 포맷합니다.
  * @param dateString - 날짜 문자열
  * @returns 포맷된 날짜 문자열 (예: "2025. 09. 15.")
