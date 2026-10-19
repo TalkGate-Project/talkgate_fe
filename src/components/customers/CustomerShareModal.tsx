@@ -61,6 +61,7 @@ function buildFilterConditions(
     conditions.lastNoteDateFrom = f.lastNoteDateFrom;
   if (typeof f.lastNoteDateTo === "string")
     conditions.lastNoteDateTo = f.lastNoteDateTo;
+  if (typeof f.hasNote === "boolean") conditions.hasNote = f.hasNote;
 
   return Object.keys(conditions).length > 0 ? conditions : undefined;
 }

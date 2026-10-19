@@ -36,6 +36,7 @@ export type SendSmsFilters = {
   assignedAtTo?: string;
   lastNoteDateFrom?: string;
   lastNoteDateTo?: string;
+  hasNote?: boolean;
 };
 
 export type SendSmsInput = {

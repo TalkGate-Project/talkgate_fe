@@ -105,10 +105,11 @@ export type CustomersListQuery = {
   assignedAtTo?: string;        // YYYY-MM-DD
   lastNoteDateFrom?: string;        // YYYY-MM-DD
   lastNoteDateTo?: string;        // YYYY-MM-DD
+  hasNote?: boolean;
   keyword?: string;
   ipAddress?: string;
   salesMemo?: string;
-  sortType?: "applicationDate" | "assignedMember" | "lastNoteDate";
+  sortType?: "applicationDate" | "assignedMember" | "lastNoteDate" | "category";
   sortOrder?: "ASC" | "DESC";
   page: number;                 // required
   limit: number;                // required
@@ -309,6 +310,7 @@ export type DeleteCustomersFilterConditions = {
   assignedAtTo?: string;
   lastNoteDateFrom?: string;
   lastNoteDateTo?: string;
+  hasNote?: boolean;
   projectPartnerId?: number;
 };
 
@@ -341,6 +343,7 @@ export type AssignCustomersFilterConditions = {
   assignedAtTo?: string;
   lastNoteDateFrom?: string;
   lastNoteDateTo?: string;
+  hasNote?: boolean;
   ipAddress?: string;
   keyword?: string;
   salesMemo?: string;
@@ -404,6 +407,7 @@ export type CopyToPartnerFilterConditions = {
   assignedAtTo?: string;
   lastNoteDateFrom?: string;
   lastNoteDateTo?: string;
+  hasNote?: boolean;
 };
 
 export type CopyToPartnerInput = {
@@ -535,6 +539,7 @@ export type BulkCreateSchedulesFilterConditions = {
   assignedAtTo?: string;
   lastNoteDateFrom?: string;
   lastNoteDateTo?: string;
+  hasNote?: boolean;
   projectPartnerId?: number;
   apiKeyId?: number;
   ipAddress?: string;

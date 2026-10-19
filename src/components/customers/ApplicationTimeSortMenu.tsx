@@ -1,8 +1,8 @@
 import { createPortal } from "react-dom";
 import { useState } from "react";
 import { useAnchoredPanel } from "@/hooks/useAnchoredPanel";
+import type { CustomerSortType as SortKey } from "@/hooks/useCustomersFilters";
 
-type SortKey = "applicationDate" | "assignedMember" | "lastNoteDate";
 type SortOrder = "ASC" | "DESC";
 
 type ApplicationTimeSortMenuProps = {

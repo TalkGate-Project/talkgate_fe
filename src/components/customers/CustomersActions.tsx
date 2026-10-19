@@ -93,6 +93,7 @@ function buildDeleteFilterConditions(
   if (typeof f.assignedAtTo === "string") conditions.assignedAtTo = f.assignedAtTo;
   if (typeof f.lastNoteDateFrom === "string") conditions.lastNoteDateFrom = f.lastNoteDateFrom;
   if (typeof f.lastNoteDateTo === "string") conditions.lastNoteDateTo = f.lastNoteDateTo;
+  if (typeof f.hasNote === "boolean") conditions.hasNote = f.hasNote;
   if (typeof f.projectPartnerId === "number") conditions.projectPartnerId = f.projectPartnerId;
 
   return Object.keys(conditions).length > 0 ? conditions : {};
@@ -239,6 +240,8 @@ export default function CustomersActions({
         exportQuery.lastNoteDateFrom = appliedForExport.lastNoteDateFrom;
       if (appliedForExport.lastNoteDateTo)
         exportQuery.lastNoteDateTo = appliedForExport.lastNoteDateTo;
+      if (typeof appliedForExport.hasNote === "boolean")
+        exportQuery.hasNote = appliedForExport.hasNote;
 
       const blobRes = await CustomersBulkService.exportExcel({
         projectId,

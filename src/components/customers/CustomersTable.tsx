@@ -17,6 +17,7 @@ import { showErrorModal } from "@/lib/errorModalEvents";
 import { useMyMember } from "@/hooks/useMyMember";
 import CustomerProcedureBadge from "./CustomerProcedureBadge";
 import ApplicationTimeSortMenu from "./ApplicationTimeSortMenu";
+import type { CustomerSortType } from "@/hooks/useCustomersFilters";
 import { useHorizontalDragScroll } from "@/hooks/useHorizontalDragScroll";
 import { getBodyZoom } from "@/utils/zoom";
 
@@ -47,7 +48,7 @@ type CustomersTableProps = {
   onSetSort?: (column: SortKey | null, order?: "ASC" | "DESC") => void;
 };
 
-type SortKey = "applicationDate" | "assignedMember" | "lastNoteDate";
+type SortKey = CustomerSortType;
 
 function SortableHeaderLabel({
   label,
@@ -643,6 +644,17 @@ export default function CustomersTable({
                 >
                   {(() => {
                     if (isDataProvider) return h;
+                    if (h === "카테고리") {
+                      return (
+                        <SortableHeaderLabel
+                          label={h}
+                          sortKey="category"
+                          sortType={sortType}
+                          sortOrder={sortOrder}
+                          onToggleSort={onToggleSort}
+                        />
+                      );
+                    }
                     if (h === "담당자") {
                       return (
                         <SortableHeaderLabel

@@ -188,6 +188,7 @@ export default function FilterChips({
     Boolean(filters.applicationDateFrom && filters.applicationDateTo) ||
     Boolean(filters.assignedAtFrom || filters.assignedAtTo) ||
     Boolean(filters.lastNoteDateFrom || filters.lastNoteDateTo) ||
+    typeof filters.hasNote === "boolean" ||
     Boolean(filters.keyword) ||
     Boolean(filters.ipAddress) ||
     Boolean(filters.salesMemo);
@@ -284,6 +285,12 @@ export default function FilterChips({
         <Chip
           label={`배정시간: ${formatDateForChip(filters.assignedAtFrom || "")} - ${formatDateForChip(filters.assignedAtTo || "")}`}
           onRemove={() => onRemoveDateRange("assigned")}
+        />
+      )}
+      {typeof filters.hasNote === "boolean" && (
+        <Chip
+          label={`최근메모: ${filters.hasNote ? "있음" : "없음"}`}
+          onRemove={() => onRemove("hasNote")}
         />
       )}
       {(filters.lastNoteDateFrom || filters.lastNoteDateTo) && (

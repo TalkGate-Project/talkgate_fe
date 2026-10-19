@@ -83,6 +83,7 @@ function buildAssignmentFilterConditions(
       typeof appliedFilters.lastNoteDateTo === "string"
         ? appliedFilters.lastNoteDateTo
         : undefined,
+    hasNote: typeof appliedFilters.hasNote === "boolean" ? appliedFilters.hasNote : undefined,
     projectPartnerId:
       typeof appliedFilters.projectPartnerId === "number"
         ? appliedFilters.projectPartnerId

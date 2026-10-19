@@ -51,6 +51,7 @@ export type FilterValues = {
     assignedAtTo?: string;
     lastNoteDateFrom?: string;
     lastNoteDateTo?: string;
+    hasNote?: boolean;
     /** 키워드 */
     keyword?: string;
     /** IP 주소 */
@@ -694,12 +695,47 @@ export default function FilterModal({
                             {!isDataProvider && (
                                 <div>
                                     <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">최근메모</label>
+                                    <div className="h-[34px] mb-2 flex items-center gap-6">
+                                        {NOTE_STATUS_OPTIONS.map((item) => {
+                                            const checked = form.hasNote === item.value;
+                                            return (
+                                                <label key={item.label} className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="radio"
+                                                        name="hasNote"
+                                                        checked={checked}
+                                                        onChange={() =>
+                                                            setForm((f) =>
+                                                                // 메모 없는 고객은 마지막 메모 날짜가 없으므로 기간을 함께 비운다.
+                                                                item.value === false
+                                                                    ? { ...f, hasNote: false, lastNoteDateFrom: undefined, lastNoteDateTo: undefined }
+                                                                    : { ...f, hasNote: item.value }
+                                                            )
+                                                        }
+                                                        className="sr-only"
+                                                    />
+                                                    <span
+                                                        className={`w-5 h-5 rounded-full border grid place-items-center ${checked
+                                                                ? "border-primary-60"
+                                                                : "border-[#B0B0B0] dark:border-neutral-60"
+                                                            }`}
+                                                    >
+                                                        {checked && <span className="w-2.5 h-2.5 rounded-full bg-primary-60" />}
+                                                    </span>
+                                                    <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80">
+                                                        {item.label}
+                                                    </span>
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
                                     <div className="flex items-center gap-3">
                                         <DateRange
                                             startValue={stringToDate(form.lastNoteDateFrom)}
                                             endValue={stringToDate(form.lastNoteDateTo)}
                                             onStartChange={(date) => setForm((f) => ({ ...f, lastNoteDateFrom: dateToString(date) }))}
                                             onEndChange={(date) => setForm((f) => ({ ...f, lastNoteDateTo: dateToString(date) }))}
+                                            disabled={form.hasNote === false}
                                         />
                                     </div>
                                 </div>
@@ -746,6 +782,12 @@ function arraysEqual(a: (number | null)[], b: (number | null)[]) {
     for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
     return true;
 }
+
+const NOTE_STATUS_OPTIONS: { label: string; value: boolean | undefined }[] = [
+    { label: "전체", value: undefined },
+    { label: "메모 있음", value: true },
+    { label: "메모 없음", value: false },
+];
 
 const MEMBER_PANEL_WIDTH = 360;
 

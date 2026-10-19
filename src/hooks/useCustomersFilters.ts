@@ -24,6 +24,7 @@ const PERSISTABLE_FILTER_KEYS: (keyof CustomerFilters)[] = [
   "assignedAtTo",
   "lastNoteDateFrom",
   "lastNoteDateTo",
+  "hasNote",
   "keyword",
   "ipAddress",
   "salesMemo",
@@ -49,11 +50,13 @@ export type CustomerFilters = {
   assignedAtTo?: string;
   lastNoteDateFrom?: string;
   lastNoteDateTo?: string;
+  /** true=메모 있는 고객, false=메모 없는 고객, undefined=전체 */
+  hasNote?: boolean;
   keyword?: string;
   ipAddress?: string;
   salesMemo?: string;
 };
-export type CustomerSortType = "applicationDate" | "assignedMember" | "lastNoteDate";
+export type CustomerSortType = "applicationDate" | "assignedMember" | "lastNoteDate" | "category";
 export type CustomerSortOrder = "ASC" | "DESC";
 
 export type DateRangeFilterType = "application" | "assigned" | "lastNote";
@@ -102,6 +105,10 @@ function extractPersistableFilters(source: Partial<CustomerFilters>): CustomerFi
         persistedFilters[key] = value as never;
       }
       return;
+    }
+
+    if (typeof value === "boolean") {
+      persistedFilters[key] = value as never;
     }
 
   });
@@ -219,6 +226,10 @@ export function useCustomersFilters(projectId: string | null) {
     obj.assignedAtTo = g("assignedAtTo");
     obj.lastNoteDateFrom = g("lastNoteDateFrom");
     obj.lastNoteDateTo = g("lastNoteDateTo");
+    {
+      const rawHasNote = g("hasNote");
+      obj.hasNote = rawHasNote === "true" ? true : rawHasNote === "false" ? false : undefined;
+    }
     obj.keyword = g("keyword");
     obj.ipAddress = g("ipAddress");
     obj.salesMemo = g("salesMemo");
@@ -227,7 +238,8 @@ export function useCustomersFilters(projectId: string | null) {
     obj.sortType =
       rawSortType === "applicationDate" ||
       rawSortType === "assignedMember" ||
-      rawSortType === "lastNoteDate"
+      rawSortType === "lastNoteDate" ||
+      rawSortType === "category"
         ? rawSortType
         : undefined;
     obj.sortOrder =
@@ -273,6 +285,7 @@ export function useCustomersFilters(projectId: string | null) {
     setIf("assignedAtTo", filterValues.assignedAtTo);
     setIf("lastNoteDateFrom", filterValues.lastNoteDateFrom);
     setIf("lastNoteDateTo", filterValues.lastNoteDateTo);
+    setIf("hasNote", filterValues.hasNote);
     setIf("keyword", filterValues.keyword);
     setIf("ipAddress", filterValues.ipAddress);
     setIf("salesMemo", filterValues.salesMemo);
@@ -336,6 +349,7 @@ export function useCustomersFilters(projectId: string | null) {
         assignedAtTo: applied.assignedAtTo,
         lastNoteDateFrom: applied.lastNoteDateFrom,
         lastNoteDateTo: applied.lastNoteDateTo,
+        hasNote: applied.hasNote,
         keyword: applied.keyword,
         ipAddress: applied.ipAddress,
         salesMemo: applied.salesMemo,
@@ -393,6 +407,7 @@ export function useCustomersFilters(projectId: string | null) {
             assignedAtTo: applied.assignedAtTo,
             lastNoteDateFrom: applied.lastNoteDateFrom,
             lastNoteDateTo: applied.lastNoteDateTo,
+            hasNote: applied.hasNote,
             keyword: applied.keyword,
             ipAddress: applied.ipAddress,
             salesMemo: applied.salesMemo,
@@ -427,11 +442,13 @@ export function useCustomersFilters(projectId: string | null) {
     const params = new URLSearchParams(searchParams?.toString());
     params.delete("filterByLatestCategory");
 
+    // 이름순(카테고리)은 가나다순부터, 그 외(날짜 등)는 최신순부터 시작한다.
+    const firstOrder: CustomerSortOrder = column === "category" ? "ASC" : "DESC";
     if (currentType !== column) {
       params.set("sortType", column);
-      params.set("sortOrder", "DESC");
-    } else if (currentOrder === "DESC") {
-      params.set("sortOrder", "ASC");
+      params.set("sortOrder", firstOrder);
+    } else if (currentOrder === firstOrder) {
+      params.set("sortOrder", firstOrder === "ASC" ? "DESC" : "ASC");
     } else {
       params.delete("sortType");
       params.delete("sortOrder");

@@ -318,16 +318,18 @@ export function DateRange({
   endValue,
   onStartChange,
   onEndChange,
+  disabled = false,
 }: {
   startValue: Date | null;
   endValue: Date | null;
   onStartChange: (date: Date | null) => void;
   onEndChange: (date: Date | null) => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
       <div className="relative flex-1 lg:w-[175px]">
-        <DatePicker value={startValue} onChange={onStartChange} className="cursor-pointer pr-10 w-full" />
+        <DatePicker value={startValue} onChange={onStartChange} disabled={disabled} className={`${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"} pr-10 w-full`} />
         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
@@ -343,7 +345,7 @@ export function DateRange({
       </div>
       <span className="text-[14px] text-[#000] dark:text-neutral-80 hidden lg:inline">-</span>
       <div className="relative flex-1 lg:w-[175px]">
-        <DatePicker value={endValue} onChange={onEndChange} className="cursor-pointer pr-10 w-full" />
+        <DatePicker value={endValue} onChange={onEndChange} disabled={disabled} className={`${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"} pr-10 w-full`} />
         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path

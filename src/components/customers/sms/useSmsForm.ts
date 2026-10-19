@@ -278,6 +278,7 @@ export function useSmsForm() {
               assignedAtTo: appliedFilters.assignedAtTo,
               lastNoteDateFrom: appliedFilters.lastNoteDateFrom,
               lastNoteDateTo: appliedFilters.lastNoteDateTo,
+              hasNote: appliedFilters.hasNote,
             },
             expectedCount: totalCount,
             senderNumberType: selectedSender.source,
