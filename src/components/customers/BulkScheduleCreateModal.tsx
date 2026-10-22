@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import BaseModal from "@/components/common/BaseModal";
 import DatePicker from "@/components/common/DatePicker";
 import TimePicker from "@/components/common/TimePicker";
@@ -107,6 +108,7 @@ export default function BulkScheduleCreateModal({
   const [color, setColor] = useState<string>(COLOR_PALETTE[0]);
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!open) return;
@@ -187,6 +189,8 @@ export default function BulkScheduleCreateModal({
 
       const { successCount, failedCount } = res.data.data;
 
+      // 대시보드 달력에 일괄 등록된 일정이 바로 반영되도록 무효화
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "schedule"] });
       onSuccess?.();
       onClose();
 

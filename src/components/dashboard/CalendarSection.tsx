@@ -20,6 +20,8 @@ import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Tooltip from "@/components/common/Tooltip";
 import Checkbox from "@/components/common/Checkbox";
+import { useMyMember } from "@/hooks/useMyMember";
+import { hasLeaderAccess } from "@/utils/permissions";
 
 const days = ["일", "월", "화", "수", "목", "금", "토"];
 /** 하위 멤버의 일정인지 여부 (isMine 미제공 시 본인 일정으로 간주) */
@@ -95,6 +97,9 @@ const COLORS = [
 export default function CalendarSection() {
   const queryClient = useQueryClient();
   const [projectId, projectReady] = useSelectedProjectId();
+  const { role } = useMyMember(projectId);
+  // 하위 멤버 일정을 볼 수 있는 팀장급 이상에게는 범례/토글을 항상 표시
+  const showSubordinateControls = hasLeaderAccess(role);
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
@@ -152,7 +157,6 @@ export default function CalendarSection() {
     () => (data?.data.schedules === null ? [] : data?.data.schedules ?? []),
     [data]
   );
-  const hasSubordinateSchedules = allSchedules.some(isSubordinateSchedule);
 
   const schedulesByDay = useMemo(() => {
     const map = new Map<string, WeeklyScheduleItem[]>();
@@ -434,7 +438,7 @@ export default function CalendarSection() {
               </button>
             </div>
             <div className="border-t border-[#E2E2E255] dark:border-[#44444455] mb-2 md:mb-3"></div>
-            {hasSubordinateSchedules && (
+            {showSubordinateControls && (
               <div className="flex items-center justify-between gap-2 mb-2 md:mb-3 text-[11px] md:text-[12px] text-neutral-60">
                 <div className="flex items-center gap-3">
                   <span className="inline-flex items-center gap-1">

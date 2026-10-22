@@ -1,4 +1,5 @@
 import { useCallback, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { CustomersService } from "@/services/customers";
 import { ConversationsService } from "@/services/conversations";
 import type { CustomerDetail, UpdateCustomerInput } from "@/types/customers";
@@ -53,6 +54,13 @@ export function useCustomerActions({
   commitForm,
 }: UseCustomerActionsParams): CustomerActions {
   const isAddingNoteRef = useRef(false);
+  const queryClient = useQueryClient();
+
+  // 대시보드 달력이 이미 캐시돼 있어도 다음 진입 시 최신 일정을 다시 받도록 무효화
+  const invalidateDashboardSchedules = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["dashboard", "schedule"] });
+  }, [queryClient]);
+
   // =========================================================================
   // Form Save
   // =========================================================================
@@ -216,6 +224,8 @@ export function useCustomerActions({
         projectId: getProjectId(),
       });
 
+      invalidateDashboardSchedules();
+
       // Optimistic - 로컬 상태에도 # 포함된 형태로 저장
       const normalizedColorCode = colorCode?.startsWith("#") ? colorCode : `#${colorCode}`;
 
@@ -237,7 +247,7 @@ export function useCustomerActions({
           : prev
       );
     },
-    [detail, setDetail]
+    [detail, setDetail, invalidateDashboardSchedules]
   );
 
   const removeSchedule = useCallback(
@@ -246,6 +256,7 @@ export function useCustomerActions({
         scheduleId: id,
         projectId: getProjectId(),
       });
+      invalidateDashboardSchedules();
 
       setDetail((prev) =>
         prev
@@ -256,7 +267,7 @@ export function useCustomerActions({
           : prev
       );
     },
-    [setDetail]
+    [setDetail, invalidateDashboardSchedules]
   );
 
   // =========================================================================
