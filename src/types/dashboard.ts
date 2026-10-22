@@ -41,6 +41,13 @@ export type WeeklyScheduleItem = {
     id: number;
     name: string;
   };
+  // 개인 일정: 작성 멤버, 고객 일정: 고객 담당 멤버
+  owner?: {
+    id: number;
+    name: string;
+  };
+  // false면 트리상 하위 멤버의 일정
+  isMine?: boolean;
   createdAt: string;
   // Backward compatibility fields
   title?: string;

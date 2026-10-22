@@ -19,8 +19,69 @@ import MonthPicker from "@/components/common/MonthPicker";
 import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Tooltip from "@/components/common/Tooltip";
+import Checkbox from "@/components/common/Checkbox";
 
 const days = ["일", "월", "화", "수", "목", "금", "토"];
+/** 하위 멤버의 일정인지 여부 (isMine 미제공 시 본인 일정으로 간주) */
+const isSubordinateSchedule = (schedule: WeeklyScheduleItem) =>
+  schedule.isMine === false;
+
+/** 본인 일정은 일정 색상의 채워진 점, 하위 멤버 일정은 색상 없이 회색 테두리 점으로 구분 */
+const scheduleDotStyle = (
+  schedule: WeeklyScheduleItem,
+  fallbackColor: string
+): CSSProperties => {
+  if (isSubordinateSchedule(schedule)) {
+    return { background: "transparent", border: "2px solid var(--neutral-40)" };
+  }
+  return { background: schedule.colorCode || fallbackColor };
+};
+
+/** 고객 일정이면 고객 이름을 앞에 붙인다 (e.g. "정민수 · 상담 예약") */
+const scheduleLabel = (schedule: WeeklyScheduleItem) => {
+  const customerName = schedule.customer?.name;
+  if (customerName && schedule.description) {
+    return `${customerName} · ${schedule.description}`;
+  }
+  return schedule.description || customerName || "일정";
+};
+
+/** 하루 일정 정렬: 내 일정 → 하위 멤버(이름순) 일정, 각각 시간순 */
+const compareDaySchedules = (a: WeeklyScheduleItem, b: WeeklyScheduleItem) => {
+  const subA = isSubordinateSchedule(a) ? 1 : 0;
+  const subB = isSubordinateSchedule(b) ? 1 : 0;
+  if (subA !== subB) return subA - subB;
+  if (subA === 1) {
+    const byOwner = (a.owner?.name ?? "").localeCompare(b.owner?.name ?? "", "ko");
+    if (byOwner !== 0) return byOwner;
+  }
+  return new Date(a.scheduleTime).getTime() - new Date(b.scheduleTime).getTime();
+};
+
+type ScheduleGroup = {
+  key: string;
+  label: string;
+  items: WeeklyScheduleItem[];
+};
+
+/** 정렬된 하루 일정을 소유 멤버 단위로 묶는다 (내 일정 그룹이 항상 먼저) */
+const groupSchedulesByOwner = (schedules: WeeklyScheduleItem[]): ScheduleGroup[] => {
+  const groups: ScheduleGroup[] = [];
+  for (const schedule of schedules) {
+    const key = isSubordinateSchedule(schedule)
+      ? `member-${schedule.owner?.id ?? "unknown"}`
+      : "mine";
+    const label = key === "mine" ? "내 일정" : schedule.owner?.name ?? "알 수 없음";
+    const last = groups[groups.length - 1];
+    if (last?.key === key) {
+      last.items.push(schedule);
+      continue;
+    }
+    groups.push({ key, label, items: [schedule] });
+  }
+  return groups;
+};
+
 const COLORS = [
   "var(--primary-60)",
   "var(--primary-80)",
@@ -46,6 +107,7 @@ export default function CalendarSection() {
     useState<WeeklyScheduleItem | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
+  const [showSubordinates, setShowSubordinates] = useState(true);
   const montserratStyle = {
     fontFamily:
       'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui',
@@ -86,10 +148,17 @@ export default function CalendarSection() {
     placeholderData: (previous) => previous,
   });
 
+  const allSchedules = useMemo(
+    () => (data?.data.schedules === null ? [] : data?.data.schedules ?? []),
+    [data]
+  );
+  const hasSubordinateSchedules = allSchedules.some(isSubordinateSchedule);
+
   const schedulesByDay = useMemo(() => {
     const map = new Map<string, WeeklyScheduleItem[]>();
-    const schedules =
-      data?.data.schedules === null ? [] : data?.data.schedules ?? [];
+    const schedules = showSubordinates
+      ? allSchedules
+      : allSchedules.filter((item) => !isSubordinateSchedule(item));
     for (const item of schedules) {
       const iso = item.scheduleTime;
       if (!iso) continue;
@@ -101,13 +170,19 @@ export default function CalendarSection() {
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(item);
     }
+    for (const daySchedules of map.values()) {
+      daySchedules.sort(compareDaySchedules);
+    }
     return map;
-  }, [data]);
+  }, [allSchedules, showSubordinates]);
 
   const selectedKey = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
   const selectedSchedules = selectedKey
     ? schedulesByDay.get(selectedKey) ?? []
     : [];
+  const selectedGroups = groupSchedulesByOwner(selectedSchedules);
+  // 내 일정만 있는 날은 그룹 헤더 없이 기존처럼 표시
+  const showGroupHeaders = selectedSchedules.some(isSubordinateSchedule);
   const loading = isLoading && !data;
   const error = isError && !isFetching;
   const [showCreate, setShowCreate] = useState(false);
@@ -243,17 +318,17 @@ export default function CalendarSection() {
                     )}
                   </div>
                   {/* 모바일: circle만 표시, 데스크톱: 텍스트와 함께 표시 */}
-                  <div className="flex-1 flex flex-col justify-center items-center md:items-start md:ml-4 md:mr-2 gap-0.5 md:gap-1 pb-1 md:pb-3 min-w-0 w-full overflow-hidden">
+                  <div className="flex-1 flex flex-col justify-center md:justify-start items-center md:items-stretch md:px-3 md:mt-2 gap-0.5 md:gap-1 pb-1 md:pb-2 min-w-0 w-full overflow-hidden">
                     {/* 모바일: circle만 표시 */}
                     <div className="flex items-center gap-1 md:hidden justify-center flex-wrap max-w-full">
                       {daySchedules.slice(0, 4).map((schedule, idx) => (
                         <span
                           key={idx}
-                          className="w-2 h-2 rounded-full shrink-0"
-                          style={{
-                            background:
-                              schedule.colorCode || COLORS[idx % COLORS.length],
-                          }}
+                          className="w-2 h-2 rounded-full shrink-0 box-border"
+                          style={scheduleDotStyle(
+                            schedule,
+                            COLORS[idx % COLORS.length]
+                          )}
                         />
                       ))}
                       {daySchedules.length > 4 && (
@@ -263,35 +338,42 @@ export default function CalendarSection() {
                       )}
                     </div>
                     {/* 데스크톱: 텍스트와 함께 표시 */}
-                    <div className="hidden md:flex flex-col gap-1 w-full min-w-0">
+                    <div className="hidden md:flex flex-col gap-[6px] w-full min-w-0">
                       {daySchedules.slice(0, 2).map((schedule, idx) => (
                         <Tooltip
                           key={idx}
-                          content={schedule.description ||
-                            schedule.customer?.name ||
-                            "일정"}
+                          content={
+                            isSubordinateSchedule(schedule) && schedule.owner
+                              ? `[${schedule.owner.name}] ${scheduleLabel(schedule)}`
+                              : scheduleLabel(schedule)
+                          }
                           multiline={true}
                           maxWidth="250px"
                           position="top"
                           delay={0.3}
-                          className="flex items-center gap-1 text-[12px] text-neutral-60 min-w-0 w-full"
+                          className="w-full min-w-0"
                         >
-                          <span
-                            className="w-3 h-3 rounded-full shrink-0"
-                            style={{
-                              background:
-                                schedule.colorCode || COLORS[idx % COLORS.length],
-                            }}
-                          />
-                          <span className="truncate font-medium min-w-0 flex-1" style={{ maxWidth: 'calc(100% - 40px)' }}>
-                            {schedule.description ||
-                              schedule.customer?.name ||
-                              "일정"}
+                          {/* Tooltip 래퍼가 inline-block이라 내부에서 flex 행을 따로 구성 */}
+                          <span className="flex items-center gap-1.5 min-w-0 text-[12px] leading-[16px] text-neutral-60">
+                            <span
+                              className="w-2 h-2 rounded-full shrink-0 box-border"
+                              style={scheduleDotStyle(
+                                schedule,
+                                COLORS[idx % COLORS.length]
+                              )}
+                            />
+                            <span
+                              className={`truncate font-medium min-w-0 flex-1 ${
+                                isSubordinateSchedule(schedule) ? "text-neutral-50" : ""
+                              }`}
+                            >
+                              {scheduleLabel(schedule)}
+                            </span>
                           </span>
                         </Tooltip>
                       ))}
                       {daySchedules.length > 2 && (
-                        <div className="flex items-center text-[10px] leading-[1] font-medium text-neutral-60 shrink-0">
+                        <div className="flex items-center pl-[14px] text-[11px] leading-[14px] font-medium text-neutral-50 shrink-0">
                           그 외&nbsp;
                           <span
                             className="font-montserrat"
@@ -352,6 +434,29 @@ export default function CalendarSection() {
               </button>
             </div>
             <div className="border-t border-[#E2E2E255] dark:border-[#44444455] mb-2 md:mb-3"></div>
+            {hasSubordinateSchedules && (
+              <div className="flex items-center justify-between gap-2 mb-2 md:mb-3 text-[11px] md:text-[12px] text-neutral-60">
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center gap-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-neutral-60" />
+                    내 일정
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <span className="w-2.5 h-2.5 rounded-full border-2 border-neutral-60 box-border" />
+                    하위 멤버 일정
+                  </span>
+                </div>
+                <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                  <Checkbox
+                    checked={showSubordinates}
+                    onChange={setShowSubordinates}
+                    size={14}
+                    ariaLabel="하위 멤버 일정 표시"
+                  />
+                  하위 멤버 표시
+                </label>
+              </div>
+            )}
             <div className="overflow-y-auto flex-1 space-y-2 md:space-y-3 max-h-[182px] md:max-h-[490px]">
               {waitingForProject ? (
                 <div className="flex h-full items-center justify-center">
@@ -374,79 +479,104 @@ export default function CalendarSection() {
                     : "선택한 날짜에 일정이 없습니다."}
                 </div>
               ) : (
-                selectedSchedules.map((schedule) => {
-                  const hasCustomer = schedule.customer && schedule.customer.id;
-                  return (
-                    <div
-                      key={schedule.id}
-                      className="flex items-center gap-2 md:gap-4 bg-card rounded-[8px] md:rounded-[12px] p-3 md:p-4 min-w-0 cursor-pointer hover:bg-neutral-10 dark:hover:bg-neutral-0 transition-colors"
-                      onClick={() => {
-                        if (hasCustomer) {
-                          setSelectedCustomerId(schedule.customer!.id);
-                        } else {
-                          setEditingSchedule(schedule);
-                        }
-                      }}
-                    >
-                      <span
-                        className="leading-[1] w-3 h-3 md:w-4 md:h-4 rounded-full shrink-0"
-                        style={{
-                          background:
-                            schedule.colorCode ||
-                            COLORS[schedule.id % COLORS.length],
-                        }}
-                      />
-                      <span className="inline-flex items-center leading-[1] text-[12px] md:typo-body-2 text-neutral-60 w-[50px] md:w-[60px] text-left shrink-0 font-montserrat">
-                        {formatTimeFromISO(schedule.scheduleTime)}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <Tooltip
-                          content={schedule.description ||
-                            schedule.customer?.name ||
-                            "일정"}
-                          multiline={true}
-                          maxWidth="280px"
-                          position="top"
-                          align="start"
-                          gap={10}
-                          delay={0.3}
-                          className="w-full"
-                        >
-                          <span className="inline-flex w-full items-center leading-[1] text-[12px] md:typo-body-2 text-neutral-60 flex-1 min-w-0 truncate">
-                            {schedule.description ||
-                              schedule.customer?.name ||
-                              "일정"}
-                          </span>
-                        </Tooltip>
+                selectedGroups.map((group) => (
+                  <div key={group.key} className="space-y-2 md:space-y-3">
+                    {showGroupHeaders && (
+                      <div className="flex items-center gap-1.5 pt-1 text-[12px] md:text-[13px] font-semibold text-neutral-70">
+                        {group.label}
+                        <span className="font-montserrat font-medium text-neutral-50" style={montserratStyle}>
+                          {group.items.length}
+                        </span>
                       </div>
-                      <button
-                        type="button"
-                        className="cursor-pointer shrink-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRequestRemove(schedule);
-                        }}
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          className="md:w-4 md:h-4"
-                          viewBox="0 0 16 16"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
+                    )}
+                    {group.items.map((schedule) => {
+                      const hasCustomer = schedule.customer && schedule.customer.id;
+                      const isSubordinate = isSubordinateSchedule(schedule);
+                      // 하위 멤버의 개인 일정은 조회만 가능 (고객 일정은 고객 접근 권한으로 수정/삭제 가능)
+                      const readOnly = isSubordinate && !hasCustomer;
+                      return (
+                        <div
+                          key={schedule.id}
+                          className={`flex items-center gap-2 md:gap-4 rounded-[8px] md:rounded-[12px] p-3 md:p-4 min-w-0 transition-colors ${
+                            isSubordinate
+                              ? "bg-transparent border border-dashed border-neutral-30 dark:border-neutral-40"
+                              : "bg-card"
+                          } ${
+                            readOnly
+                              ? "cursor-default"
+                              : "cursor-pointer hover:bg-neutral-10 dark:hover:bg-neutral-0"
+                          }`}
+                          onClick={() => {
+                            if (hasCustomer) {
+                              setSelectedCustomerId(schedule.customer!.id);
+                            } else if (!readOnly) {
+                              setEditingSchedule(schedule);
+                            }
+                          }}
                         >
-                          <path
-                            d="M4 12L12 4M4 4L12 12"
-                            stroke="#B0B0B0"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                          <span
+                            className="leading-[1] w-3 h-3 md:w-4 md:h-4 rounded-full shrink-0 box-border"
+                            style={scheduleDotStyle(
+                              schedule,
+                              COLORS[schedule.id % COLORS.length]
+                            )}
                           />
-                        </svg>
-                      </button>
-                    </div>
-                  );
-                })
+                          <span className="inline-flex items-center leading-[1] text-[12px] md:typo-body-2 text-neutral-60 w-[50px] md:w-[60px] text-left shrink-0 font-montserrat">
+                            {formatTimeFromISO(schedule.scheduleTime)}
+                          </span>
+                          <div className="flex-1 min-w-0 flex flex-col gap-1">
+                            {hasCustomer && (
+                              <span className="self-start max-w-full truncate rounded-[4px] bg-secondary-10 px-1.5 py-0.5 text-[10px] md:text-[11px] font-semibold leading-[1.2] text-secondary-40 dark:text-[#0037B3]">
+                                {schedule.customer!.name}
+                              </span>
+                            )}
+                            <Tooltip
+                              content={schedule.description || scheduleLabel(schedule)}
+                              multiline={true}
+                              maxWidth="280px"
+                              position="top"
+                              align="start"
+                              gap={10}
+                              delay={0.3}
+                              className="w-full"
+                            >
+                              <span className="inline-flex w-full items-center leading-[1] text-[12px] md:typo-body-2 text-neutral-60 flex-1 min-w-0 truncate">
+                                {schedule.description || scheduleLabel(schedule)}
+                              </span>
+                            </Tooltip>
+                          </div>
+                          {!readOnly && (
+                          <button
+                            type="button"
+                            className="cursor-pointer shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRequestRemove(schedule);
+                            }}
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              className="md:w-4 md:h-4"
+                              viewBox="0 0 16 16"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M4 12L12 4M4 4L12 12"
+                                stroke="#B0B0B0"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))
               )}
             </div>
           </div>
