@@ -37,6 +37,7 @@ export type SendSmsFilters = {
   lastNoteDateFrom?: string;
   lastNoteDateTo?: string;
   hasNote?: boolean;
+  isInMeeting?: boolean;
 };
 
 export type SendSmsInput = {

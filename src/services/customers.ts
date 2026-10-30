@@ -9,6 +9,8 @@ import {
   CustomerDuplicatesResponse,
   UpdateCustomerInput,
   UpdateCustomerResponse,
+  SetCustomerMeetingInput,
+  SetCustomerMeetingResponse,
   AssignCustomersInput,
   AssignCustomersResponse,
   CopyToPartnerInput,
@@ -220,6 +222,18 @@ export const CustomersService = {
   changeCategory(customerId: string, input: UpdateCustomerCategoryInput) {
     const { projectId, ...body } = input;
     return apiClient.patch<BasicSuccessResponse>(`/v1/customers/${customerId}/category`, body, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+  // 미팅중 설정 (이미 미팅중이면 종료시간만 변경 = 연장)
+  setMeeting(customerId: string, input: SetCustomerMeetingInput) {
+    const { projectId, ...body } = input;
+    return apiClient.patch<SetCustomerMeetingResponse>(`/v1/customers/${customerId}/meeting`, body, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+  endMeeting(customerId: string, projectId: string) {
+    return apiClient.delete<BasicSuccessResponse>(`/v1/customers/${customerId}/meeting`, {
       headers: { "x-project-id": projectId },
     });
   },

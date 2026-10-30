@@ -36,6 +36,8 @@ type CustomerActions = {
   addSchedule: (dateIso: string, desc: string, colorCode: string) => Promise<void>;
   removeSchedule: (id: number) => Promise<void>;
   changeCategory: (categoryId: number | null) => Promise<void>;
+  setMeeting: (endsAt?: Date) => Promise<void>;
+  endMeeting: () => Promise<void>;
   addNote: (note: string) => Promise<void>;
   removeNote: (id: number) => Promise<void>;
   unlinkConversation: () => Promise<void>;
@@ -295,6 +297,43 @@ export function useCustomerActions({
     [detail, setDetail]
   );
 
+  const showMeetingErrorModal = useCallback((error: unknown) => {
+    console.error("Customer meeting update failed:", error);
+    showErrorModal({
+      title: "알림",
+      headline: "미팅 상태 변경에 실패했습니다. 잠시 후 다시 시도해주세요.",
+      confirmText: "확인",
+      cancelText: null,
+      hideCancel: true,
+    });
+  }, []);
+
+  const setMeeting = useCallback(
+    async (endsAt?: Date) => {
+      if (!detail) return;
+      try {
+        const response = await CustomersService.setMeeting(String(detail.id), {
+          endsAt: endsAt?.toISOString(),
+          projectId: getProjectId(),
+        });
+        setDetail((prev) => (prev ? { ...prev, meeting: response.data?.data ?? null } : prev));
+      } catch (error) {
+        showMeetingErrorModal(error);
+      }
+    },
+    [detail, setDetail, showMeetingErrorModal]
+  );
+
+  const endMeeting = useCallback(async () => {
+    if (!detail) return;
+    try {
+      await CustomersService.endMeeting(String(detail.id), getProjectId());
+      setDetail((prev) => (prev ? { ...prev, meeting: null } : prev));
+    } catch (error) {
+      showMeetingErrorModal(error);
+    }
+  }, [detail, setDetail, showMeetingErrorModal]);
+
   const addNote = useCallback(
     async (note: string) => {
       if (!detail || isAddingNoteRef.current) return;
@@ -408,6 +447,8 @@ export function useCustomerActions({
     addSchedule,
     removeSchedule,
     changeCategory,
+    setMeeting,
+    endMeeting,
     addNote,
     removeNote,
     unlinkConversation,

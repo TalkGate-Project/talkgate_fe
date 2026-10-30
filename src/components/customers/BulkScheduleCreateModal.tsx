@@ -77,6 +77,7 @@ function buildFilterConditions(
   if (typeof f.lastNoteDateFrom === "string") conditions.lastNoteDateFrom = f.lastNoteDateFrom;
   if (typeof f.lastNoteDateTo === "string") conditions.lastNoteDateTo = f.lastNoteDateTo;
   if (typeof f.hasNote === "boolean") conditions.hasNote = f.hasNote;
+  if (typeof f.isInMeeting === "boolean") conditions.isInMeeting = f.isInMeeting;
   if (typeof f.projectPartnerId === "number") conditions.projectPartnerId = f.projectPartnerId;
 
   return conditions;

@@ -279,6 +279,7 @@ export function useSmsForm() {
               lastNoteDateFrom: appliedFilters.lastNoteDateFrom,
               lastNoteDateTo: appliedFilters.lastNoteDateTo,
               hasNote: appliedFilters.hasNote,
+              isInMeeting: appliedFilters.isInMeeting,
             },
             expectedCount: totalCount,
             senderNumberType: selectedSender.source,

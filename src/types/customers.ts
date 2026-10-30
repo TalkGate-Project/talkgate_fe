@@ -26,6 +26,15 @@ export type AssignedMember = {
   teamName: string;
 };
 
+/** 미팅중 상태. 미팅중이 아니면 응답에서 null */
+export type CustomerMeeting = {
+  startedAt: string;
+  /** 종료시간. 시간 미지정이면 설정 시점 기준 다음 자정(KST) */
+  endsAt: string;
+  /** 종료시간 직접 지정 여부 (false면 자정에 자동 해제) */
+  hasEndTime: boolean;
+};
+
 export type CustomerListItem = {
   id: number;
   name: string;
@@ -47,6 +56,7 @@ export type CustomerListItem = {
   duplicateCount?: number;
   /** 한 번도 파트너에 배정되지 않은 경우 true (데이터 제공자 프로젝트용) */
   isPartnerUnassigned?: boolean;
+  meeting?: CustomerMeeting | null;
   /** 분석 데이터 연결 여부 (Analysis/Lawyer 프로젝트) */
   isAnalysisConnected?: boolean;
   /** 연결된 분석의 현재 진행 절차 (Analysis/Lawyer 프로젝트). 절차 추적 시작 전이면 null */
@@ -106,6 +116,7 @@ export type CustomersListQuery = {
   lastNoteDateFrom?: string;        // YYYY-MM-DD
   lastNoteDateTo?: string;        // YYYY-MM-DD
   hasNote?: boolean;
+  isInMeeting?: boolean;
   keyword?: string;
   ipAddress?: string;
   salesMemo?: string;
@@ -240,6 +251,7 @@ export type CustomerDetail = {
   status?: string; // e.g., "pending", "unconfirmed", "confirmed"
   categoryId?: number | null;
   salesMemo?: string | null;
+  meeting?: CustomerMeeting | null;
   conversation?: {
     id: number;
     platform: string;
@@ -311,6 +323,7 @@ export type DeleteCustomersFilterConditions = {
   lastNoteDateFrom?: string;
   lastNoteDateTo?: string;
   hasNote?: boolean;
+  isInMeeting?: boolean;
   projectPartnerId?: number;
 };
 
@@ -344,6 +357,7 @@ export type AssignCustomersFilterConditions = {
   lastNoteDateFrom?: string;
   lastNoteDateTo?: string;
   hasNote?: boolean;
+  isInMeeting?: boolean;
   ipAddress?: string;
   keyword?: string;
   salesMemo?: string;
@@ -408,6 +422,7 @@ export type CopyToPartnerFilterConditions = {
   lastNoteDateFrom?: string;
   lastNoteDateTo?: string;
   hasNote?: boolean;
+  isInMeeting?: boolean;
 };
 
 export type CopyToPartnerInput = {
@@ -476,6 +491,14 @@ export type UpdateCustomerCategoryInput = {
   projectId: string; // header
 };
 
+export type SetCustomerMeetingInput = {
+  /** ISO 8601. 생략하면 다음 자정(KST)에 자동 해제 */
+  endsAt?: string;
+  projectId: string; // header
+};
+
+export type SetCustomerMeetingResponse = { result: true; data: CustomerMeeting };
+
 export type CustomerCategoryHistoryItem = {
   id: string;
   categoryId: number | null;
@@ -540,6 +563,7 @@ export type BulkCreateSchedulesFilterConditions = {
   lastNoteDateFrom?: string;
   lastNoteDateTo?: string;
   hasNote?: boolean;
+  isInMeeting?: boolean;
   projectPartnerId?: number;
   apiKeyId?: number;
   ipAddress?: string;

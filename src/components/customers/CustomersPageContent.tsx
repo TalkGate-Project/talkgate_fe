@@ -84,6 +84,7 @@ function buildAssignmentFilterConditions(
         ? appliedFilters.lastNoteDateTo
         : undefined,
     hasNote: typeof appliedFilters.hasNote === "boolean" ? appliedFilters.hasNote : undefined,
+    isInMeeting: typeof appliedFilters.isInMeeting === "boolean" ? appliedFilters.isInMeeting : undefined,
     projectPartnerId:
       typeof appliedFilters.projectPartnerId === "number"
         ? appliedFilters.projectPartnerId

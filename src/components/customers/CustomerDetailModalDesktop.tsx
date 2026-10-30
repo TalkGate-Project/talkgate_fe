@@ -17,6 +17,7 @@ import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal as showErrorModalEvent } from "@/lib/errorModalEvents";
 import { buildHeaderIdentity } from "./detail/utils";
 import CustomerHeaderIdentity from "./detail/CustomerHeaderIdentity";
+import CustomerMeetingControl from "./meeting/CustomerMeetingControl";
 
 export type CustomerDetailModalProps = {
   open: boolean;
@@ -88,6 +89,16 @@ export default function CustomerDetailModalDesktop({
   const showAssignButton = Boolean(onAssignClick) && canAssignCustomer;
   const { project } = useCurrentProjectDetail();
   const isDataProviderProject = project?.isDataProvider === true;
+
+  const handleSetMeeting = useCallback(async (endsAt?: Date) => {
+    await actions.setMeeting(endsAt);
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
+
+  const handleEndMeeting = useCallback(async () => {
+    await actions.endMeeting();
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
 
   const handleClose = () => {
     if (loading) return;
@@ -287,6 +298,13 @@ export default function CustomerDetailModalDesktop({
               </button>
             );
           })()}
+          {detail && !isDataProviderProject && (
+            <CustomerMeetingControl
+              meeting={detail.meeting}
+              onSetMeeting={handleSetMeeting}
+              onEndMeeting={handleEndMeeting}
+            />
+          )}
           {showAssignButton && (
             <button
               type="button"

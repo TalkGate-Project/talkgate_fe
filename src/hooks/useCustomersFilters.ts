@@ -52,6 +52,8 @@ export type CustomerFilters = {
   lastNoteDateTo?: string;
   /** true=메모 있는 고객, false=메모 없는 고객, undefined=전체 */
   hasNote?: boolean;
+  /** true=미팅중인 고객, false=미팅중이 아닌 고객, undefined=전체 */
+  isInMeeting?: boolean;
   keyword?: string;
   ipAddress?: string;
   salesMemo?: string;
@@ -230,6 +232,10 @@ export function useCustomersFilters(projectId: string | null) {
       const rawHasNote = g("hasNote");
       obj.hasNote = rawHasNote === "true" ? true : rawHasNote === "false" ? false : undefined;
     }
+    {
+      const rawIsInMeeting = g("isInMeeting");
+      obj.isInMeeting = rawIsInMeeting === "true" ? true : rawIsInMeeting === "false" ? false : undefined;
+    }
     obj.keyword = g("keyword");
     obj.ipAddress = g("ipAddress");
     obj.salesMemo = g("salesMemo");
@@ -286,6 +292,7 @@ export function useCustomersFilters(projectId: string | null) {
     setIf("lastNoteDateFrom", filterValues.lastNoteDateFrom);
     setIf("lastNoteDateTo", filterValues.lastNoteDateTo);
     setIf("hasNote", filterValues.hasNote);
+    setIf("isInMeeting", filterValues.isInMeeting);
     setIf("keyword", filterValues.keyword);
     setIf("ipAddress", filterValues.ipAddress);
     setIf("salesMemo", filterValues.salesMemo);
@@ -350,6 +357,7 @@ export function useCustomersFilters(projectId: string | null) {
         lastNoteDateFrom: applied.lastNoteDateFrom,
         lastNoteDateTo: applied.lastNoteDateTo,
         hasNote: applied.hasNote,
+        isInMeeting: applied.isInMeeting,
         keyword: applied.keyword,
         ipAddress: applied.ipAddress,
         salesMemo: applied.salesMemo,
@@ -408,6 +416,7 @@ export function useCustomersFilters(projectId: string | null) {
             lastNoteDateFrom: applied.lastNoteDateFrom,
             lastNoteDateTo: applied.lastNoteDateTo,
             hasNote: applied.hasNote,
+            isInMeeting: applied.isInMeeting,
             keyword: applied.keyword,
             ipAddress: applied.ipAddress,
             salesMemo: applied.salesMemo,

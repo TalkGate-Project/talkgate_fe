@@ -15,6 +15,7 @@ import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { CustomersService } from "@/services/customers";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { useMyMember } from "@/hooks/useMyMember";
+import CustomerMeetingBadge from "./meeting/CustomerMeetingBadge";
 import CustomerProcedureBadge from "./CustomerProcedureBadge";
 import ApplicationTimeSortMenu from "./ApplicationTimeSortMenu";
 import type { CustomerSortType } from "@/hooks/useCustomersFilters";
@@ -766,6 +767,7 @@ export default function CustomersTable({
                           <span className="block min-w-0 shrink truncate leading-[17px]">
                             {c.name || "-"}
                           </span>
+                          <CustomerMeetingBadge meeting={c.meeting} />
                           <CustomerProcedureBadge
                             isAnalysisConnected={c.isAnalysisConnected}
                             trackingProcedure={c.trackingProcedure}
@@ -1025,6 +1027,7 @@ export default function CustomersTable({
                                 <span className="block min-w-0 shrink truncate leading-[17px]">
                                   {item.name || "-"}
                                 </span>
+                                <CustomerMeetingBadge meeting={item.meeting} />
                                 <CustomerProcedureBadge
                                   isAnalysisConnected={item.isAnalysisConnected}
                                   trackingProcedure={item.trackingProcedure}

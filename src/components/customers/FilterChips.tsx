@@ -189,6 +189,7 @@ export default function FilterChips({
     Boolean(filters.assignedAtFrom || filters.assignedAtTo) ||
     Boolean(filters.lastNoteDateFrom || filters.lastNoteDateTo) ||
     typeof filters.hasNote === "boolean" ||
+    typeof filters.isInMeeting === "boolean" ||
     Boolean(filters.keyword) ||
     Boolean(filters.ipAddress) ||
     Boolean(filters.salesMemo);
@@ -285,6 +286,12 @@ export default function FilterChips({
         <Chip
           label={`배정시간: ${formatDateForChip(filters.assignedAtFrom || "")} - ${formatDateForChip(filters.assignedAtTo || "")}`}
           onRemove={() => onRemoveDateRange("assigned")}
+        />
+      )}
+      {typeof filters.isInMeeting === "boolean" && (
+        <Chip
+          label={`미팅: ${filters.isInMeeting ? "미팅중" : "미팅중 아님"}`}
+          onRemove={() => onRemove("isInMeeting")}
         />
       )}
       {typeof filters.hasNote === "boolean" && (

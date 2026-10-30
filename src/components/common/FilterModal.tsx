@@ -52,6 +52,7 @@ export type FilterValues = {
     lastNoteDateFrom?: string;
     lastNoteDateTo?: string;
     hasNote?: boolean;
+    isInMeeting?: boolean;
     /** 키워드 */
     keyword?: string;
     /** IP 주소 */
@@ -695,40 +696,20 @@ export default function FilterModal({
                             {!isDataProvider && (
                                 <div>
                                     <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">최근메모</label>
-                                    <div className="h-[34px] mb-2 flex items-center gap-6">
-                                        {NOTE_STATUS_OPTIONS.map((item) => {
-                                            const checked = form.hasNote === item.value;
-                                            return (
-                                                <label key={item.label} className="flex items-center gap-2 cursor-pointer">
-                                                    <input
-                                                        type="radio"
-                                                        name="hasNote"
-                                                        checked={checked}
-                                                        onChange={() =>
-                                                            setForm((f) =>
-                                                                // 메모 없는 고객은 마지막 메모 날짜가 없으므로 기간을 함께 비운다.
-                                                                item.value === false
-                                                                    ? { ...f, hasNote: false, lastNoteDateFrom: undefined, lastNoteDateTo: undefined }
-                                                                    : { ...f, hasNote: item.value }
-                                                            )
-                                                        }
-                                                        className="sr-only"
-                                                    />
-                                                    <span
-                                                        className={`w-5 h-5 rounded-full border grid place-items-center ${checked
-                                                                ? "border-primary-60"
-                                                                : "border-[#B0B0B0] dark:border-neutral-60"
-                                                            }`}
-                                                    >
-                                                        {checked && <span className="w-2.5 h-2.5 rounded-full bg-primary-60" />}
-                                                    </span>
-                                                    <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80">
-                                                        {item.label}
-                                                    </span>
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
+                                    <BooleanFilterRadioGroup
+                                        name="hasNote"
+                                        options={NOTE_STATUS_OPTIONS}
+                                        value={form.hasNote}
+                                        onChange={(value) =>
+                                            setForm((f) =>
+                                                // 메모 없는 고객은 마지막 메모 날짜가 없으므로 기간을 함께 비운다.
+                                                value === false
+                                                    ? { ...f, hasNote: false, lastNoteDateFrom: undefined, lastNoteDateTo: undefined }
+                                                    : { ...f, hasNote: value }
+                                            )
+                                        }
+                                        className="h-[34px] mb-2"
+                                    />
                                     <div className="flex items-center gap-3">
                                         <DateRange
                                             startValue={stringToDate(form.lastNoteDateFrom)}
@@ -738,6 +719,18 @@ export default function FilterModal({
                                             disabled={form.hasNote === false}
                                         />
                                     </div>
+                                </div>
+                            )}
+                            {!isDataProvider && (
+                                <div>
+                                    <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">미팅</label>
+                                    <BooleanFilterRadioGroup
+                                        name="isInMeeting"
+                                        options={MEETING_STATUS_OPTIONS}
+                                        value={form.isInMeeting}
+                                        onChange={(value) => setForm((f) => ({ ...f, isInMeeting: value }))}
+                                        className="h-[34px]"
+                                    />
                                 </div>
                             )}
                         </div>
@@ -788,6 +781,56 @@ const NOTE_STATUS_OPTIONS: { label: string; value: boolean | undefined }[] = [
     { label: "메모 있음", value: true },
     { label: "메모 없음", value: false },
 ];
+
+const MEETING_STATUS_OPTIONS: { label: string; value: boolean | undefined }[] = [
+    { label: "전체", value: undefined },
+    { label: "미팅중", value: true },
+    { label: "미팅중 아님", value: false },
+];
+
+function BooleanFilterRadioGroup({
+    name,
+    options,
+    value,
+    onChange,
+    className,
+}: {
+    name: string;
+    options: { label: string; value: boolean | undefined }[];
+    value: boolean | undefined;
+    onChange: (value: boolean | undefined) => void;
+    className?: string;
+}) {
+    return (
+        <div className={`flex items-center gap-6 ${className ?? ""}`}>
+            {options.map((item) => {
+                const checked = value === item.value;
+                return (
+                    <label key={item.label} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="radio"
+                            name={name}
+                            checked={checked}
+                            onChange={() => onChange(item.value)}
+                            className="sr-only"
+                        />
+                        <span
+                            className={`w-5 h-5 rounded-full border grid place-items-center ${checked
+                                    ? "border-primary-60"
+                                    : "border-[#B0B0B0] dark:border-neutral-60"
+                                }`}
+                        >
+                            {checked && <span className="w-2.5 h-2.5 rounded-full bg-primary-60" />}
+                        </span>
+                        <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80">
+                            {item.label}
+                        </span>
+                    </label>
+                );
+            })}
+        </div>
+    );
+}
 
 const MEMBER_PANEL_WIDTH = 360;
 

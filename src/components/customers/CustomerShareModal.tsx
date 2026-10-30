@@ -62,6 +62,7 @@ function buildFilterConditions(
   if (typeof f.lastNoteDateTo === "string")
     conditions.lastNoteDateTo = f.lastNoteDateTo;
   if (typeof f.hasNote === "boolean") conditions.hasNote = f.hasNote;
+  if (typeof f.isInMeeting === "boolean") conditions.isInMeeting = f.isInMeeting;
 
   return Object.keys(conditions).length > 0 ? conditions : undefined;
 }
