@@ -313,10 +313,13 @@ export default function CustomersTable({
   // 모바일은 뷰포트가 좁아 동일 %로는 이름이 잘리므로 name 셀 min-w + table min-w로만 보정한다(데스크톱 %는 유지).
   // 데이터 제공자: IP 열(IP + 중복 버튼)을 위해 연락처·매체사·사이트·키워드 몫을 조금씩 덜어 쓴다.
   // IP가 길면 "…"로 줄이고 툴팁으로 전체를 보여 준다.
+  // "연락처" 열은 번호를 말줄임 없이 다 보여 줘야 해서 %가 아닌 고정 폭으로 잡는다
+  // (번호 약 102px + 중복 "+N" 버튼 + 간격 + 좌우 패딩). %면 좁은 화면에서 번호가 잘린다.
+  const contactColWidth = "200px";
   const colWidths = isDataProvider
-    ? ["5%", "6%", "14%", "13%", "12%", "8%", "8%", "7%", "8%", "16%"]
-    : ["5%", "6%", "14%", "15%", "10%", "7%", "8%", "9%", "8%", "10%", "8%"];
-  const fallbackColWidths = ["5%", "6%", "14%", "15%", "10%", "7%", "8%", "9%", "8%", "10%", "8%"];
+    ? ["5%", "6%", "14%", contactColWidth, "16%", "8%", "8%", "7%", "8%", "12%"]
+    : ["5%", "6%", "14%", contactColWidth, "10%", "7%", "8%", "9%", "8%", "10%", "8%"];
+  const fallbackColWidths = ["5%", "6%", "14%", contactColWidth, "10%", "7%", "8%", "9%", "8%", "10%", "8%"];
   // 이름 열 최소 너비(배지 포함). md~lg(태블릿) 구간은 테이블 자체가 lg:min-w-[900px]에 가깝게
   // 눌려 있어서 14% 몫만으론 배지+이름이 서로 가려진다(2026-07-23 재확인) — 이 구간만 살짝 더
   // 띄우고, lg 이상(데스크톱)은 테이블이 충분히 넓어지므로 기존처럼 %에 맡긴다.
@@ -848,10 +851,9 @@ export default function CustomersTable({
                       </td>
                       <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <TruncateWithTooltip
-                            text={formatContactForDisplay(c.contact1 || c.contact2 || "") || "-"}
-                            className="min-w-0 max-w-[12ch] md:max-w-[17ch]"
-                          />
+                          <span className="shrink-0">
+                            {formatContactForDisplay(c.contact1 || c.contact2 || "") || "-"}
+                          </span>
                           {contactDuplicateCount > 0 && (
                             <DuplicateToggleButton
                               count={contactDuplicateCount}
@@ -1095,10 +1097,7 @@ export default function CustomersTable({
                               </div>
                             </td>
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              <TruncateWithTooltip
-                                text={formatContactForDisplay(item.contact1 || item.contact2 || "") || "-"}
-                                className="min-w-0 max-w-[12ch] md:max-w-[17ch]"
-                              />
+                              {formatContactForDisplay(item.contact1 || item.contact2 || "") || "-"}
                             </td>
                             {isDataProvider && (
                               <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
