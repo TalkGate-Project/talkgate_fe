@@ -306,6 +306,14 @@ function CustomersPageContentInner() {
     window.location.assign(`/customers?${params.toString()}`);
   };
 
+  const handleFilterByIp = (ipAddress: string) => {
+    const params = new URLSearchParams();
+    params.set("page", "1");
+    params.set("limit", String(limit));
+    params.set("ipAddress", ipAddress);
+    window.location.assign(`/customers?${params.toString()}`);
+  };
+
   const handleAssign = async (targetId: number) => {
     try {
       // 상세 모달에서 연 "직원배정"인 경우: 해당 고객 1명만 배정
@@ -487,6 +495,7 @@ function CustomersPageContentInner() {
           projectId={projectId}
           onRefetch={refetch}
           onFilterByContact={handleFilterByContact}
+          onFilterByIp={handleFilterByIp}
           isDataProvider={project?.isDataProvider ?? false}
           isDataProviderReady={!isProjectLoading}
           sortType={sortType}

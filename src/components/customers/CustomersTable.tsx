@@ -37,8 +37,10 @@ type CustomersTableProps = {
   selectionMode: "page" | "all" | null;
   projectId: string;
   onRefetch: () => void;
-  /** 연락처로 필터 적용 후 페이지 새로고침 (중복 "더보기" 클릭 시) */
+  /** 연락처로 필터 적용 후 페이지 새로고침 (중복 "더보기"/"필터로 보기" 클릭 시) */
   onFilterByContact?: (contact: string) => void;
+  /** IP 주소로 필터 적용 후 페이지 새로고침 (IP 중복 "더보기"/"필터로 보기" 클릭 시, 데이터 제공자 전용) */
+  onFilterByIp?: (ipAddress: string) => void;
   /** 데이터 제공자 프로젝트 여부 (컬럼 분기용) */
   isDataProvider?: boolean;
   /** 데이터 제공자 여부가 확정되었는지 (헤더 안정화용) */
@@ -50,6 +52,58 @@ type CustomersTableProps = {
 };
 
 type SortKey = CustomerSortType;
+
+/** 중복 펼치기 기준. "ip"는 데이터 제공자 프로젝트에서만 쓴다. */
+type DuplicateKind = "contact" | "ip";
+
+const duplicateKey = (kind: DuplicateKind, customerId: number) =>
+  `${kind}-${customerId}`;
+
+function DuplicateToggleButton({
+  count,
+  isOpen,
+  label,
+  onClick,
+}: {
+  count: number;
+  isOpen: boolean;
+  label: string;
+  onClick: (e: React.MouseEvent) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="cursor-pointer inline-flex items-center justify-center h-[24px] min-w-[48px] px-1 rounded-[16px] bg-[#474747] text-white text-[14px] leading-none font-medium tracking-[-0.08em] flex-shrink-0"
+      aria-label={isOpen ? `${label} 목록 닫기` : `${label} 목록 펼치기`}
+    >
+      <span className="inline-flex items-center h-full leading-[22px]">+&nbsp;</span>
+      <span className="inline-flex items-center h-full leading-[22px] translate-y-[1px]">
+        {count}
+      </span>
+      <div className="ml-0.5 w-[16px] h-[16px] shrink-0 flex items-center justify-center">
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className={`w-full h-full transition-transform translate-y-[1px] ${
+            isOpen ? "rotate-180 !translate-y-[0.5px]" : ""
+          }`}
+        >
+          <path
+            d="M3 4.5L6 7.5L9 4.5"
+            stroke="#FFFFFF"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+    </button>
+  );
+}
 
 function SortableHeaderLabel({
   label,
@@ -193,6 +247,7 @@ export default function CustomersTable({
   projectId,
   onRefetch,
   onFilterByContact,
+  onFilterByIp,
   isDataProvider = false,
   isDataProviderReady = true,
   sortType,
@@ -211,17 +266,19 @@ export default function CustomersTable({
   const { categories } = useCustomerNoteCategories();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  // 행별로 펼쳐진 중복 기준 (연락처/IP 중 하나만 펼친다)
   const [expandedDuplicateRows, setExpandedDuplicateRows] = useState<
-    Record<number, boolean>
+    Record<number, DuplicateKind | undefined>
   >({});
+  // 아래 세 상태는 duplicateKey(kind, customerId)로 구분한다
   const [duplicateRows, setDuplicateRows] = useState<
-    Record<number, CustomerDuplicateItem[]>
+    Record<string, CustomerDuplicateItem[]>
   >({});
   const [duplicateLoadingRows, setDuplicateLoadingRows] = useState<
-    Record<number, boolean>
+    Record<string, boolean>
   >({});
   const [duplicateErrorRows, setDuplicateErrorRows] = useState<
-    Record<number, boolean>
+    Record<string, boolean>
   >({});
   
   // 현재 사용자의 멤버 정보 가져오기
@@ -233,6 +290,7 @@ export default function CustomersTable({
     ? [
         "이름",
         "연락처",
+        "IP",
         "매체사",
         "사이트",
         "신청경로",
@@ -253,8 +311,10 @@ export default function CustomersTable({
   // "이름" 열은 진단 연결 배지(예: "회생 2/9")가 붙으면 이름+배지+미배정 점을 함께 담아야 해서
   // 다른 열보다 넓게 잡는다(2026-07-14, 배지 도입 후 이름이 가려지는 문제 수정).
   // 모바일은 뷰포트가 좁아 동일 %로는 이름이 잘리므로 name 셀 min-w + table min-w로만 보정한다(데스크톱 %는 유지).
+  // 데이터 제공자: IP 열(IP + 중복 버튼)을 위해 연락처·매체사·사이트·키워드 몫을 조금씩 덜어 쓴다.
+  // IP가 길면 "…"로 줄이고 툴팁으로 전체를 보여 준다.
   const colWidths = isDataProvider
-    ? ["5%", "6%", "14%", "14%", "9%", "7%", "10%", "9%", "16%"]
+    ? ["5%", "6%", "14%", "13%", "12%", "8%", "8%", "7%", "8%", "16%"]
     : ["5%", "6%", "14%", "15%", "10%", "7%", "8%", "9%", "8%", "10%", "8%"];
   const fallbackColWidths = ["5%", "6%", "14%", "15%", "10%", "7%", "8%", "9%", "8%", "10%", "8%"];
   // 이름 열 최소 너비(배지 포함). md~lg(태블릿) 구간은 테이블 자체가 lg:min-w-[900px]에 가깝게
@@ -467,37 +527,37 @@ export default function CustomersTable({
 
   const handleToggleDuplicateRow = async (
     customerId: number,
+    kind: DuplicateKind,
     e: React.MouseEvent
   ) => {
     e.stopPropagation();
-    const isOpen = Boolean(expandedDuplicateRows[customerId]);
-    const nextOpen = !isOpen;
+    const nextOpen = expandedDuplicateRows[customerId] !== kind;
 
     setExpandedDuplicateRows((prev) => ({
       ...prev,
-      [customerId]: nextOpen,
+      [customerId]: nextOpen ? kind : undefined,
     }));
 
+    const key = duplicateKey(kind, customerId);
     if (!nextOpen) return;
-    if (duplicateRows[customerId]) return;
-    if (duplicateLoadingRows[customerId]) return;
+    if (duplicateRows[key]) return;
+    if (duplicateLoadingRows[key]) return;
 
-    setDuplicateLoadingRows((prev) => ({ ...prev, [customerId]: true }));
-    setDuplicateErrorRows((prev) => ({ ...prev, [customerId]: false }));
+    setDuplicateLoadingRows((prev) => ({ ...prev, [key]: true }));
+    setDuplicateErrorRows((prev) => ({ ...prev, [key]: false }));
 
     try {
-      const response = await CustomersService.duplicates(
-        String(customerId),
-        projectId
-      );
+      const fetchDuplicates =
+        kind === "ip" ? CustomersService.ipDuplicates : CustomersService.duplicates;
+      const response = await fetchDuplicates(String(customerId), projectId);
       const rows = (response.data?.data?.customers ?? []).filter(
         (item) => item.id !== customerId
       );
-      setDuplicateRows((prev) => ({ ...prev, [customerId]: rows }));
+      setDuplicateRows((prev) => ({ ...prev, [key]: rows }));
     } catch {
-      setDuplicateErrorRows((prev) => ({ ...prev, [customerId]: true }));
+      setDuplicateErrorRows((prev) => ({ ...prev, [key]: true }));
     } finally {
-      setDuplicateLoadingRows((prev) => ({ ...prev, [customerId]: false }));
+      setDuplicateLoadingRows((prev) => ({ ...prev, [key]: false }));
     }
   };
 
@@ -699,12 +759,16 @@ export default function CustomersTable({
               const checked =
                 selectedIds.includes(c.id) || selectionMode === "all";
               const isLastRow = index === customers.length - 1;
-              const duplicateCount = Number(c.duplicateCount ?? 0);
-              const canToggleDuplicate = duplicateCount > 0;
-              const isDuplicateOpen = Boolean(expandedDuplicateRows[c.id]);
-              const duplicateItems = duplicateRows[c.id] ?? [];
-              const duplicateLoading = Boolean(duplicateLoadingRows[c.id]);
-              const duplicateError = Boolean(duplicateErrorRows[c.id]);
+              const contactDuplicateCount = Number(c.duplicateCount ?? 0);
+              const ipDuplicateCount = isDataProvider ? Number(c.ipDuplicateCount ?? 0) : 0;
+              const openDuplicateKind = expandedDuplicateRows[c.id];
+              const isDuplicateOpen = openDuplicateKind !== undefined;
+              const duplicateCount =
+                openDuplicateKind === "ip" ? ipDuplicateCount : contactDuplicateCount;
+              const openDuplicateKey = duplicateKey(openDuplicateKind ?? "contact", c.id);
+              const duplicateItems = duplicateRows[openDuplicateKey] ?? [];
+              const duplicateLoading = Boolean(duplicateLoadingRows[openDuplicateKey]);
+              const duplicateError = Boolean(duplicateErrorRows[openDuplicateKey]);
               const rowNumber =
                 totalCount - (normalizedPage - 1) * normalizedLimit - index;
               return (
@@ -788,45 +852,34 @@ export default function CustomersTable({
                             text={formatContactForDisplay(c.contact1 || c.contact2 || "") || "-"}
                             className="min-w-0 max-w-[12ch] md:max-w-[17ch]"
                           />
-                          {canToggleDuplicate && (
-                            <button
-                              type="button"
-                              onClick={(e) => handleToggleDuplicateRow(c.id, e)}
-                              className="cursor-pointer inline-flex items-center justify-center h-[24px] min-w-[48px] px-1 rounded-[16px] bg-[#474747] text-white text-[14px] leading-none font-medium tracking-[-0.08em] flex-shrink-0"
-                              aria-label={
-                                isDuplicateOpen
-                                  ? "중복 고객 목록 닫기"
-                                  : "중복 고객 목록 펼치기"
-                              }
-                            >
-                              <span className="inline-flex items-center h-full leading-[22px]">+&nbsp;</span>
-                              <span className="inline-flex items-center h-full leading-[22px] translate-y-[1px]">
-                                {duplicateCount}
-                              </span>
-                              <div className="ml-0.5 w-[16px] h-[16px] shrink-0 flex items-center justify-center">
-                                <svg
-                                  width="12"
-                                  height="12"
-                                  viewBox="0 0 12 12"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className={`w-full h-full transition-transform translate-y-[1px] ${
-                                    isDuplicateOpen ? "rotate-180 !translate-y-[0.5px]" : ""
-                                  }`}
-                                >
-                                  <path
-                                    d="M3 4.5L6 7.5L9 4.5"
-                                    stroke="#FFFFFF"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                              </div>
-                            </button>
+                          {contactDuplicateCount > 0 && (
+                            <DuplicateToggleButton
+                              count={contactDuplicateCount}
+                              isOpen={openDuplicateKind === "contact"}
+                              label="중복 고객"
+                              onClick={(e) => handleToggleDuplicateRow(c.id, "contact", e)}
+                            />
                           )}
                         </div>
                       </td>
+                      {isDataProvider && (
+                        <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <TruncateWithTooltip
+                              text={c.ipAddress || "-"}
+                              className="min-w-0"
+                            />
+                            {ipDuplicateCount > 0 && (
+                              <DuplicateToggleButton
+                                count={ipDuplicateCount}
+                                isOpen={openDuplicateKind === "ip"}
+                                label="IP 중복 고객"
+                                onClick={(e) => handleToggleDuplicateRow(c.id, "ip", e)}
+                              />
+                            )}
+                          </div>
+                        </td>
+                      )}
                       <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                         <TruncateWithTooltip
                           text={c.mediaCompany || "-"}
@@ -987,9 +1040,8 @@ export default function CustomersTable({
                             className={`cursor-pointer bg-[#F8F8F8] dark:bg-neutral-20 ${
                               hoveredId === item.id ? "md:bg-neutral-10 dark:md:bg-neutral-10 " : ""
                             }${
-                              itemIndex === duplicateItems.length - 1 && duplicateCount <= 5
-                                ? "border-b border-[#E2E2E2] dark:border-[#44444455]"
-                                : itemIndex < duplicateItems.length - 1
+                              // 마지막 행 아래는 필터 이동 버튼 행이 항상 오므로 구분선을 그 행에 맡긴다
+                              itemIndex < duplicateItems.length - 1
                                 ? "border-b border-[#E2E2E2] dark:border-[#44444455]"
                                 : ""
                             }`}
@@ -1048,6 +1100,11 @@ export default function CustomersTable({
                                 className="min-w-0 max-w-[12ch] md:max-w-[17ch]"
                               />
                             </td>
+                            {isDataProvider && (
+                              <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                                <TruncateWithTooltip text={item.ipAddress || "-"} className="min-w-0" />
+                              </td>
+                            )}
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                               <TruncateWithTooltip
                                 text={item.mediaCompany || "-"}
@@ -1119,7 +1176,8 @@ export default function CustomersTable({
                             )}
                           </tr>
                           ))}
-                          {duplicateCount > 5 && (
+                          {/* 중복 개수와 관계없이 항상 노출: 펼친 목록에 다 보이면(5건 이하) "필터로 보기",
+                              잘려 있으면 "더보기". 필터 상태에서 일괄 작업을 하려는 경우에도 쓴다. */}
                             <tr
                               key={`${c.id}-duplicate-more`}
                               className="bg-[#F8F8F8] dark:bg-neutral-20 border-b border-[#E2E2E2] dark:border-[#44444455]"
@@ -1133,23 +1191,36 @@ export default function CustomersTable({
                                     type="button"
                                     onClick={(e) => {
                                       e.stopPropagation();
+                                      if (openDuplicateKind === "ip") {
+                                        if (c.ipAddress && onFilterByIp) onFilterByIp(c.ipAddress);
+                                        return;
+                                      }
                                       const contact = c.contact1 || c.contact2 || "";
                                       if (contact && onFilterByContact) onFilterByContact(contact);
                                     }}
-                                    style={{ width: 80, height: 28 }}
-                                    className="flex justify-center items-center shrink-0 bg-white dark:bg-neutral-10 border border-[#E2E2E2] dark:border-neutral-30 rounded-[5px] text-[#808080] dark:text-neutral-60 font-semibold text-[14px] leading-none tracking-[-0.02em] cursor-pointer hover:opacity-90 transition-opacity whitespace-nowrap"
-                                    aria-label="연락처로 필터 적용하여 전체 보기"
+                                    style={{ minWidth: 80, height: 28 }}
+                                    className="flex justify-center items-center shrink-0 px-2 bg-white dark:bg-neutral-10 border border-[#E2E2E2] dark:border-neutral-30 rounded-[5px] text-[#808080] dark:text-neutral-60 font-semibold text-[14px] leading-none tracking-[-0.02em] cursor-pointer hover:opacity-90 transition-opacity whitespace-nowrap"
+                                    aria-label={
+                                      openDuplicateKind === "ip"
+                                        ? "IP 주소로 필터 적용하여 전체 보기"
+                                        : "연락처로 필터 적용하여 전체 보기"
+                                    }
                                   >
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" aria-hidden>
-                                      <path d="M8 3.33331V12.6666M3.33331 8H12.6666" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                    <span className="shrink-0 ml-1 leading-none translate-y-[1px]">더보기</span>
+                                    {duplicateCount > 5 ? (
+                                      <>
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" aria-hidden>
+                                          <path d="M8 3.33331V12.6666M3.33331 8H12.6666" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                        <span className="shrink-0 ml-1 leading-none translate-y-[1px]">더보기</span>
+                                      </>
+                                    ) : (
+                                      <span className="shrink-0 leading-none translate-y-[1px]">필터로 보기</span>
+                                    )}
                                   </button>
                                 </div>
                                 </div>
                               </td>
                             </tr>
-                          )}
                         </>
                       ))
                     }

@@ -54,6 +54,9 @@ export type CustomerListItem = {
   createdAt: string;
   recentNotes: RecentNote[];
   duplicateCount?: number;
+  ipAddress?: string | null;
+  /** IP 주소가 같은 다른 고객 수 (데이터 제공자 프로젝트용) */
+  ipDuplicateCount?: number;
   /** 한 번도 파트너에 배정되지 않은 경우 true (데이터 제공자 프로젝트용) */
   isPartnerUnassigned?: boolean;
   meeting?: CustomerMeeting | null;

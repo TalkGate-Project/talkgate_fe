@@ -168,6 +168,12 @@ export const CustomersService = {
       headers: { "x-project-id": projectId },
     });
   },
+  // 고객 IP 중복 데이터 목록 조회 (IP 주소 동일한 고객 목록, 데이터 제공자 프로젝트 전용)
+  ipDuplicates(customerId: string, projectId: string) {
+    return apiClient.get<CustomerDuplicatesResponse>(`/v1/customers/${customerId}/ip-duplicates`, {
+      headers: { "x-project-id": projectId },
+    });
+  },
   // 고객 상세 조회
   detail(customerId: string) {
     // Require x-project-id header for detail, align with Swagger
