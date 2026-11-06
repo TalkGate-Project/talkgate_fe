@@ -1,15 +1,54 @@
 import { createPortal } from "react-dom";
-import { useState } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { useAnchoredPanel } from "@/hooks/useAnchoredPanel";
 import type { CustomerTableColumnsState } from "@/hooks/useCustomerTableColumns";
 import type { CustomerColumnKey } from "./customerTableColumns";
 import Checkbox from "@/components/common/Checkbox";
 
-const PANEL_WIDTH = 260;
+const PANEL_WIDTH = 300;
 
 type CustomerColumnSettingsMenuProps = {
   columnsState: CustomerTableColumnsState;
 };
+
+// 로그아웃 시 지워지는 `tg_` 접두어를 피해, 한 번 확인한 브라우저에서는 다시 띄우지 않는다.
+const HINT_DISMISSED_STORAGE_KEY = "talkgate-customer-column-settings-hint-dismissed";
+const HINT_DISMISSED_EVENT = "talkgate:customer-column-settings-hint-dismissed";
+
+function readHintDismissed(): boolean {
+  try {
+    return window.localStorage.getItem(HINT_DISMISSED_STORAGE_KEY) === "true";
+  } catch {
+    return true;
+  }
+}
+
+function subscribeHintDismissed(onChange: () => void) {
+  window.addEventListener(HINT_DISMISSED_EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(HINT_DISMISSED_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+/**
+ * 컬럼 설정 버튼 1회성 안내. 모바일·데스크톱 툴바에 메뉴가 하나씩 있어 한쪽에서 닫으면
+ * 다른 쪽도 함께 사라지도록 localStorage + 커스텀 이벤트로 상태를 공유한다.
+ * 서버 렌더에서는 숨긴 상태로 시작해 깜빡임 없이 클라이언트에서만 띄운다.
+ */
+function useColumnSettingsHint() {
+  const dismissed = useSyncExternalStore(subscribeHintDismissed, readHintDismissed, () => true);
+  const dismiss = useCallback(() => {
+    try {
+      window.localStorage.setItem(HINT_DISMISSED_STORAGE_KEY, "true");
+    } catch {
+      // 저장이 막힌 환경이면 이번 페이지에서만 닫힌다
+    }
+    window.dispatchEvent(new Event(HINT_DISMISSED_EVENT));
+  }, []);
+  return { showHint: !dismissed, dismissHint: dismiss };
+}
 
 function moveKey(order: CustomerColumnKey[], key: CustomerColumnKey, targetIndex: number) {
   const next = order.filter((item) => item !== key);
@@ -47,6 +86,7 @@ function ArrowButton({
 export default function CustomerColumnSettingsMenu({ columnsState }: CustomerColumnSettingsMenuProps) {
   const { orderedColumns, hiddenKeys, setColumnOrder, setColumnVisible, resetColumnSettings } = columnsState;
   const [open, setOpen] = useState(false);
+  const { showHint, dismissHint } = useColumnSettingsHint();
   const [draggingKey, setDraggingKey] = useState<CustomerColumnKey | null>(null);
   const { rootRef, anchorRef, panelRef, panelPos } = useAnchoredPanel<HTMLButtonElement>({
     open,
@@ -70,7 +110,10 @@ export default function CustomerColumnSettingsMenu({ columnsState }: CustomerCol
       <button
         ref={anchorRef}
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => {
+          if (showHint) dismissHint();
+          setOpen((prev) => !prev);
+        }}
         className="cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
         aria-label="컬럼 설정"
         aria-haspopup="dialog"
@@ -80,7 +123,30 @@ export default function CustomerColumnSettingsMenu({ columnsState }: CustomerCol
           <path d="M4 5H20M4 5V19M4 5H9.33M20 5V19M20 5H14.67M20 19H4M20 19H14.67M4 19H9.33M9.33 5V19M9.33 5H14.67M9.33 19H14.67M14.67 5V19" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
-      {!open && (
+      {showHint && !open && (
+        <div
+          role="status"
+          className="absolute top-full -right-2 mt-3 z-40 w-max animate-column-settings-hint"
+        >
+          <span
+            className="absolute -top-[5px] right-[15px] w-[10px] h-[10px] rotate-45 rounded-[2px] bg-neutral-90"
+            aria-hidden
+          />
+          <div className="relative flex items-center gap-3 rounded-[8px] bg-neutral-90 pl-3 pr-2 py-2 shadow-lg">
+            <span className="text-[13px] leading-[18px] text-neutral-0 whitespace-nowrap">
+              컬럼 너비·표시 항목·순서를 바꿀 수 있어요
+            </span>
+            <button
+              type="button"
+              onClick={dismissHint}
+              className="cursor-pointer shrink-0 h-[26px] px-2.5 rounded-[5px] bg-neutral-0/15 text-[12px] font-semibold text-neutral-0 hover:bg-neutral-0/25 transition-colors"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
+      {!open && !showHint && (
         <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-10 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="rounded-[8px] bg-card border border-border px-3 py-2 text-[12px] text-foreground shadow-lg whitespace-nowrap">
             컬럼 설정
@@ -100,7 +166,7 @@ export default function CustomerColumnSettingsMenu({ columnsState }: CustomerCol
           >
             <div className="px-4 pt-3 pb-2">
               <div className="text-[14px] font-semibold text-neutral-90">컬럼 설정</div>
-              <div className="mt-0.5 text-[12px] text-neutral-60">표시할 항목을 선택하고 순서를 바꿀 수 있어요.</div>
+              <div className="mt-0.5 text-[12px] text-neutral-60 whitespace-nowrap">표시할 항목을 선택하고 순서를 바꿀 수 있어요.</div>
             </div>
             <ul className="max-h-[360px] overflow-y-auto py-1 border-t border-neutral-30">
               {orderedColumns.map((column, index) => {
@@ -158,9 +224,10 @@ export default function CustomerColumnSettingsMenu({ columnsState }: CustomerCol
               })}
             </ul>
             <div className="px-4 py-2.5 border-t border-neutral-30 flex items-center justify-between gap-2">
-              <span className="text-[11px] text-neutral-50 leading-[14px]">
-                너비는 헤더 경계를 드래그해 조정해요.
-              </span>
+              <div className="flex flex-col gap-0.5 text-[11px] text-neutral-50 leading-[14px] whitespace-nowrap">
+                <span>너비는 헤더 경계를 드래그해 조정해요.</span>
+                <span>경계를 더블클릭하면 기본 너비로 돌아가요.</span>
+              </div>
               <button
                 type="button"
                 onClick={resetColumnSettings}

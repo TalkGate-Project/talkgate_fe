@@ -900,6 +900,29 @@ svg path:focus {
   animation: payment-nudge-in 0.28s ease-out;
 }
 
+/* 고객목록 컬럼 설정 1회성 안내 말풍선: 등장 후 위아래로 살짝 떠 있는다 */
+@keyframes column-settings-hint-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+@utility animate-column-settings-hint {
+  animation:
+    payment-nudge-in 0.28s ease-out,
+    column-settings-hint-float 1.8s ease-in-out 0.28s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-column-settings-hint {
+    animation: none;
+  }
+}
+
 /* 분석 상세: 현재 진행 단계 원이 천천히 밝아지며 퍼지는 glow */
 @keyframes delivery-latest-glow {
   0%,
