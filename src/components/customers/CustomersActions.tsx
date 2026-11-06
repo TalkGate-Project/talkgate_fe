@@ -37,6 +37,8 @@ export type CustomersActionsProps = {
   showExcelUploadButton?: boolean;
   /** admin/subAdmin일 때만 엑셀 다운로드 버튼 표시 */
   showExcelDownloadButton?: boolean;
+  /** 컬럼 설정 메뉴 (목록 개수 버튼 옆에 노출) */
+  columnSettingsSlot?: React.ReactNode;
 };
 
 function LocalIconTooltip({
@@ -123,6 +125,7 @@ export default function CustomersActions({
   showDeleteButton = true,
   showExcelUploadButton = true,
   showExcelDownloadButton = true,
+  columnSettingsSlot,
 }: CustomersActionsProps) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [excelUploadModalOpen, setExcelUploadModalOpen] = useState(false);
@@ -523,6 +526,7 @@ export default function CustomersActions({
                 </button>
               </LocalIconTooltip>
             )}
+            {columnSettingsSlot}
             <div className="relative h-6" ref={mobileLimitPopoverRef}>
               <LocalIconTooltip label="목록 개수">
                 <button
@@ -708,6 +712,7 @@ export default function CustomersActions({
               </button>
             </LocalIconTooltip>
           )}
+          {columnSettingsSlot}
           <div className="relative h-6" ref={desktopLimitPopoverRef}>
             <LocalIconTooltip label="목록 개수">
               <button

@@ -26,6 +26,10 @@ import { useMyMember } from "@/hooks/useMyMember";
 import { useMembersTreeWithoutParent, useTeams } from "@/hooks/useMembersTree";
 import type { MemberTreeNode } from "@/types/membersTree";
 import { sanitizeContactFilterInput } from "@/utils/format";
+import { useMe } from "@/hooks/useMe";
+import { useCustomerTableColumns } from "@/hooks/useCustomerTableColumns";
+import CustomerColumnSettingsMenu from "@/components/customers/CustomerColumnSettingsMenu";
+import { SORT_TYPE_COLUMN } from "@/components/customers/customerTableColumns";
 
 function buildAssignmentFilterConditions(
   appliedFilters: Record<string, unknown>
@@ -197,6 +201,20 @@ function CustomersPageContentInner() {
 
   const { project, isLoading: isProjectLoading } = useCurrentProjectDetail();
   const { isAdminOrSubAdmin, role } = useMyMember(projectId);
+  const { user: me, loading: isMeLoading } = useMe();
+  const isDataProvider = project?.isDataProvider ?? false;
+  const columnsState = useCustomerTableColumns({
+    variant: isDataProvider ? "dataProvider" : "general",
+    userId: me?.id,
+    enabled: !isProjectLoading && !isMeLoading,
+  });
+  const { isReady: isColumnsReady, hiddenKeys: hiddenColumnKeys } = columnsState;
+
+  // 정렬 기준 열을 숨기면 화면에서 정렬 기준이 안 보이게 되므로 기본 정렬로 되돌린다.
+  useEffect(() => {
+    if (!isColumnsReady || !sortType) return;
+    if (hiddenColumnKeys.includes(SORT_TYPE_COLUMN[sortType])) setSort(null);
+  }, [isColumnsReady, hiddenColumnKeys, sortType, setSort]);
   const canAssignCustomer =
     role === "admin" || role === "subAdmin" || role === "leader";
 
@@ -473,6 +491,7 @@ function CustomersPageContentInner() {
             showDeleteButton={isAdminOrSubAdmin}
             showExcelUploadButton={isAdminOrSubAdmin}
             showExcelDownloadButton={isAdminOrSubAdmin}
+            columnSettingsSlot={<CustomerColumnSettingsMenu columnsState={columnsState} />}
           />
         }
         headerClassName="px-6 md:px-7 py-4 md:py-6"
@@ -502,6 +521,7 @@ function CustomersPageContentInner() {
           sortOrder={sortOrder}
           onToggleSort={toggleSort}
           onSetSort={setSort}
+          columnsState={columnsState}
         />
         </div>
         <CustomersPagination

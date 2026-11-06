@@ -1,4 +1,4 @@
-import { Fragment, useState, useRef, useEffect } from "react";
+import { Fragment, useState, useRef, useEffect, useLayoutEffect } from "react";
 import {
   CustomerDuplicateItem,
   CustomerListItem,
@@ -21,6 +21,15 @@ import ApplicationTimeSortMenu from "./ApplicationTimeSortMenu";
 import type { CustomerSortType } from "@/hooks/useCustomersFilters";
 import { useHorizontalDragScroll } from "@/hooks/useHorizontalDragScroll";
 import { getBodyZoom } from "@/utils/zoom";
+import type { CustomerTableColumnsState } from "@/hooks/useCustomerTableColumns";
+import {
+  CHECKBOX_COLUMN_WIDTH,
+  clampColumnWidth,
+  fitColumnWidths,
+  resizeColumnWithinFit,
+  type CustomerColumnDefinition,
+  type CustomerColumnKey,
+} from "./customerTableColumns";
 
 type CustomersTableProps = {
   customers: CustomerListItem[];
@@ -49,6 +58,8 @@ type CustomersTableProps = {
   sortOrder?: "ASC" | "DESC";
   onToggleSort?: (column: SortKey) => void;
   onSetSort?: (column: SortKey | null, order?: "ASC" | "DESC") => void;
+  /** 열 순서·표시 여부·너비 설정 (useCustomerTableColumns) */
+  columnsState: CustomerTableColumnsState;
 };
 
 type SortKey = CustomerSortType;
@@ -148,17 +159,22 @@ function ApplicationTimeCell({
   sortType?: SortKey;
 }) {
   const applicationTime = formatDateTime(customer.applicationDate || customer.createdAt);
-  if (!showLastNote) return <>{applicationTime}</>;
+  if (!showLastNote) return <TruncateWithTooltip text={applicationTime} className="min-w-0" />;
 
   // recentNotes는 BE에서 작성시간 내림차순으로 내려온다.
   const lastNoteAt = customer.recentNotes?.[0]?.createdAt;
   // 최근메모 기준으로 정렬 중이면 메모 줄을 본문 색으로 올리고 신청시간 줄을 낮춘다.
   const isLastNoteSort = sortType === "lastNoteDate";
   return (
-    <div className="flex flex-col leading-[16px]">
-      <span className={isLastNoteSort ? "text-neutral-60" : undefined}>{applicationTime}</span>
+    <div className="flex flex-col min-w-0 leading-[16px]">
       <span
-        className={`text-[12px] ${isLastNoteSort ? "text-neutral-90 font-semibold" : "text-neutral-60"}`}
+        className={`block truncate ${isLastNoteSort ? "text-neutral-60" : ""}`}
+        title={applicationTime}
+      >
+        {applicationTime}
+      </span>
+      <span
+        className={`block truncate text-[12px] ${isLastNoteSort ? "text-neutral-90 font-semibold" : "text-neutral-60"}`}
         title={lastNoteAt ? `최근메모 ${formatDateTime(lastNoteAt)}` : undefined}
       >
         {lastNoteAt ? `메모 ${formatRelativeTime(lastNoteAt)}` : "메모 없음"}
@@ -254,6 +270,7 @@ export default function CustomersTable({
   sortOrder,
   onToggleSort,
   onSetSort,
+  columnsState,
 }: CustomersTableProps) {
   const [hoverInfo, setHoverInfo] = useState<{
     name: string;
@@ -286,57 +303,347 @@ export default function CustomersTable({
   const myMemberId = myMember?.id;
   const normalizedPage = Math.max(1, page);
   const normalizedLimit = Math.max(1, limit);
-  const tableHeaders = isDataProvider
-    ? [
-        "이름",
-        "연락처",
-        "IP",
-        "매체사",
-        "사이트",
-        "신청경로",
-        "키워드",
-        "신청시간",
-      ]
-    : [
-        "이름",
-        "연락처",
-        "매체사",
-        "사이트",
-        "신청경로",
-        "카테고리",
-        "담당자",
-        "신청시간",
-        "전체확인",
-      ];
-  // "이름" 열은 진단 연결 배지(예: "회생 2/9")가 붙으면 이름+배지+미배정 점을 함께 담아야 해서
-  // 다른 열보다 넓게 잡는다(2026-07-14, 배지 도입 후 이름이 가려지는 문제 수정).
-  // 모바일은 뷰포트가 좁아 동일 %로는 이름이 잘리므로 name 셀 min-w + table min-w로만 보정한다(데스크톱 %는 유지).
-  // 데이터 제공자: IP 열(IP + 중복 버튼)을 위해 연락처·매체사·사이트·키워드 몫을 조금씩 덜어 쓴다.
-  // IP가 길면 "…"로 줄이고 툴팁으로 전체를 보여 준다.
-  // 비데이터제공자: 담당자 이름(예: "강동일(프)")이 말줄임 없이 보이도록 매체사·사이트·신청경로 몫을 덜어 담당자 열을 넓힌다.
-  // "연락처" 열은 번호를 말줄임 없이 다 보여 줘야 해서 %가 아닌 고정 폭으로 잡는다
-  // (번호 약 102px + 중복 "+N" 버튼 + 간격 + 좌우 패딩). %면 좁은 화면에서 번호가 잘린다.
-  const contactColWidth = "200px";
-  const colWidths = isDataProvider
-    ? ["5%", "6%", "14%", contactColWidth, "16%", "8%", "8%", "7%", "8%", "12%"]
-    : ["5%", "6%", "14%", contactColWidth, "6%", "6%", "6%", "9%", "15%", "10%", "8%"];
-  const fallbackColWidths = ["5%", "6%", "14%", contactColWidth, "6%", "6%", "6%", "9%", "15%", "10%", "8%"];
-  // 이름 열 최소 너비(배지 포함). md~lg(태블릿) 구간은 테이블 자체가 lg:min-w-[900px]에 가깝게
-  // 눌려 있어서 14% 몫만으론 배지+이름이 서로 가려진다(2026-07-23 재확인) — 이 구간만 살짝 더
-  // 띄우고, lg 이상(데스크톱)은 테이블이 충분히 넓어지므로 기존처럼 %에 맡긴다.
-  // (2026-07-23: 처음 220px/1080px로 넓혔더니 과했다는 피드백 받고 205px/1000px로 축소)
-  const nameColMinClass = "min-w-[180px] md:min-w-[205px] lg:min-w-0";
-  const tableMinWidthClass = "min-w-[980px] md:min-w-[1000px] lg:min-w-[900px]";
+  const {
+    visibleColumns,
+    widths: storedColumnWidths,
+    isReady: isColumnsReady,
+    setColumnWidths,
+    resetColumnWidth,
+  } = columnsState;
+  const baseColumnWidths = visibleColumns.map(
+    (column) => storedColumnWidths?.[column.key] ?? column.defaultWidth
+  );
+  const tableAreaRef = useRef<HTMLDivElement | null>(null);
+  // 표가 쓸 수 있는 폭(레이아웃 px). clientWidth는 zoom이 곱해지기 전 값이라 열 너비와 같은 단위다.
+  const [availableTableWidth, setAvailableTableWidth] = useState(0);
+  useLayoutEffect(() => {
+    const element = tableAreaRef.current;
+    if (!element) return;
+    const measure = () => setAvailableTableWidth(element.clientWidth);
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(element);
+    return () => resizeObserver.disconnect();
+  }, []);
+  const displayColumnWidths = fitColumnWidths(baseColumnWidths, availableTableWidth);
+  const tableWidth =
+    CHECKBOX_COLUMN_WIDTH +
+    displayColumnWidths.reduce((sum, width) => sum + width, 0);
+  const tableStyle: React.CSSProperties =
+    availableTableWidth > 0 ? { width: tableWidth } : { width: "100%", minWidth: tableWidth };
+  const tableRef = useRef<HTMLTableElement | null>(null);
+  const columnElementRefs = useRef<Partial<Record<CustomerColumnKey, HTMLTableColElement | null>>>({});
+  const [resizingColumnKey, setResizingColumnKey] = useState<CustomerColumnKey | null>(null);
   // 태블릿(md~lg)에서만 드래그로 가로 스크롤 — 모바일은 터치 스와이프가 이미 되고,
   // 데스크톱(lg+)은 보통 표가 잘리지 않아 굳이 붙일 이유가 없다.
   const { containerRef: dragScrollRef, dragScrollHandlers } = useHorizontalDragScroll<HTMLDivElement>({
     widthRange: { min: 780, max: 1080 },
   });
-  const skeletonColWidths = isDataProviderReady ? colWidths : fallbackColWidths;
-  const totalColumns = colWidths.length;
-  const skeletonTotalColumns = skeletonColWidths.length;
-  const detailColSpan = totalColumns - 2;
-  const shouldRenderSkeleton = !isDataProviderReady || loading;
+  const totalColumns = visibleColumns.length + 1;
+  const detailColSpan = visibleColumns.length;
+  const shouldRenderSkeleton = !isDataProviderReady || !isColumnsReady || loading;
+
+  /**
+   * 헤더 경계 드래그로 열 너비를 바꾼다. 표가 화면보다 좁아지지 않도록 줄인 만큼은 다른 열이 채운다
+   * (resizeColumnWithinFit). 드래그 중에는 리렌더 없이 <col>/<table> 스타일만 직접 바꾸고
+   * 손을 뗄 때 보이던 너비 전체를 한 번 저장한다(행이 많을 때 매 pointermove 리렌더는 버벅인다).
+   * 좌표는 docs/ZOOM_SUBPIXEL_PLAYBOOK.md §4-4 규칙대로 화면 px를 zoom으로 나눠 레이아웃 px로 맞춘다.
+   */
+  const handleResizeStart = (event: React.PointerEvent, column: CustomerColumnDefinition) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+
+    const zoom = getBodyZoom();
+    const columnIndex = visibleColumns.findIndex((item) => item.key === column.key);
+    if (columnIndex < 0) return;
+    const startWidths = [...displayColumnWidths];
+    const availableWidth = tableAreaRef.current?.clientWidth ?? availableTableWidth;
+    const startX = event.clientX;
+    let latestWidths = startWidths;
+
+    const applyWidths = (widths: number[]) => {
+      visibleColumns.forEach((item, index) => {
+        const columnElement = columnElementRefs.current[item.key];
+        if (columnElement) columnElement.style.width = `${widths[index]}px`;
+      });
+      if (tableRef.current) {
+        const total = widths.reduce((sum, width) => sum + width, 0);
+        tableRef.current.style.width = `${CHECKBOX_COLUMN_WIDTH + total}px`;
+        tableRef.current.style.minWidth = "";
+      }
+    };
+
+    const handlePointerMove = (moveEvent: PointerEvent) => {
+      const targetWidth = clampColumnWidth(
+        column,
+        startWidths[columnIndex] + (moveEvent.clientX - startX) / zoom
+      );
+      latestWidths = resizeColumnWithinFit(startWidths, columnIndex, targetWidth, availableWidth);
+      applyWidths(latestWidths);
+    };
+    const handlePointerUp = () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      setResizingColumnKey(null);
+      const nextWidths: Partial<Record<CustomerColumnKey, number>> = {};
+      visibleColumns.forEach((item, index) => {
+        nextWidths[item.key] = latestWidths[index];
+      });
+      setColumnWidths(nextWidths);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerUp);
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    setResizingColumnKey(column.key);
+  };
+
+  const renderColumnGroup = () => (
+    <colgroup>
+      <col style={{ width: CHECKBOX_COLUMN_WIDTH }} />
+      {visibleColumns.map((column, index) => (
+        <col
+          key={column.key}
+          ref={(element) => {
+            columnElementRefs.current[column.key] = element;
+          }}
+          style={{ width: displayColumnWidths[index] }}
+        />
+      ))}
+    </colgroup>
+  );
+
+  const renderResizeHandle = (column: CustomerColumnDefinition) => (
+    <span
+      role="separator"
+      aria-orientation="vertical"
+      aria-label={`${column.label} 너비 조정`}
+      title="드래그해 너비 조정 · 더블클릭으로 기본 너비"
+      className="hidden md:flex absolute top-0 right-0 h-full w-[10px] z-10 cursor-col-resize justify-end group/resize"
+      onPointerDown={(event) => handleResizeStart(event, column)}
+      onMouseDown={(event) => event.stopPropagation()}
+      onClick={(event) => event.stopPropagation()}
+      onDoubleClick={(event) => {
+        event.stopPropagation();
+        resetColumnWidth(column.key);
+      }}
+    >
+      <span
+        className={`self-center h-[18px] w-[2px] rounded-full transition-colors ${
+          resizingColumnKey === column.key
+            ? "bg-neutral-60"
+            : "bg-neutral-30 group-hover/resize:bg-neutral-60"
+        }`}
+      />
+    </span>
+  );
+
+  const renderHeaderLabel = (column: CustomerColumnDefinition) => {
+    // 번호 열은 기존처럼 헤더를 비워 둔다(설정 메뉴에서만 "번호"로 보인다)
+    if (column.key === "rowNumber") return null;
+    if (isDataProvider) return column.label;
+    if (column.key === "category" || column.key === "assignedMember") {
+      return (
+        <SortableHeaderLabel
+          label={column.label}
+          sortKey={column.key}
+          sortType={sortType}
+          sortOrder={sortOrder}
+          onToggleSort={onToggleSort}
+        />
+      );
+    }
+    if (column.key === "applicationTime") {
+      return (
+        <ApplicationTimeSortMenu sortType={sortType} sortOrder={sortOrder} onSetSort={onSetSort} />
+      );
+    }
+    return column.label;
+  };
+
+  const renderCategoryBadge = (categoryId: number | null) => {
+    if (categoryId === null) return <span className="opacity-80">-</span>;
+    const category = categories.find((cat) => cat.id === categoryId);
+    const categoryName = category?.name || "알 수 없음";
+    const badgeStyle = getBadgeStyle(categoryName, categoryId, category?.colorCode);
+    return (
+      <span
+        className="inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium"
+        style={badgeStyle}
+      >
+        <TruncateWithTooltip
+          text={categoryName}
+          className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap"
+        />
+      </span>
+    );
+  };
+
+  /** 본 행과 펼친 중복 행이 같은 열 정의로 셀을 그린다. 중복 행에는 중복 펼치기·확인 같은 동작을 두지 않는다 */
+  const renderCell = (
+    key: CustomerColumnKey,
+    customer: CustomerListItem,
+    options: { isDuplicateRow: boolean; openDuplicateKind?: DuplicateKind; rowNumber?: number }
+  ) => {
+    const { isDuplicateRow, openDuplicateKind, rowNumber } = options;
+    const rowHeightClass = isDuplicateRow ? "h-[44px]" : "h-[48px]";
+    const textCellClass = `table-cell px-2 md:px-4 ${rowHeightClass} align-middle text-neutral-90 opacity-80 whitespace-nowrap`;
+
+    switch (key) {
+      case "rowNumber":
+        return (
+          <td
+            key={key}
+            className={`table-cell px-2 md:px-4 ${rowHeightClass} align-middle text-center text-neutral-70 whitespace-nowrap overflow-hidden text-ellipsis`}
+          >
+            {isDuplicateRow ? null : rowNumber !== undefined && rowNumber > 0 ? rowNumber : "-"}
+          </td>
+        );
+      case "name":
+        return (
+          <td key={key} className={textCellClass}>
+            <div className="flex items-center gap-2 h-full min-w-0 overflow-hidden">
+              <span className="block min-w-0 shrink truncate leading-[17px]">
+                {customer.name || "-"}
+              </span>
+              <CustomerMeetingBadge meeting={customer.meeting} />
+              <CustomerProcedureBadge
+                isAnalysisConnected={customer.isAnalysisConnected}
+                trackingProcedure={customer.trackingProcedure}
+                currentProcedureStep={customer.currentProcedureStep}
+                totalProcedureSteps={customer.totalProcedureSteps}
+              />
+              {isDataProvider && customer.isPartnerUnassigned && (
+                <span className="w-[6px] h-[6px] rounded-full flex-shrink-0 bg-[#00E272]" aria-hidden />
+              )}
+            </div>
+          </td>
+        );
+      case "contact": {
+        const contactDuplicateCount = Number(customer.duplicateCount ?? 0);
+        return (
+          <td key={key} className={textCellClass}>
+            <div className="flex items-center gap-2 min-w-0">
+              <TruncateWithTooltip
+                text={formatContactForDisplay(customer.contact1 || customer.contact2 || "") || "-"}
+                className="min-w-0"
+              />
+              {!isDuplicateRow && contactDuplicateCount > 0 && (
+                <DuplicateToggleButton
+                  count={contactDuplicateCount}
+                  isOpen={openDuplicateKind === "contact"}
+                  label="중복 고객"
+                  onClick={(e) => handleToggleDuplicateRow(customer.id, "contact", e)}
+                />
+              )}
+            </div>
+          </td>
+        );
+      }
+      case "ip": {
+        const ipDuplicateCount = Number(customer.ipDuplicateCount ?? 0);
+        return (
+          <td key={key} className={textCellClass}>
+            <div className="flex items-center gap-2 min-w-0">
+              <TruncateWithTooltip text={customer.ipAddress || "-"} className="min-w-0" />
+              {!isDuplicateRow && ipDuplicateCount > 0 && (
+                <DuplicateToggleButton
+                  count={ipDuplicateCount}
+                  isOpen={openDuplicateKind === "ip"}
+                  label="IP 중복 고객"
+                  onClick={(e) => handleToggleDuplicateRow(customer.id, "ip", e)}
+                />
+              )}
+            </div>
+          </td>
+        );
+      }
+      case "mediaCompany":
+      case "site":
+      case "applicationRoute":
+      case "keyword": {
+        const textByKey = {
+          mediaCompany: customer.mediaCompany,
+          site: customer.site,
+          applicationRoute: customer.applicationRoute,
+          keyword: getCustomerKeyword(customer),
+        };
+        return (
+          <td key={key} className={textCellClass}>
+            <TruncateWithTooltip text={textByKey[key] || "-"} className="min-w-0" />
+          </td>
+        );
+      }
+      case "category":
+        return (
+          <td
+            key={key}
+            className={`table-cell px-2 md:px-4 ${rowHeightClass} align-middle text-neutral-90 text-center whitespace-nowrap overflow-hidden`}
+          >
+            {renderCategoryBadge(customer.categoryId ?? null)}
+          </td>
+        );
+      case "assignedMember":
+        return (
+          <td key={key} className={textCellClass}>
+            <div className="flex items-center gap-2 min-w-0">
+              <TruncateWithTooltip text={customer.assignedMemberName || "-"} className="min-w-0" />
+              {!isDuplicateRow && customer.assignedMemberName && (
+                <div className="flex items-center justify-center flex-shrink-0">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM13.7071 8.70711C14.0976 8.31658 14.0976 7.68342 13.7071 7.29289C13.3166 6.90237 12.6834 6.90237 12.2929 7.29289L9 10.5858L7.70711 9.29289C7.31658 8.90237 6.68342 8.90237 6.29289 9.29289C5.90237 9.68342 5.90237 10.3166 6.29289 10.7071L8.29289 12.7071C8.68342 13.0976 9.31658 13.0976 9.70711 12.7071L13.7071 8.70711Z"
+                      fill={customer.status === "confirmed" ? "#00E272" : "#B0B0B0"}
+                    />
+                  </svg>
+                </div>
+              )}
+            </div>
+          </td>
+        );
+      case "applicationTime":
+        return (
+          <td key={key} className={textCellClass}>
+            <ApplicationTimeCell customer={customer} showLastNote={!isDataProvider} sortType={sortType} />
+          </td>
+        );
+      case "confirm": {
+        const canConfirm =
+          !isDuplicateRow &&
+          customer.status !== "confirmed" &&
+          customer.assignedMember?.id === myMemberId;
+        return (
+          <td key={key} className={`table-cell px-2 md:px-4 ${rowHeightClass} align-middle whitespace-nowrap`}>
+            <div className="flex items-center justify-center">
+              {canConfirm ? (
+                <button
+                  onClick={(e) => handleConfirmCustomer(customer.id, e)}
+                  className="cursor-pointer flex items-center justify-center relative group"
+                  aria-label="고객 확인"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 13L9 17L19 7" stroke="#00E272" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-neutral-90 text-neutral-0 text-[12px] px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                    확인
+                  </span>
+                </button>
+              ) : null}
+            </div>
+          </td>
+        );
+      }
+    }
+  };
 
   const handleMouseEnter = (
     e: React.MouseEvent,
@@ -565,39 +872,40 @@ export default function CustomersTable({
     }
   };
 
+  const headerCellBaseClass = "bg-neutral-20 table-cell typo-title-4 font-medium px-2 md:px-4 h-[40px] whitespace-nowrap";
+
+  const renderDuplicateDetailRow = (customerId: number, kind: string, content: React.ReactNode, className = "") => (
+    <tr key={`${customerId}-duplicates-${kind}`} className="bg-[#F8F8F8] dark:bg-neutral-20">
+      <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
+      <td colSpan={detailColSpan} className={`px-2 md:px-4 h-[44px] ${className}`}>
+        {content}
+      </td>
+    </tr>
+  );
+
   return (
     <>
+      <div ref={tableAreaRef} className="w-full min-w-0">
       {shouldRenderSkeleton ? (
         <div
           className="overflow-x-auto w-full min-w-0"
           style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
         >
-          <table className={`w-full ${tableMinWidthClass} text-left border-separate border-spacing-0 table-fixed`}>
-            <colgroup>
-              {skeletonColWidths.map((width, idx) => (
-                <col
-                  key={`skeleton-col-${idx}`}
-                  style={{ width }}
-                  className={idx === 2 ? nameColMinClass : undefined}
-                />
-              ))}
-            </colgroup>
+          <table className="text-left border-separate border-spacing-0 table-fixed" style={tableStyle}>
+            {renderColumnGroup()}
             <thead>
               <tr className="text-neutral-60">
                 <th className="bg-neutral-20 px-2 md:px-6 h-[40px] align-middle rounded-l-[8px] md:rounded-l-[12px] whitespace-nowrap">
                   <div className="w-6 h-6 bg-neutral-30 rounded animate-pulse mx-auto md:mx-0" />
                 </th>
-                <th className="bg-neutral-20 px-2 md:px-4 h-[40px] whitespace-nowrap text-center">
-                  <div className="h-3 w-6 bg-neutral-30 rounded animate-pulse mx-auto" />
-                </th>
-                {Array.from({ length: skeletonTotalColumns - 2 }).map((_, idx, arr) => (
+                {visibleColumns.map((column, idx, arr) => (
                   <th
-                    key={`skeleton-header-${idx}`}
+                    key={`skeleton-header-${column.key}`}
                     className={`bg-neutral-20 px-2 md:px-4 h-[40px] whitespace-nowrap ${
                       idx === arr.length - 1 ? "rounded-r-[8px] md:rounded-r-[12px]" : ""
                     }`}
                   >
-                    <div className="h-3 w-16 bg-neutral-30 rounded animate-pulse mx-auto" />
+                    <div className="h-3 w-16 max-w-full bg-neutral-30 rounded animate-pulse mx-auto" />
                   </th>
                 ))}
               </tr>
@@ -616,7 +924,7 @@ export default function CustomersTable({
                       <div className="w-6 h-6 bg-neutral-20 rounded" />
                     </div>
                   </td>
-                  {Array.from({ length: skeletonTotalColumns - 1 }).map((_, colIdx) => (
+                  {Array.from({ length: totalColumns - 1 }).map((_, colIdx) => (
                     <td
                       key={colIdx}
                       className="px-2 md:px-4"
@@ -637,16 +945,12 @@ export default function CustomersTable({
           style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
           {...dragScrollHandlers}
         >
-          <table className={`w-full ${tableMinWidthClass} text-left border-separate border-spacing-0 table-fixed`}>
-          <colgroup>
-            {colWidths.map((width, idx) => (
-              <col
-                key={`col-${idx}`}
-                style={{ width }}
-                className={idx === 2 ? nameColMinClass : undefined}
-              />
-            ))}
-          </colgroup>
+          <table
+            ref={tableRef}
+            className="text-left border-separate border-spacing-0 table-fixed"
+            style={tableStyle}
+          >
+          {renderColumnGroup()}
           <thead>
             <tr className="text-neutral-60">
               <th className="bg-neutral-20 px-2 md:px-6 h-[40px] align-middle rounded-l-[8px] md:rounded-l-[12px] whitespace-nowrap">
@@ -690,60 +994,25 @@ export default function CustomersTable({
                   )}
                 </div>
               </th>
-              <th className="bg-neutral-20 table-cell typo-title-4 font-medium px-2 md:px-4 h-[40px] whitespace-nowrap text-center">
-                {""}
-              </th>
               {/* PC/모바일 동일: 모든 열 (모바일은 가로 스크롤로 확인) */}
-              {tableHeaders.map((h, idx, arr) => (
-                <th
-                  key={h}
-                  colSpan={1}
-                  className={`bg-neutral-20 table-cell typo-title-4 font-medium px-2 md:px-4 h-[40px] whitespace-nowrap ${
-                    idx === arr.length - 1 ? "rounded-r-[8px] md:rounded-r-[12px]" : ""
-                  } ${h === "이름" ? nameColMinClass : ""} ${h === "카테고리" ? "text-center" : ""} ${
-                    !isDataProvider && h === "전체확인"
-                      ? "text-center font-semibold underline cursor-pointer"
-                      : ""
-                  }`}
-                  onClick={!isDataProvider && h === "전체확인" ? handleConfirmAll : undefined}
-                >
-                  {(() => {
-                    if (isDataProvider) return h;
-                    if (h === "카테고리") {
-                      return (
-                        <SortableHeaderLabel
-                          label={h}
-                          sortKey="category"
-                          sortType={sortType}
-                          sortOrder={sortOrder}
-                          onToggleSort={onToggleSort}
-                        />
-                      );
-                    }
-                    if (h === "담당자") {
-                      return (
-                        <SortableHeaderLabel
-                          label={h}
-                          sortKey="assignedMember"
-                          sortType={sortType}
-                          sortOrder={sortOrder}
-                          onToggleSort={onToggleSort}
-                        />
-                      );
-                    }
-                    if (h === "신청시간") {
-                      return (
-                        <ApplicationTimeSortMenu
-                          sortType={sortType}
-                          sortOrder={sortOrder}
-                          onSetSort={onSetSort}
-                        />
-                      );
-                    }
-                    return h;
-                  })()}
-                </th>
-              ))}
+              {visibleColumns.map((column, idx, arr) => {
+                const isConfirmAllHeader = !isDataProvider && column.key === "confirm";
+                return (
+                  <th
+                    key={column.key}
+                    colSpan={1}
+                    className={`${headerCellBaseClass} relative overflow-hidden text-ellipsis ${
+                      idx === arr.length - 1 ? "rounded-r-[8px] md:rounded-r-[12px]" : ""
+                    } ${column.key === "category" || column.key === "rowNumber" ? "text-center" : ""} ${
+                      isConfirmAllHeader ? "text-center font-semibold underline cursor-pointer" : ""
+                    }`}
+                    onClick={isConfirmAllHeader ? handleConfirmAll : undefined}
+                  >
+                    {renderHeaderLabel(column)}
+                    {renderResizeHandle(column)}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
             <tbody className="typo-body-3">
@@ -827,214 +1096,33 @@ export default function CustomersTable({
                           />
                         </div>
                       </td>
-                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-center text-neutral-70 whitespace-nowrap">
-                        {rowNumber > 0 ? rowNumber : "-"}
-                      </td>
-                      <td className={`table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap ${nameColMinClass}`}>
-                        <div className="flex items-center gap-2 h-full min-w-0 overflow-hidden">
-                          <span className="block min-w-0 shrink truncate leading-[17px]">
-                            {c.name || "-"}
-                          </span>
-                          <CustomerMeetingBadge meeting={c.meeting} />
-                          <CustomerProcedureBadge
-                            isAnalysisConnected={c.isAnalysisConnected}
-                            trackingProcedure={c.trackingProcedure}
-                            currentProcedureStep={c.currentProcedureStep}
-                            totalProcedureSteps={c.totalProcedureSteps}
-                          />
-                          {isDataProvider && c.isPartnerUnassigned && (
-                            <span
-                              className="w-[6px] h-[6px] rounded-full flex-shrink-0 bg-[#00E272]"
-                              aria-hidden
-                            />
-                          )}
-                        </div>
-                      </td>
-                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <span className="shrink-0">
-                            {formatContactForDisplay(c.contact1 || c.contact2 || "") || "-"}
-                          </span>
-                          {contactDuplicateCount > 0 && (
-                            <DuplicateToggleButton
-                              count={contactDuplicateCount}
-                              isOpen={openDuplicateKind === "contact"}
-                              label="중복 고객"
-                              onClick={(e) => handleToggleDuplicateRow(c.id, "contact", e)}
-                            />
-                          )}
-                        </div>
-                      </td>
-                      {isDataProvider && (
-                        <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <TruncateWithTooltip
-                              text={c.ipAddress || "-"}
-                              className="min-w-0"
-                            />
-                            {ipDuplicateCount > 0 && (
-                              <DuplicateToggleButton
-                                count={ipDuplicateCount}
-                                isOpen={openDuplicateKind === "ip"}
-                                label="IP 중복 고객"
-                                onClick={(e) => handleToggleDuplicateRow(c.id, "ip", e)}
-                              />
-                            )}
-                          </div>
-                        </td>
-                      )}
-                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                        <TruncateWithTooltip
-                          text={c.mediaCompany || "-"}
-                          className="max-w-[120px] md:max-w-[180px]"
-                        />
-                      </td>
-                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                        <TruncateWithTooltip
-                          text={c.site || "-"}
-                          className="max-w-[150px] md:max-w-[200px]"
-                        />
-                      </td>
-                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                        <TruncateWithTooltip
-                          text={c.applicationRoute || "-"}
-                          className="max-w-[120px] md:max-w-[180px]"
-                        />
-                      </td>
-                      {isDataProvider ? (
-                        <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                          <TruncateWithTooltip
-                            text={getCustomerKeyword(c) || "-"}
-                            className="max-w-[120px] md:max-w-[180px]"
-                          />
-                        </td>
-                      ) : (
-                        <>
-                          <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 text-center whitespace-nowrap overflow-hidden">
-                            {(() => {
-                              const categoryId = c.categoryId ?? null;
-                              if (categoryId === null) {
-                                return <span className="opacity-80">-</span>;
-                              }
-                              const category = categories.find(
-                                (cat) => cat.id === categoryId
-                              );
-                              const categoryName = category?.name || "알 수 없음";
-                              const badgeStyle = getBadgeStyle(
-                                categoryName,
-                                categoryId,
-                                category?.colorCode
-                              );
-
-                              return (
-                                <span
-                                  className="inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium"
-                                  style={badgeStyle}
-                                >
-                                  <TruncateWithTooltip
-                                    text={categoryName}
-                                    className="min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
-                                  />
-                                </span>
-                              );
-                            })()}
-                          </td>
-                          <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <TruncateWithTooltip
-                                text={c.assignedMemberName || "-"}
-                                className="min-w-0"
-                              />
-                              {c.assignedMemberName && (
-                                <div className="flex items-center justify-center flex-shrink-0">
-                                  <svg
-                                    width="20"
-                                    height="20"
-                                    viewBox="0 0 20 20"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                  >
-                                    <path
-                                      fillRule="evenodd"
-                                      clipRule="evenodd"
-                                      d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM13.7071 8.70711C14.0976 8.31658 14.0976 7.68342 13.7071 7.29289C13.3166 6.90237 12.6834 6.90237 12.2929 7.29289L9 10.5858L7.70711 9.29289C7.31658 8.90237 6.68342 8.90237 6.29289 9.29289C5.90237 9.68342 5.90237 10.3166 6.29289 10.7071L8.29289 12.7071C8.68342 13.0976 9.31658 13.0976 9.70711 12.7071L13.7071 8.70711Z"
-                                      fill={
-                                        c.status === "confirmed"
-                                          ? "#00E272"
-                                          : "#B0B0B0"
-                                      }
-                                    />
-                                  </svg>
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                        </>
-                      )}
-                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                        <ApplicationTimeCell customer={c} showLastNote={!isDataProvider} sortType={sortType} />
-                      </td>
-                      {!isDataProvider && (
-                        <td className="table-cell px-2 md:px-4 h-[48px] align-middle whitespace-nowrap">
-                          <div className="flex items-center justify-center">
-                            {c.status !== "confirmed" &&
-                            c.assignedMember?.id === myMemberId ? (
-                              <button
-                                onClick={(e) => handleConfirmCustomer(c.id, e)}
-                                className="cursor-pointer flex items-center justify-center relative group"
-                                aria-label="고객 확인"
-                              >
-                                <svg
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path
-                                    d="M5 13L9 17L19 7"
-                                    stroke="#00E272"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                                <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-neutral-90 text-neutral-0 text-[12px] px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                                  확인
-                                </span>
-                              </button>
-                            ) : null}
-                          </div>
-                        </td>
+                      {visibleColumns.map((column) =>
+                        renderCell(column.key, c, { isDuplicateRow: false, openDuplicateKind, rowNumber })
                       )}
                     </tr>
                     {isDuplicateOpen &&
                       (duplicateLoading ? (
-                        <tr key={`${c.id}-duplicates-loading`} className="bg-[#F8F8F8] dark:bg-neutral-20">
-                          <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
-                          <td className="px-2 md:px-4 h-[44px]" />
-                          <td colSpan={detailColSpan} className="px-2 md:px-4 h-[44px]">
-                            <div className="h-full w-full flex items-center justify-center">
-                              <LoadingSpinner size="sm" aria-label="중복 고객 목록 로딩 중" />
-                            </div>
-                          </td>
-                        </tr>
+                        renderDuplicateDetailRow(
+                          c.id,
+                          "loading",
+                          <div className="h-full w-full flex items-center justify-center">
+                            <LoadingSpinner size="sm" aria-label="중복 고객 목록 로딩 중" />
+                          </div>
+                        )
                       ) : duplicateError ? (
-                        <tr key={`${c.id}-duplicates-error`} className="bg-[#F8F8F8] dark:bg-neutral-20">
-                          <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
-                          <td className="px-2 md:px-4 h-[44px]" />
-                          <td colSpan={detailColSpan} className="px-2 md:px-4 h-[44px] text-[13px] text-red-500">
-                            중복 고객 목록을 불러오지 못했습니다.
-                          </td>
-                        </tr>
+                        renderDuplicateDetailRow(
+                          c.id,
+                          "error",
+                          "중복 고객 목록을 불러오지 못했습니다.",
+                          "text-[13px] text-red-500"
+                        )
                       ) : duplicateItems.length === 0 ? (
-                        <tr key={`${c.id}-duplicates-empty`} className="bg-[#F8F8F8] dark:bg-neutral-20">
-                          <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
-                          <td className="px-2 md:px-4 h-[44px]" />
-                          <td colSpan={detailColSpan} className="px-2 md:px-4 h-[44px] text-[13px] text-neutral-60">
-                            중복 고객이 없습니다.
-                          </td>
-                        </tr>
+                        renderDuplicateDetailRow(
+                          c.id,
+                          "empty",
+                          "중복 고객이 없습니다.",
+                          "text-[13px] text-neutral-60"
+                        )
                       ) : (
                         <>
                           {duplicateItems.map((item, itemIndex) => (
@@ -1074,105 +1162,10 @@ export default function CustomersTable({
                               }
                             }}
                           >
-                            {/* 체크박스/순번 열은 비워 둠 */}
+                            {/* 체크박스·번호 열은 비워 둠 */}
                             <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
-                            <td className="px-2 md:px-4 h-[44px]" />
-                            <td className={`table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap ${nameColMinClass}`}>
-                              <div className="flex items-center gap-2 h-full min-w-0 overflow-hidden">
-                                <span className="block min-w-0 shrink truncate leading-[17px]">
-                                  {item.name || "-"}
-                                </span>
-                                <CustomerMeetingBadge meeting={item.meeting} />
-                                <CustomerProcedureBadge
-                                  isAnalysisConnected={item.isAnalysisConnected}
-                                  trackingProcedure={item.trackingProcedure}
-                                  currentProcedureStep={item.currentProcedureStep}
-                                  totalProcedureSteps={item.totalProcedureSteps}
-                                />
-                                {isDataProvider && item.isPartnerUnassigned && (
-                                  <span
-                                    className="w-[6px] h-[6px] rounded-full flex-shrink-0 bg-[#00E272]"
-                                    aria-hidden
-                                  />
-                                )}
-                              </div>
-                            </td>
-                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              {formatContactForDisplay(item.contact1 || item.contact2 || "") || "-"}
-                            </td>
-                            {isDataProvider && (
-                              <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                                <TruncateWithTooltip text={item.ipAddress || "-"} className="min-w-0" />
-                              </td>
-                            )}
-                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              <TruncateWithTooltip
-                                text={item.mediaCompany || "-"}
-                                className="max-w-[120px] md:max-w-[180px]"
-                              />
-                            </td>
-                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              <TruncateWithTooltip
-                                text={item.site || "-"}
-                                className="max-w-[150px] md:max-w-[200px]"
-                              />
-                            </td>
-                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              <TruncateWithTooltip
-                                text={item.applicationRoute || "-"}
-                                className="max-w-[120px] md:max-w-[180px]"
-                              />
-                            </td>
-                            {isDataProvider ? (
-                              <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                                <TruncateWithTooltip
-                                  text={getCustomerKeyword(item) || "-"}
-                                  className="max-w-[120px] md:max-w-[180px]"
-                                />
-                              </td>
-                            ) : (
-                              <>
-                                <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 text-center whitespace-nowrap overflow-hidden">
-                                  {(() => {
-                                    const categoryId = item.categoryId ?? null;
-                                    if (categoryId === null)
-                                      return <span className="opacity-80">-</span>;
-                                    const category = categories.find(
-                                      (cat) => cat.id === categoryId
-                                    );
-                                    const categoryName = category?.name || "알 수 없음";
-                                    const badgeStyle = getBadgeStyle(
-                                      categoryName,
-                                      categoryId,
-                                      category?.colorCode
-                                    );
-
-                                    return (
-                                      <span
-                                        className="inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium"
-                                        style={badgeStyle}
-                                      >
-                                        <TruncateWithTooltip
-                                          text={categoryName}
-                                          className="min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
-                                        />
-                                      </span>
-                                    );
-                                  })()}
-                                </td>
-                                <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                                  <TruncateWithTooltip
-                                    text={item.assignedMemberName || "-"}
-                                    className="min-w-0"
-                                  />
-                                </td>
-                              </>
-                            )}
-                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              <ApplicationTimeCell customer={item} showLastNote={!isDataProvider} sortType={sortType} />
-                            </td>
-                            {!isDataProvider && (
-                              <td className="table-cell px-2 md:px-4 h-[44px] align-middle whitespace-nowrap" />
+                            {visibleColumns.map((column) =>
+                              renderCell(column.key, item, { isDuplicateRow: true })
                             )}
                           </tr>
                           ))}
@@ -1241,6 +1234,7 @@ export default function CustomersTable({
           </table>
         </div>
       )}
+      </div>
       {hoverInfo && (
         <CustomersHoverPopover
           name={hoverInfo.name}
